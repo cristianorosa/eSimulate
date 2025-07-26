@@ -1,53 +1,45 @@
 # eSimulate
 
-Sistema para simulados de questões objetivas
+Sistema completo para simulados de questões objetivas, voltado para aprendizado, concursos e provas de conhecimento.
 
-## Objetivo
-O eSimulate é um sistema para criação, realização e gerenciamento de simulados, voltado para aprendizado e preparação para concursos e provas de conhecimento. O objetivo é proporcionar uma plataforma eficiente para estudantes e concurseiros praticarem questões, acompanharem seu desempenho e evoluírem nos estudos.
+## Visão Geral
+- **Backend:** Go (Clean Architecture, PostgreSQL, JWT, testes automatizados, pipelines CI/CD)
+- **Frontend:** Angular (Material, responsivo, feedback visual, testes unitários e e2e, pipelines CI/CD)
+- **Documentação:** ARQUITETURA.md, FRONTEND.md, INSTRUCOES_DE_EXECUCAO.md
+- **Automação:** Pipelines de CI/CD para frontend e backend, lint, cobertura de testes, build
 
 ## Estrutura do Projeto
-O projeto está organizado em duas principais pastas:
+- `backend/`: API REST em Go, Clean Architecture, integração com PostgreSQL
+- `frontend/`: SPA Angular, Angular Material, integração com backend
+- `.github/workflows/`: Pipelines de CI/CD para frontend e backend
+- `ARQUITETURA.md`: Detalhes da arquitetura do sistema
+- `FRONTEND.md`: Documentação do frontend Angular
+- `INSTRUCOES_DE_EXECUCAO.md`: Passo a passo para rodar e configurar o sistema
 
-- `backend/`: Responsável pela lógica de negócio, API, banco de dados e autenticação.
-- `frontend/`: Responsável pela interface do usuário, onde os simulados são realizados e os resultados visualizados.
+## Principais Funcionalidades
+- Cadastro e autenticação de usuários (tradicional e social)
+- Cadastro, listagem e detalhamento de questões
+- Criação, execução e resultado de simulados
+- Dashboard com desempenho, histórico e gráficos
+- Feedback visual (toasts, loaders), responsividade e acessibilidade
+- Testes unitários e e2e automatizados
+- Pipelines de CI/CD, lint, cobertura e build
 
-## Backend
-- Linguagem: Go (Golang), utilizando os recursos mais atuais.
-- Arquitetura: Clean Architecture, com aplicação de Clean Code e os Design Patterns mais adequados para cada contexto.
-- Comentários no código em português, facilitando o entendimento e manutenção.
-- Banco de dados inicial: PostgreSQL (com possibilidade de alteração futura).
-- Principais funcionalidades:
-  - Cadastro de questões e suas opções de resposta, incluindo explicação do porquê das opções estarem certas ou erradas.
-  - Cadastro de usuários, login tradicional e login via conta Google e/ou Facebook.
-  - Realização de simulados por temas e subtemas (cada tema pode conter subdivisões).
-  - Histórico dos simulados realizados por cada usuário.
-  - Geração de gráficos e relatórios de desempenho para acompanhamento da evolução.
+## Como Rodar o Sistema
+Consulte o arquivo [INSTRUCOES_DE_EXECUCAO.md](./INSTRUCOES_DE_EXECUCAO.md) para o passo a passo completo de instalação, configuração e execução do sistema.
 
-## Frontend
-- Interface para realização dos simulados, visualização de resultados, gráficos e relatórios.
-- Cadastro e autenticação de usuários.
-- Navegação por temas e subtemas.
+## Como Contribuir
+- Faça um fork do repositório
+- Crie uma branch para sua feature/correção
+- Garanta que os testes e lint passam localmente
+- Envie um pull request detalhado
+- Consulte os arquivos de documentação para padrões e arquitetura
 
-## Documentação Detalhada
-- [Arquitetura do Sistema](./ARQUITETURA.md)
-
-## Como começar
-1. Clone o repositório:
-   ```bash
-   git clone https://github.com/cristianorosa/eSimulate
-   ```
-2. Acesse a pasta do projeto:
-   ```bash
-   cd eSimulate
-   ```
-3. Estrutura inicial:
-   - `backend/` e `frontend/` já criados para facilitar o desenvolvimento modular.
-
-## Próximos Passos
-- Definir frameworks e bibliotecas para backend e frontend.
-- Iniciar a implementação do backend em Go, seguindo Clean Architecture.
-- Implementar as primeiras funcionalidades: cadastro de questões, usuários e autenticação.
+## Documentação Complementar
+- [ARQUITETURA.md](./ARQUITETURA.md): Arquitetura do sistema
+- [FRONTEND.md](./frontend/FRONTEND.md): Detalhes do frontend Angular
+- [INSTRUCOES_DE_EXECUCAO.md](./INSTRUCOES_DE_EXECUCAO.md): Passo a passo para rodar o sistema
 
 ---
 
-Este README será atualizado conforme o desenvolvimento avançar e novas informações forem recebidas.
+O sistema está pronto para uso, manutenção e evolução contínua, seguindo as melhores práticas de desenvolvimento, automação e documentação.
