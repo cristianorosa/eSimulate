@@ -1,0 +1,16 @@
+<div class="questoes-container">
+  <mat-card>
+    <mat-card-title>Questões Cadastradas</mat-card-title>
+    <button mat-raised-button color="primary" style="margin-bottom: 16px;" routerLink="/questoes/new">Nova Questão</button>
+    <mat-list>
+      <mat-list-item *ngFor="let questao of questoes">
+        <div mat-line>{{ questao.statement }}</div>
+        <div mat-line class="secondary">Tema: {{ questao.theme_id }}</div>
+        <button mat-stroked-button color="accent" style="margin-left:auto;" (click)="detalharQuestao(questao.id)">Detalhar</button>
+      </mat-list-item>
+      <mat-list-item *ngIf="questoes.length === 0">
+        <div mat-line>Nenhuma questão cadastrada.</div>
+      </mat-list-item>
+    </mat-list>
+  </mat-card>
+</div>

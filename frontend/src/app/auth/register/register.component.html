@@ -1,0 +1,29 @@
+<div class="register-container">
+  <mat-card>
+    <mat-card-title>Criar conta no eSimulate</mat-card-title>
+    <form (ngSubmit)="onSubmit()" #registerForm="ngForm">
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Nome</mat-label>
+        <input matInput name="name" [(ngModel)]="name" required />
+      </mat-form-field>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" name="email" [(ngModel)]="email" required />
+      </mat-form-field>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Senha</mat-label>
+        <input matInput type="password" name="password" [(ngModel)]="password" required />
+      </mat-form-field>
+      <button mat-raised-button color="primary" class="full-width" [disabled]="loading">Cadastrar</button>
+      <div *ngIf="error" class="error">{{ error }}</div>
+      <div *ngIf="success" class="success">Cadastro realizado com sucesso! Faça login.</div>
+    </form>
+    <div class="social-login">
+      <button mat-stroked-button color="accent" disabled><mat-icon>google</mat-icon> Cadastrar com Google</button>
+      <button mat-stroked-button color="accent" disabled><mat-icon>facebook</mat-icon> Cadastrar com Facebook</button>
+    </div>
+    <div class="login-link">
+      <a routerLink="/login">Já tem conta? Entrar</a>
+    </div>
+  </mat-card>
+</div>

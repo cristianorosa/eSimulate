@@ -1,0 +1,42 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v3
+
+      - name: Instalar Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Instalar dependências
+        run: go mod tidy
+
+      - name: Análise estática (go vet)
+        run: go vet ./...
+
+      - name: Lint (golint)
+        run: |
+          go install golang.org/x/lint/golint@latest
+          golint ./...
+
+      - name: Rodar testes com cobertura
+        run: go test -coverprofile=coverage.out ./...
+
+      - name: Exibir cobertura no log
+        run: go tool cover -func=coverage.out
+
+      - name: Validar build
+        run: go build ./...

@@ -1,0 +1,36 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v3
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Rodar lint (eslint)
+        run: npm run lint
+
+      - name: Rodar testes unitários
+        run: npm run test -- --watch=false --browsers=ChromeHeadless
+
+      - name: Rodar testes e2e
+        run: npx cypress run
+        env:
+          CYPRESS_baseUrl: http://localhost:4200

@@ -1,0 +1,21 @@
+<div class="login-container">
+  <mat-card>
+    <mat-card-title>Entrar no eSimulate</mat-card-title>
+    <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" name="email" [(ngModel)]="email" required />
+      </mat-form-field>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Senha</mat-label>
+        <input matInput type="password" name="password" [(ngModel)]="password" required />
+      </mat-form-field>
+      <button mat-raised-button color="primary" class="full-width" [disabled]="loading">Entrar</button>
+      <div *ngIf="error" class="error">{{ error }}</div>
+    </form>
+    <div class="social-login">
+      <button mat-stroked-button color="accent" disabled><mat-icon>google</mat-icon> Entrar com Google</button>
+      <button mat-stroked-button color="accent" disabled><mat-icon>facebook</mat-icon> Entrar com Facebook</button>
+    </div>
+  </mat-card>
+</div>

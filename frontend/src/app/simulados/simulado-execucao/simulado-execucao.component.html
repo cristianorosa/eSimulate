@@ -1,0 +1,50 @@
+<div class="simulado-execucao-container" *ngIf="!loading && simulado && !finalizado">
+  <mat-card>
+    <mat-card-title>{{ simulado.title }}</mat-card-title>
+    <mat-card-content>
+      <div class="questao-atual">
+        <div><strong>Questão {{ atual + 1 }} de {{ questoes.length }}</strong></div>
+        <div class="enunciado">{{ questoes[atual]?.statement }}</div>
+        <mat-radio-group [(ngModel)]="respostas[atual]">
+          <mat-radio-button *ngFor="let op of questoes[atual]?.options" [value]="op.id">
+            {{ op.text }}
+          </mat-radio-button>
+        </mat-radio-group>
+      </div>
+      <div class="navegacao">
+        <button mat-stroked-button (click)="anterior()" [disabled]="atual === 0">Anterior</button>
+        <button mat-stroked-button (click)="proxima()" [disabled]="atual === questoes.length - 1">Próxima</button>
+        <button mat-raised-button color="primary" (click)="finalizar()" [disabled]="respostas.includes(null)">Finalizar</button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+<div *ngIf="finalizado">
+  <mat-card>
+    <mat-card-title>Resultado do Simulado</mat-card-title>
+    <mat-card-content *ngIf="resultado && !resultado.erro">
+      <div><strong>Acertos:</strong> {{ resultado.acertos }} / {{ questoes.length }}</div>
+      <div><strong>Desempenho:</strong> {{ resultado.percentual }}%</div>
+      <div class="explicacoes" *ngIf="resultado.detalhes">
+        <mat-divider></mat-divider>
+        <div *ngFor="let det of resultado.detalhes; let i = index" class="detalhe-questao">
+          <div><strong>Questão {{ i + 1 }}:</strong> {{ det.statement }}</div>
+          <div>
+            <span [ngClass]="{'correta': det.correta, 'errada': !det.correta}">
+              Sua resposta: {{ det.resposta_usuario_texto }}
+            </span>
+            <span *ngIf="det.correta" class="correta">(Correta)</span>
+            <span *ngIf="!det.correta" class="errada">(Errada)</span>
+          </div>
+          <div *ngIf="det.explanation"><strong>Explicação:</strong> {{ det.explanation }}</div>
+          <mat-divider></mat-divider>
+        </div>
+      </div>
+    </mat-card-content>
+    <mat-card-content *ngIf="resultado && resultado.erro">
+      <div style="color: #c00;">{{ resultado.erro }}</div>
+    </mat-card-content>
+  </mat-card>
+</div>
+<div *ngIf="loading" style="text-align:center; margin-top:2em; color:#888;">Carregando simulado...</div>
+<div *ngIf="!loading && !simulado" style="text-align:center; margin-top:2em; color:#888;">Simulado não encontrado.</div>

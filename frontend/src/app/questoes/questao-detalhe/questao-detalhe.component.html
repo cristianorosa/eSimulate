@@ -1,0 +1,23 @@
+<div class="questao-detalhe-container" *ngIf="!loading && questao">
+  <mat-card>
+    <mat-card-title>Detalhes da Questão</mat-card-title>
+    <mat-card-content>
+      <div class="enunciado"><strong>Enunciado:</strong> {{ questao.statement }}</div>
+      <div class="tema"><strong>Tema:</strong> {{ questao.theme_id }}</div>
+      <div class="explicacao" *ngIf="questao.explanation"><strong>Explicação:</strong> {{ questao.explanation }}</div>
+      <div class="opcoes">
+        <strong>Opções:</strong>
+        <mat-list>
+          <mat-list-item *ngFor="let op of questao.options">
+            <span [ngClass]="{'correta': op.is_correct, 'errada': !op.is_correct}">{{ op.text }}</span>
+            <span class="op-expl" *ngIf="op.explanation">- {{ op.explanation }}</span>
+            <mat-icon *ngIf="op.is_correct" color="primary">check_circle</mat-icon>
+            <mat-icon *ngIf="!op.is_correct" color="warn">cancel</mat-icon>
+          </mat-list-item>
+        </mat-list>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+<div *ngIf="loading" style="text-align:center; margin-top:2em; color:#888;">Carregando...</div>
+<div *ngIf="!loading && !questao" style="text-align:center; margin-top:2em; color:#888;">Questão não encontrada.</div>

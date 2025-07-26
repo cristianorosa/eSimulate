@@ -1,0 +1,16 @@
+<div class="simulados-container">
+  <mat-card>
+    <mat-card-title>Simulados Disponíveis</mat-card-title>
+    <button mat-raised-button color="primary" style="margin-bottom: 16px;">Novo Simulado</button>
+    <mat-list>
+      <mat-list-item *ngFor="let simulado of simulados">
+        <div mat-line>{{ simulado.title }}</div>
+        <div mat-line class="secondary">{{ simulado.description }}</div>
+        <button mat-stroked-button color="accent" style="margin-left:auto;" [routerLink]="['/simulados', simulado.id, 'executar']">Iniciar</button>
+      </mat-list-item>
+      <mat-list-item *ngIf="simulados.length === 0">
+        <div mat-line>Nenhum simulado disponível.</div>
+      </mat-list-item>
+    </mat-list>
+  </mat-card>
+</div>

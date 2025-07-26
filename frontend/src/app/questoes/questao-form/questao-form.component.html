@@ -1,0 +1,37 @@
+<div class="questao-form-container">
+  <mat-card>
+    <mat-card-title>Cadastrar Nova Questão</mat-card-title>
+    <form (ngSubmit)="onSubmit()" #form="ngForm">
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Enunciado</mat-label>
+        <textarea matInput name="statement" [(ngModel)]="statement" required></textarea>
+      </mat-form-field>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Tema (ID)</mat-label>
+        <input matInput name="theme_id" [(ngModel)]="theme_id" required type="number" />
+      </mat-form-field>
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Explicação (opcional)</mat-label>
+        <textarea matInput name="explanation" [(ngModel)]="explanation"></textarea>
+      </mat-form-field>
+      <div class="opcoes">
+        <div *ngFor="let op of options; let i = index" class="opcao-item">
+          <mat-form-field appearance="fill">
+            <mat-label>Opção {{ i + 1 }}</mat-label>
+            <input matInput [(ngModel)]="op.text" name="option{{i}}" required />
+          </mat-form-field>
+          <mat-checkbox [(ngModel)]="op.is_correct" name="correct{{i}}">Correta</mat-checkbox>
+          <mat-form-field appearance="fill">
+            <mat-label>Explicação</mat-label>
+            <input matInput [(ngModel)]="op.explanation" name="explanation{{i}}" />
+          </mat-form-field>
+          <button mat-icon-button color="warn" (click)="removeOption(i)" *ngIf="options.length > 2"><mat-icon>delete</mat-icon></button>
+        </div>
+        <button mat-stroked-button color="primary" type="button" (click)="addOption()">Adicionar Opção</button>
+      </div>
+      <button mat-raised-button color="primary" class="full-width" [disabled]="loading">Cadastrar</button>
+      <div *ngIf="error" class="error">{{ error }}</div>
+      <div *ngIf="success" class="success">Questão cadastrada com sucesso!</div>
+    </form>
+  </mat-card>
+</div>
