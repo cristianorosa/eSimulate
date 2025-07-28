@@ -7,9 +7,9 @@ import (
 
 	_ "github.com/lib/pq"
 
-	"eSimulate/backend/infra"
-	"eSimulate/backend/interfaces"
-	"eSimulate/backend/usecase"
+	"github.com/cristianorosa/eSimulate/backend/infra"
+	"github.com/cristianorosa/eSimulate/backend/interfaces"
+	"github.com/cristianorosa/eSimulate/backend/usecase"
 )
 
 func main() {

@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"eSimulate/backend/domain"
-	"eSimulate/backend/usecase"
+	"github.com/cristianorosa/eSimulate/backend/domain"
+	"github.com/cristianorosa/eSimulate/backend/usecase"
 	"golang.org/x/crypto/bcrypt"
 )
 

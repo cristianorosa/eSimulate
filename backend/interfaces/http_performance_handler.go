@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"eSimulate/backend/usecase"
+	"github.com/cristianorosa/eSimulate/backend/usecase"
 )
 
 // PerformanceHandler lida com relatórios de desempenho

@@ -1,6 +1,9 @@
 package domain
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
 // User representa um usuário do sistema
 // Dados pessoais devem ser tratados conforme a LGPD
@@ -16,3 +19,5 @@ type User struct {
 	FacebookID   *string
 	CreatedAt    time.Time
 }
+
+var ErrUserExists = errors.New("user already exists")

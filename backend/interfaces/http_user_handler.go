@@ -5,13 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"eSimulate/backend/usecase"
-)
-
-// UserHandler lida com requisições HTTP relacionadas a usuários
-
-import (
-	"eSimulate/backend/infra"
+	"github.com/cristianorosa/eSimulate/backend/infra"
+	"github.com/cristianorosa/eSimulate/backend/usecase"
 	"golang.org/x/crypto/bcrypt"
 )
 

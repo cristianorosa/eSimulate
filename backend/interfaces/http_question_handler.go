@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"eSimulate/backend/domain"
-	"eSimulate/backend/usecase"
+	"github.com/cristianorosa/eSimulate/backend/domain"
+	"github.com/cristianorosa/eSimulate/backend/usecase"
 )
 
 // QuestionHandler lida com requisições HTTP relacionadas a questões

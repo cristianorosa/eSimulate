@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"context"
-	"eSimulate/backend/domain"
+	"github.com/cristianorosa/eSimulate/backend/domain"
 	"time"
 )
 

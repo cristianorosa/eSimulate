@@ -2,8 +2,7 @@ package infra
 
 import (
 	"database/sql"
-	"eSimulate/backend/domain"
-	"time"
+	"github.com/cristianorosa/eSimulate/backend/domain"
 )
 
 // UserQuizRepositoryPG implementa UserQuizRepository usando PostgreSQL

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"eSimulate/backend/usecase"
+	"github.com/cristianorosa/eSimulate/backend/usecase"
 )
 
 // ThemeHandler lida com requisições HTTP relacionadas a temas

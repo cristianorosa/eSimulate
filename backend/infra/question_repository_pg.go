@@ -2,7 +2,7 @@ package infra
 
 import (
 	"database/sql"
-	"eSimulate/backend/domain"
+	"github.com/cristianorosa/eSimulate/backend/domain"
 )
 
 // QuestionRepositoryPG implementa QuestionRepository usando PostgreSQL

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"strings"
 
-	"eSimulate/backend/domain"
+	"github.com/cristianorosa/eSimulate/backend/domain"
 )
 
 // ThemeUsecase implementa as regras de negócio para temas

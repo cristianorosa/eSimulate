@@ -3,14 +3,8 @@ package interfaces
 import (
 	"net/http"
 	"strings"
-)
 
-// AuthMiddleware verifica o token JWT e protege rotas privadas
-import (
-	"net/http"
-	"strings"
-
-	"eSimulate/backend/infra"
+	"github.com/cristianorosa/eSimulate/backend/infra"
 )
 
 func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
@@ -21,7 +15,7 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 		tokenStr := strings.TrimPrefix(token, "Bearer ")
-		claims, err := infra.ParseJWT(tokenStr)
+		_, err := infra.ParseJWT(tokenStr)
 		if err != nil {
 			http.Error(w, "Token inválido", http.StatusUnauthorized)
 			return

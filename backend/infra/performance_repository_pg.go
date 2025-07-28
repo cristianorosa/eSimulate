@@ -2,7 +2,7 @@ package infra
 
 import (
 	"database/sql"
-	"eSimulate/backend/domain"
+	"github.com/cristianorosa/eSimulate/backend/domain"
 )
 
 // PerformanceRepositoryPG implementa PerformanceRepository usando PostgreSQL
