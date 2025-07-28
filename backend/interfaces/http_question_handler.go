@@ -12,10 +12,12 @@ import (
 
 // QuestionHandler lida com requisições HTTP relacionadas a questões
 
+// QuestionHandler lida com requisições HTTP relacionadas a questões.
 type QuestionHandler struct{
 	UC *usecase.QuestionUsecase
 }
 
+// ListHandler lista todas as questões, opcionalmente filtradas por tema.
 func (h *QuestionHandler) ListHandler(w http.ResponseWriter, r *http.Request) {
 	var themeID *int
 	if tid := r.URL.Query().Get("theme_id"); tid != "" {
@@ -32,6 +34,7 @@ func (h *QuestionHandler) ListHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(questions)
 }
+// CreateHandler cria uma nova questão.
 func (h *QuestionHandler) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		ThemeID     int                `json:"theme_id"`
@@ -57,6 +60,7 @@ func (h *QuestionHandler) CreateHandler(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(q)
 }
+// UpdateHandler atualiza uma questão existente.
 func (h *QuestionHandler) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get("id")
 	id, err := strconv.Atoi(idStr)
@@ -80,6 +84,7 @@ func (h *QuestionHandler) UpdateHandler(w http.ResponseWriter, r *http.Request) 
 	}
 	w.WriteHeader(http.StatusOK)
 }
+// DeleteHandler remove uma questão.
 func (h *QuestionHandler) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get("id")
 	id, err := strconv.Atoi(idStr)
@@ -94,6 +99,7 @@ func (h *QuestionHandler) DeleteHandler(w http.ResponseWriter, r *http.Request) 
 	}
 	w.WriteHeader(http.StatusNoContent)
 }
+// DetailHandler retorna os detalhes de uma questão específica.
 func (h *QuestionHandler) DetailHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get("id")
 	id, err := strconv.Atoi(idStr)

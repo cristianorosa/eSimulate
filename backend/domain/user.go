@@ -5,11 +5,7 @@ import (
 	"time"
 )
 
-// User representa um usuário do sistema
-// Dados pessoais devem ser tratados conforme a LGPD
-// Armazenar apenas o necessário para funcionamento e segurança
-// Permitir exclusão e anonimização conforme solicitado
-
+// User representa um usuário do sistema.
 type User struct {
 	ID           int
 	Name         string
@@ -20,4 +16,5 @@ type User struct {
 	CreatedAt    time.Time
 }
 
+// ErrUserExists indica que um usuário com o email fornecido já existe.
 var ErrUserExists = errors.New("user already exists")

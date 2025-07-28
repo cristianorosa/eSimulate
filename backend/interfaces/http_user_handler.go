@@ -10,6 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// UserHandler lida com requisições HTTP relacionadas a usuários.
 type UserHandler struct {
 	UC *usecase.UserUsecase
 }

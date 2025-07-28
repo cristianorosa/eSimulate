@@ -1,8 +1,6 @@
 package domain
 
-// PerformanceReport representa o relatório de desempenho do usuário
-// Pode ser expandido conforme necessidade
-
+// PerformanceReport representa o relatório de desempenho do usuário.
 type PerformanceReport struct {
 	UserID         int
 	TotalQuizzes   int
@@ -11,6 +9,7 @@ type PerformanceReport struct {
 	Accuracy       float64
 }
 
+// PerformanceRepository define a interface para operações de persistência de desempenho
 type PerformanceRepository interface {
 	GetReport(userID int) (*PerformanceReport, error)
 }

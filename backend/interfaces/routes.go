@@ -44,6 +44,8 @@ func SetupRoutes(mux *http.ServeMux, handlers *Handlers) {
 // Handlers agrupa todos os handlers da aplicação
 // Facilita a injeção de dependências
 
+// Handlers agrupa todos os handlers da aplicação.
+// Facilita a injeção de dependências.
 type Handlers struct {
 	User        *UserHandler
 	Theme       *ThemeHandler

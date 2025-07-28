@@ -7,6 +7,7 @@ import (
 	"github.com/cristianorosa/eSimulate/backend/infra"
 )
 
+// AuthMiddleware verifica o token JWT e protege rotas privadas.
 func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("Authorization")

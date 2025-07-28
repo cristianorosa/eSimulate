@@ -7,10 +7,12 @@ import (
 
 // QuizRepositoryPG implementa QuizRepository usando PostgreSQL
 
+// QuizRepositoryPG implementa QuizRepository usando PostgreSQL.
 type QuizRepositoryPG struct {
 	DB *sql.DB
 }
 
+// Create cria um novo simulado no banco de dados.
 func (r *QuizRepositoryPG) Create(q *domain.Quiz) error {
 	query := `INSERT INTO quizzes (title, description, theme_id, created_by) VALUES ($1, $2, $3, $4) RETURNING id`
 	err := r.DB.QueryRow(query, q.Title, q.Description, q.ThemeID, q.CreatedBy).Scan(&q.ID)
@@ -31,18 +33,21 @@ func (r *QuizRepositoryPG) addQuizQuestion(quizID, questionID int) error {
 	return err
 }
 
+// Update atualiza um simulado existente no banco de dados.
 func (r *QuizRepositoryPG) Update(q *domain.Quiz) error {
 	query := `UPDATE quizzes SET title = $1, description = $2, theme_id = $3 WHERE id = $4`
 	_, err := r.DB.Exec(query, q.Title, q.Description, q.ThemeID, q.ID)
 	return err
 }
 
+// Delete remove um simulado do banco de dados.
 func (r *QuizRepositoryPG) Delete(id int) error {
 	query := `DELETE FROM quizzes WHERE id = $1`
 	_, err := r.DB.Exec(query, id)
 	return err
 }
 
+// FindByID busca um simulado pelo seu ID.
 func (r *QuizRepositoryPG) FindByID(id int) (*domain.Quiz, error) {
 	query := `SELECT id, title, description, theme_id, created_by FROM quizzes WHERE id = $1`
 	row := r.DB.QueryRow(query, id)
@@ -54,6 +59,7 @@ func (r *QuizRepositoryPG) FindByID(id int) (*domain.Quiz, error) {
 	return &q, nil
 }
 
+// ListAll lista todos os simulados, opcionalmente filtrados por tema.
 func (r *QuizRepositoryPG) ListAll(themeID *int) ([]*domain.Quiz, error) {
 	query := `SELECT id, title, description, theme_id, created_by FROM quizzes`
 	var rows *sql.Rows

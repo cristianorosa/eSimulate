@@ -9,7 +9,7 @@ import (
 
 var jwtSecret = []byte("sua_chave_secreta_supersegura") // Troque em produção
 
-// Gera um token JWT para o usuário
+// GenerateJWT gera um token JWT para o usuário.
 func GenerateJWT(userID int, email string) (string, error) {
 	claims := jwt.MapClaims{
 		"user_id": userID,
@@ -20,7 +20,7 @@ func GenerateJWT(userID int, email string) (string, error) {
 	return token.SignedString(jwtSecret)
 }
 
-// Valida e extrai claims do token JWT
+// ParseJWT valida e extrai claims do token JWT.
 func ParseJWT(tokenStr string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {

@@ -10,6 +10,7 @@ type Question struct {
 	Options     []*Option
 }
 
+// Option representa uma opção de resposta para uma questão
 type Option struct {
 	ID          int
 	QuestionID  int
@@ -18,6 +19,7 @@ type Option struct {
 	Explanation string
 }
 
+// QuestionRepository define a interface para operações de persistência de questões
 type QuestionRepository interface {
 	Create(q *Question) error
 	Update(q *Question) error

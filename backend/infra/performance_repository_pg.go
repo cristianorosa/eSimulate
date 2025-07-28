@@ -7,10 +7,12 @@ import (
 
 // PerformanceRepositoryPG implementa PerformanceRepository usando PostgreSQL
 
+// PerformanceRepositoryPG implementa PerformanceRepository usando PostgreSQL.
 type PerformanceRepositoryPG struct {
 	DB *sql.DB
 }
 
+// GetReport obtém o relatório de desempenho de um usuário.
 func (r *PerformanceRepositoryPG) GetReport(userID int) (*domain.PerformanceReport, error) {
 	var report domain.PerformanceReport
 	report.UserID = userID

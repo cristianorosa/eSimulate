@@ -14,6 +14,8 @@ import (
 // UserUsecase implementa as regras de negócio para usuários
 // Inclui validação, hash de senha e tratamento seguro dos dados
 
+// UserUsecase implementa as regras de negócio para usuários.
+// Inclui validação, hash de senha e tratamento seguro dos dados.
 type UserUsecase struct {
 	Repo domain.UserRepository
 }

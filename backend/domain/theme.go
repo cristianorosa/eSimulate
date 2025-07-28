@@ -8,6 +8,7 @@ type Theme struct {
 	ParentID *int
 }
 
+// ThemeRepository define a interface para operações de persistência de temas
 type ThemeRepository interface {
 	Create(theme *Theme) error
 	Update(theme *Theme) error

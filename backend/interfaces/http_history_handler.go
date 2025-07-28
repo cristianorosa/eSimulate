@@ -11,10 +11,12 @@ import (
 
 // HistoryHandler lida com histórico de simulados realizados
 
+// HistoryHandler lida com requisições HTTP relacionadas ao histórico de simulados.
 type HistoryHandler struct{
 	UC *usecase.UserQuizUsecase
 }
 
+// ListHandler lista o histórico de simulados de um usuário.
 func (h *HistoryHandler) ListHandler(w http.ResponseWriter, r *http.Request) {
 	userIDStr := r.URL.Query().Get("user_id")
 	userID, err := strconv.Atoi(userIDStr)

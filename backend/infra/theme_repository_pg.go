@@ -7,27 +7,32 @@ import (
 
 // ThemeRepositoryPG implementa ThemeRepository usando PostgreSQL
 
+// ThemeRepositoryPG implementa ThemeRepository usando PostgreSQL.
 type ThemeRepositoryPG struct {
 	DB *sql.DB
 }
 
+// Create cria um novo tema no banco de dados.
 func (r *ThemeRepositoryPG) Create(theme *domain.Theme) error {
 	query := `INSERT INTO themes (name, parent_id) VALUES ($1, $2) RETURNING id`
 	return r.DB.QueryRow(query, theme.Name, theme.ParentID).Scan(&theme.ID)
 }
 
+// Update atualiza um tema existente no banco de dados.
 func (r *ThemeRepositoryPG) Update(theme *domain.Theme) error {
 	query := `UPDATE themes SET name = $1, parent_id = $2 WHERE id = $3`
 	_, err := r.DB.Exec(query, theme.Name, theme.ParentID, theme.ID)
 	return err
 }
 
+// Delete remove um tema do banco de dados.
 func (r *ThemeRepositoryPG) Delete(id int) error {
 	query := `DELETE FROM themes WHERE id = $1`
 	_, err := r.DB.Exec(query, id)
 	return err
 }
 
+// FindByID busca um tema pelo seu ID.
 func (r *ThemeRepositoryPG) FindByID(id int) (*domain.Theme, error) {
 	query := `SELECT id, name, parent_id FROM themes WHERE id = $1`
 	row := r.DB.QueryRow(query, id)
@@ -43,6 +48,7 @@ func (r *ThemeRepositoryPG) FindByID(id int) (*domain.Theme, error) {
 	return &t, nil
 }
 
+// ListAll lista todos os temas.
 func (r *ThemeRepositoryPG) ListAll() ([]*domain.Theme, error) {
 	query := `SELECT id, name, parent_id FROM themes`
 	rows, err := r.DB.Query(query)
