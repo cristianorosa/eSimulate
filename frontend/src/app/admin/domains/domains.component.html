@@ -1,0 +1,204 @@
+<div class="domains-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-card">
+      <div class="header-content">
+        <div class="header-title">
+          <h1>Gerenciar Domínios</h1>
+          <p>Gerencie os domínios de conhecimento dos exames</p>
+        </div>
+        <div class="header-actions">
+          <button mat-raised-button color="primary" (click)="openDialog()">
+            <mat-icon>add</mat-icon>
+            Novo Domínio
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <div class="content-card">
+      <div class="card-content">
+        <!-- Loading -->
+        <div *ngIf="loading" class="loading-container">
+          <div class="loading-card">
+            <div class="loading-content">
+              <mat-spinner diameter="40"></mat-spinner>
+              <p>Carregando domínios...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!loading && domains.length === 0" class="empty-state">
+          <div class="empty-card">
+            <div class="empty-content">
+              <mat-icon class="empty-icon">domain</mat-icon>
+              <p>Nenhum domínio encontrado</p>
+              <button mat-raised-button color="primary" (click)="openDialog()">
+                <mat-icon>add</mat-icon>
+                Criar Primeiro Domínio
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div *ngIf="!loading && domains.length > 0" class="table-container">
+          <table mat-table [dataSource]="domains" class="domains-table">
+            <!-- ID Column -->
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef>ID</th>
+              <td mat-cell *matCellDef="let domain">{{domain.id}}</td>
+            </ng-container>
+
+            <!-- Name Column -->
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Nome</th>
+              <td mat-cell *matCellDef="let domain">{{domain.name}}</td>
+            </ng-container>
+
+            <!-- Description Column -->
+            <ng-container matColumnDef="description">
+              <th mat-header-cell *matHeaderCellDef>Descrição</th>
+              <td mat-cell *matCellDef="let domain">{{domain.description}}</td>
+            </ng-container>
+
+            <!-- Exam Name Column -->
+            <ng-container matColumnDef="exam_name">
+              <th mat-header-cell *matHeaderCellDef>Exame</th>
+              <td mat-cell *matCellDef="let domain">{{domain.exam_name}}</td>
+            </ng-container>
+
+            <!-- Created At Column -->
+            <ng-container matColumnDef="created_at">
+              <th mat-header-cell *matHeaderCellDef>Criado em</th>
+              <td mat-cell *matCellDef="let domain">{{domain.created_at | date:'dd/MM/yyyy'}}</td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Ações</th>
+              <td mat-cell *matCellDef="let domain">
+                <button mat-icon-button color="primary" (click)="openDialog(domain)" matTooltip="Editar">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteDomain(domain)" matTooltip="Excluir">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dialog -->
+  <div *ngIf="showDialog" class="dialog-overlay" (click)="closeDialog()">
+    <div class="dialog-content" (click)="$event.stopPropagation()">
+      <div class="dialog-card">
+        <mat-card-header>
+          <mat-card-title>
+            {{editingDomain ? 'Editar' : 'Novo'}} Domínio
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <form [formGroup]="domainForm" (ngSubmit)="onSubmit()">
+            <div class="form-row">
+              <div class="half-width">
+                <mat-form-field class="form-field">
+                  <mat-label>Nome</mat-label>
+                  <input matInput formControlName="name" placeholder="Digite o nome do domínio">
+                  <mat-error *ngIf="domainForm.get('name')?.hasError('required')">
+                    Nome é obrigatório
+                  </mat-error>
+                  <mat-error *ngIf="domainForm.get('name')?.hasError('minlength')">
+                    Nome deve ter pelo menos 3 caracteres
+                  </mat-error>
+                </mat-form-field>
+              </div>
+              <div class="half-width">
+                <mat-form-field class="form-field">
+                  <mat-label>Exame</mat-label>
+                  <mat-select formControlName="exam_id">
+                    <mat-option *ngFor="let exam of exams" [value]="exam.id">
+                      {{exam.title}}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="domainForm.get('exam_id')?.hasError('required')">
+                    Exame é obrigatório
+                  </mat-error>
+                </mat-form-field>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="full-width">
+                <mat-form-field class="form-field">
+                  <mat-label>Descrição</mat-label>
+                  <textarea matInput formControlName="description" rows="3" 
+                           placeholder="Digite a descrição do domínio"></textarea>
+                  <mat-error *ngIf="domainForm.get('description')?.hasError('required')">
+                    Descrição é obrigatória
+                  </mat-error>
+                  <mat-error *ngIf="domainForm.get('description')?.hasError('minlength')">
+                    Descrição deve ter pelo menos 10 caracteres
+                  </mat-error>
+                </mat-form-field>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="half-width">
+                <mat-form-field class="form-field">
+                  <mat-label>Peso (%)</mat-label>
+                  <input matInput type="number" formControlName="weight_percentage" 
+                         placeholder="0-100">
+                  <mat-error *ngIf="domainForm.get('weight_percentage')?.hasError('required')">
+                    Peso é obrigatório
+                  </mat-error>
+                  <mat-error *ngIf="domainForm.get('weight_percentage')?.hasError('min')">
+                    Peso deve ser maior ou igual a 0
+                  </mat-error>
+                  <mat-error *ngIf="domainForm.get('weight_percentage')?.hasError('max')">
+                    Peso deve ser menor ou igual a 100
+                  </mat-error>
+                </mat-form-field>
+              </div>
+              <div class="half-width">
+                <mat-form-field class="form-field">
+                  <mat-label>Ordem</mat-label>
+                  <input matInput type="number" formControlName="order_index" 
+                         placeholder="0">
+                  <mat-error *ngIf="domainForm.get('order_index')?.hasError('required')">
+                    Ordem é obrigatória
+                  </mat-error>
+                  <mat-error *ngIf="domainForm.get('order_index')?.hasError('min')">
+                    Ordem deve ser maior ou igual a 0
+                  </mat-error>
+                </mat-form-field>
+              </div>
+            </div>
+
+            <div class="dialog-actions">
+              <button mat-button type="button" (click)="closeDialog()">
+                Cancelar
+              </button>
+              <button mat-raised-button color="primary" type="submit" 
+                      [disabled]="domainForm.invalid">
+                <mat-icon>save</mat-icon>
+                {{editingDomain ? 'Atualizar' : 'Criar'}}
+              </button>
+            </div>
+          </form>
+        </mat-card-content>
+      </div>
+    </div>
+  </div>
+</div> 

@@ -1,0 +1,114 @@
+<div class="profile-container">
+  <div class="profile-header">
+    <mat-card class="profile-card">
+      <div class="profile-avatar">
+        <mat-icon class="avatar-icon">account_circle</mat-icon>
+      </div>
+      <div class="profile-info">
+        <h1>{{ user?.name || 'Usuário' }}</h1>
+        <p>{{ user?.email }}</p>
+        <button mat-stroked-button (click)="toggleEditMode()" class="edit-btn">
+          <mat-icon>edit</mat-icon>
+          {{ editMode ? 'Cancelar' : 'Editar Perfil' }}
+        </button>
+      </div>
+    </mat-card>
+  </div>
+
+  <div class="profile-content">
+    <div class="stats-section">
+      <mat-card class="stats-card">
+        <mat-card-title>Estatísticas</mat-card-title>
+        <mat-card-content>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <mat-icon class="stat-icon">assignment</mat-icon>
+              <div class="stat-content">
+                <div class="stat-value">{{ getStats().simuladosRealizados }}</div>
+                <div class="stat-label">Simulados Realizados</div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <mat-icon class="stat-icon">trending_up</mat-icon>
+              <div class="stat-content">
+                <div class="stat-value">{{ getStats().mediaAcertos }}%</div>
+                <div class="stat-label">Média de Acertos</div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <mat-icon class="stat-icon">schedule</mat-icon>
+              <div class="stat-content">
+                <div class="stat-value">{{ getStats().tempoMedio }}</div>
+                <div class="stat-label">Tempo Médio</div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <mat-icon class="stat-icon">update</mat-icon>
+              <div class="stat-content">
+                <div class="stat-value">{{ getStats().ultimaAtividade }}</div>
+                <div class="stat-label">Última Atividade</div>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <div class="edit-section">
+      <mat-card class="edit-card">
+        <mat-card-title>Informações Pessoais</mat-card-title>
+        <mat-card-content>
+          <form (ngSubmit)="updateProfile()" #profileForm="ngForm">
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Nome</mat-label>
+                <input matInput [(ngModel)]="name" name="name" [disabled]="!editMode" required>
+              </mat-form-field>
+            </div>
+            
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Email</mat-label>
+                <input matInput type="email" [(ngModel)]="email" name="email" [disabled]="!editMode" required>
+              </mat-form-field>
+            </div>
+
+            @if (editMode) {
+              <mat-divider class="password-divider"></mat-divider>
+              
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Senha Atual</mat-label>
+                  <input matInput type="password" [(ngModel)]="currentPassword" name="currentPassword">
+                </mat-form-field>
+              </div>
+              
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Nova Senha</mat-label>
+                  <input matInput type="password" [(ngModel)]="newPassword" name="newPassword">
+                </mat-form-field>
+              </div>
+              
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Confirmar Nova Senha</mat-label>
+                  <input matInput type="password" [(ngModel)]="confirmPassword" name="confirmPassword">
+                </mat-form-field>
+              </div>
+            }
+
+            @if (editMode) {
+              <div class="form-actions">
+                <button mat-raised-button color="primary" type="submit" [disabled]="loading">
+                  <mat-icon>save</mat-icon>
+                  {{ loading ? 'Salvando...' : 'Salvar Alterações' }}
+                </button>
+              </div>
+            }
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div> 

@@ -9,7 +9,7 @@ type PerformanceReport struct {
 	Accuracy       float64
 }
 
-// PerformanceRepository define a interface para operações de persistência de desempenho
-type PerformanceRepository interface {
+// ReportRepository define a interface para operações de persistência de relatórios de desempenho
+type ReportRepository interface {
 	GetReport(userID int) (*PerformanceReport, error)
 }

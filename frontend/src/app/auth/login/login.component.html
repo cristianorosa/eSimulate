@@ -1,21 +1,66 @@
-<div class="login-container">
-  <mat-card>
-    <mat-card-title>Entrar no eSimulate</mat-card-title>
-    <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
-      <mat-form-field appearance="fill" class="full-width">
-        <mat-label>Email</mat-label>
-        <input matInput type="email" name="email" [(ngModel)]="email" required />
-      </mat-form-field>
-      <mat-form-field appearance="fill" class="full-width">
-        <mat-label>Senha</mat-label>
-        <input matInput type="password" name="password" [(ngModel)]="password" required />
-      </mat-form-field>
-      <button mat-raised-button color="primary" class="full-width" [disabled]="loading">Entrar</button>
-      <div *ngIf="error" class="error">{{ error }}</div>
-    </form>
-    <div class="social-login">
-      <button mat-stroked-button color="accent" disabled><mat-icon>google</mat-icon> Entrar com Google</button>
-      <button mat-stroked-button color="accent" disabled><mat-icon>facebook</mat-icon> Entrar com Facebook</button>
+<div class="auth-container">
+  <div class="auth-background">
+    <div class="auth-overlay"></div>
+  </div>
+  
+  <div class="auth-content">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="logo">
+          <mat-icon class="logo-icon">school</mat-icon>
+          <h1>eSimulate</h1>
+        </div>
+        <p class="auth-subtitle">Faça login para continuar</p>
+      </div>
+      
+      <form (ngSubmit)="onSubmit()" #loginForm="ngForm" class="auth-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" name="email" [(ngModel)]="email" required />
+          <mat-icon matSuffix>email</mat-icon>
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Senha</mat-label>
+          <input matInput type="password" name="password" [(ngModel)]="password" required />
+          <mat-icon matSuffix>lock</mat-icon>
+        </mat-form-field>
+        
+        <button mat-raised-button color="primary" class="auth-button" [disabled]="loading">
+          @if (loading) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            <mat-icon>login</mat-icon>
+          }
+          {{ loading ? 'Entrando...' : 'Entrar' }}
+        </button>
+        
+        @if (error) { 
+          <div class="error-message">
+            <mat-icon>error</mat-icon>
+            {{ error }}
+          </div> 
+        }
+      </form>
+      
+      <div class="auth-divider">
+        <span>ou</span>
+      </div>
+      
+      <div class="social-login">
+        <button mat-stroked-button class="social-btn google-btn" disabled>
+          <mat-icon>google</mat-icon>
+          Entrar com Google
+        </button>
+        <button mat-stroked-button class="social-btn facebook-btn" disabled>
+          <mat-icon>facebook</mat-icon>
+          Entrar com Facebook
+        </button>
+      </div>
+      
+      <div class="auth-footer">
+        <p>Não tem uma conta? <a routerLink="/register">Cadastre-se</a></p>
+      </div>
     </div>
-  </mat-card>
+  </div>
 </div>

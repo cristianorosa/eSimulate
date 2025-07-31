@@ -1,37 +1,184 @@
 <div class="questao-form-container">
-  <mat-card>
-    <mat-card-title>Cadastrar Nova Questão</mat-card-title>
-    <form (ngSubmit)="onSubmit()" #form="ngForm">
-      <mat-form-field appearance="fill" class="full-width">
-        <mat-label>Enunciado</mat-label>
-        <textarea matInput name="statement" [(ngModel)]="statement" required></textarea>
-      </mat-form-field>
-      <mat-form-field appearance="fill" class="full-width">
-        <mat-label>Tema (ID)</mat-label>
-        <input matInput name="theme_id" [(ngModel)]="theme_id" required type="number" />
-      </mat-form-field>
-      <mat-form-field appearance="fill" class="full-width">
-        <mat-label>Explicação (opcional)</mat-label>
-        <textarea matInput name="explanation" [(ngModel)]="explanation"></textarea>
-      </mat-form-field>
-      <div class="opcoes">
-        <div *ngFor="let op of options; let i = index" class="opcao-item">
-          <mat-form-field appearance="fill">
-            <mat-label>Opção {{ i + 1 }}</mat-label>
-            <input matInput [(ngModel)]="op.text" name="option{{i}}" required />
-          </mat-form-field>
-          <mat-checkbox [(ngModel)]="op.is_correct" name="correct{{i}}">Correta</mat-checkbox>
-          <mat-form-field appearance="fill">
-            <mat-label>Explicação</mat-label>
-            <input matInput [(ngModel)]="op.explanation" name="explanation{{i}}" />
-          </mat-form-field>
-          <button mat-icon-button color="warn" (click)="removeOption(i)" *ngIf="options.length > 2"><mat-icon>delete</mat-icon></button>
+  <div class="form-header">
+    <mat-card class="header-card">
+      <div class="header-content">
+        <div class="header-title">
+          <h1>Cadastrar Nova Questão</h1>
+          <p>Crie uma nova questão para os simulados</p>
         </div>
-        <button mat-stroked-button color="primary" type="button" (click)="addOption()">Adicionar Opção</button>
+        <div class="header-actions">
+          <button mat-stroked-button routerLink="/questoes">
+            <mat-icon>arrow_back</mat-icon>
+            Voltar
+          </button>
+        </div>
       </div>
-      <button mat-raised-button color="primary" class="full-width" [disabled]="loading">Cadastrar</button>
-      <div *ngIf="error" class="error">{{ error }}</div>
-      <div *ngIf="success" class="success">Questão cadastrada com sucesso!</div>
-    </form>
-  </mat-card>
+    </mat-card>
+  </div>
+
+  <div class="form-content">
+    <mat-card class="form-card">
+      <form (ngSubmit)="onSubmit()" #form="ngForm" class="questao-form">
+        <div class="form-section">
+          <h3 class="section-title">
+            <mat-icon>description</mat-icon>
+            Informações Básicas
+          </h3>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Enunciado da Questão</mat-label>
+              <textarea matInput 
+                        name="statement" 
+                        [(ngModel)]="statement" 
+                        required 
+                        rows="4"
+                        placeholder="Digite o enunciado da questão aqui..."></textarea>
+              <mat-icon matSuffix>description</mat-icon>
+            </mat-form-field>
+          </div>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Tema (ID)</mat-label>
+              <input matInput 
+                     name="theme_id" 
+                     [(ngModel)]="theme_id" 
+                     required 
+                     type="number"
+                     placeholder="Ex: 1" />
+              <mat-icon matSuffix>category</mat-icon>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Dificuldade</mat-label>
+              <mat-select name="difficulty" [(ngModel)]="difficulty">
+                <mat-option value="facil">Fácil</mat-option>
+                <mat-option value="medio">Médio</mat-option>
+                <mat-option value="dificil">Difícil</mat-option>
+              </mat-select>
+              <mat-icon matSuffix>school</mat-icon>
+            </mat-form-field>
+          </div>
+          
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Explicação (Opcional)</mat-label>
+              <textarea matInput 
+                        name="explanation" 
+                        [(ngModel)]="explanation"
+                        rows="3"
+                        placeholder="Explicação detalhada da resposta correta..."></textarea>
+              <mat-icon matSuffix>lightbulb</mat-icon>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="section-title">
+            <mat-icon>radio_button_checked</mat-icon>
+            Alternativas
+          </h3>
+          
+          <div class="alternativas-container">
+            @for (op of options; track i; let i = $index) {
+              <div class="alternativa-item" [ngClass]="{'correta': op.is_correct}">
+                <div class="alternativa-header">
+                  <div class="alternativa-number">
+                    <span class="number">{{ i + 1 }}</span>
+                    <span class="label">Alternativa</span>
+                  </div>
+                  <div class="alternativa-actions">
+                    <mat-checkbox [(ngModel)]="op.is_correct" 
+                                 name="correct{{i}}"
+                                 class="correta-checkbox">
+                      <span class="checkbox-label">Correta</span>
+                    </mat-checkbox>
+                    @if (options.length > 2) {
+                      <button mat-icon-button 
+                              color="warn" 
+                              (click)="removeOption(i)"
+                              class="remove-btn"
+                              matTooltip="Remover alternativa">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    }
+                  </div>
+                </div>
+                
+                <div class="alternativa-content">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Texto da Alternativa {{ i + 1 }}</mat-label>
+                    <input matInput 
+                           [(ngModel)]="op.text" 
+                           name="option{{i}}" 
+                           required
+                           placeholder="Digite o texto da alternativa..." />
+                    <mat-icon matSuffix>text_fields</mat-icon>
+                  </mat-form-field>
+                  
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Explicação da Alternativa (Opcional)</mat-label>
+                    <input matInput 
+                           [(ngModel)]="op.explanation" 
+                           name="explanation{{i}}"
+                           placeholder="Explicação específica desta alternativa..." />
+                    <mat-icon matSuffix>info</mat-icon>
+                  </mat-form-field>
+                </div>
+              </div>
+            }
+            
+            <div class="add-alternativa">
+              <button mat-stroked-button 
+                      color="primary" 
+                      type="button" 
+                      (click)="addOption()"
+                      class="add-btn">
+                <mat-icon>add</mat-icon>
+                Adicionar Alternativa
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button mat-stroked-button 
+                  type="button" 
+                  routerLink="/questoes"
+                  class="cancel-btn">
+            <mat-icon>cancel</mat-icon>
+            Cancelar
+          </button>
+          
+          <button mat-raised-button 
+                  color="primary" 
+                  type="submit" 
+                  [disabled]="loading"
+                  class="submit-btn">
+            @if (loading) {
+              <mat-spinner diameter="20"></mat-spinner>
+            } @else {
+              <mat-icon>save</mat-icon>
+            }
+            {{ loading ? 'Salvando...' : 'Cadastrar Questão' }}
+          </button>
+        </div>
+        
+        @if (error) { 
+          <div class="error-message">
+            <mat-icon>error</mat-icon>
+            {{ error }}
+          </div> 
+        }
+        
+        @if (success) { 
+          <div class="success-message">
+            <mat-icon>check_circle</mat-icon>
+            Questão cadastrada com sucesso!
+          </div> 
+        }
+      </form>
+    </mat-card>
+  </div>
 </div>

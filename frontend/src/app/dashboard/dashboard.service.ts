@@ -4,11 +4,13 @@ import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
-  private apiUrl = 'http://localhost:8080';
+  private apiUrl = '/api';
 
   constructor(private http: HttpClient) {}
 
   getPerformance(userId: number): Observable<any> {
+    console.log('DashboardService: Fazendo requisição para performance com userId:', userId);
+    console.log('DashboardService: URL completa:', `${this.apiUrl}/performance?user_id=${userId}`);
     return this.http.get(`${this.apiUrl}/performance?user_id=${userId}`);
   }
 

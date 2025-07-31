@@ -1,0 +1,179 @@
+@use '../shared/styles.scss' as *;
+@use "sass:color";
+
+.profile-container {
+  width: 100%;
+  max-width: 100%;
+  padding: 24px;
+  overflow-x: hidden;
+  
+  @include responsive(768px) {
+    padding: 16px;
+  }
+}
+
+.profile-header {
+  margin-bottom: 30px;
+  
+  .profile-card {
+    @extend .card;
+    @include gradient-primary;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    box-shadow: $shadow-primary;
+    
+    @include responsive(768px) {
+      flex-direction: column;
+      text-align: center;
+      padding: 20px;
+    }
+    
+    .profile-avatar {
+      .avatar-icon {
+        font-size: 80px;
+        width: 80px;
+        height: 80px;
+        color: rgba(255, 255, 255, 0.9);
+        @include responsive(768px) {
+          font-size: 60px;
+          width: 60px;
+          height: 60px;
+        }
+      }
+    }
+    
+    .profile-info {
+      flex: 1;
+      
+      h1 {
+        margin: 0 0 8px 0;
+        font-size: 28px;
+        font-weight: 600;
+        @include responsive(768px) {
+          font-size: 24px;
+        }
+      }
+      
+      p {
+        margin: 0 0 20px 0;
+        font-size: 16px;
+        opacity: 0.9;
+      }
+      
+      .edit-btn {
+        color: white;
+        border-color: rgba(255, 255, 255, 0.3);
+        
+        &:hover {
+          background-color: rgba(255, 255, 255, 0.1);
+        }
+      }
+    }
+  }
+}
+
+.profile-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  
+  @include responsive(768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stats-section {
+  .stats-card {
+    @extend .card;
+    
+    .stats-grid {
+      @extend .grid !optional;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      
+      @include responsive(768px) {
+        grid-template-columns: 1fr;
+        gap: 15px;
+      }
+      
+      .stat-item {
+        @include flex-between;
+        gap: 15px;
+        padding: 20px;
+        @include gradient(#f5f7fa, #c3cfe2);
+        border-radius: $border-radius;
+        transition: $transition-fast;
+        
+        @include responsive(768px) {
+          padding: 15px;
+        }
+        
+        &:hover {
+          transform: translateY(-2px);
+        }
+        
+        .stat-icon {
+          font-size: 32px;
+          width: 32px;
+          height: 32px;
+          color: $primary-color;
+        }
+        
+        .stat-content {
+          .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: $text-dark;
+            margin-bottom: 4px;
+            @include responsive(768px) {
+              font-size: 20px;
+            }
+          }
+          .stat-label {
+            font-size: 12px;
+            color: $text-light;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+        }
+      }
+    }
+  }
+}
+
+.edit-section {
+  .edit-card {
+    @extend .card;
+    
+    .form-row {
+      @extend .form-row;
+      margin-bottom: 20px;
+      
+      .full-width {
+        width: 100%;
+      }
+    }
+    
+    .password-divider {
+      margin: 30px 0;
+    }
+    
+    .form-actions {
+      margin-top: 30px;
+      
+      button {
+        @extend .btn;
+        @extend .btn-primary;
+        padding: 12px 24px;
+        font-size: 16px;
+        border-radius: $border-radius-sm;
+        
+        mat-icon {
+          margin-right: 8px;
+        }
+      }
+    }
+  }
+} 

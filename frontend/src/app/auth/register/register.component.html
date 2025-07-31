@@ -1,29 +1,79 @@
-<div class="register-container">
-  <mat-card>
-    <mat-card-title>Criar conta no eSimulate</mat-card-title>
-    <form (ngSubmit)="onSubmit()" #registerForm="ngForm">
-      <mat-form-field appearance="fill" class="full-width">
-        <mat-label>Nome</mat-label>
-        <input matInput name="name" [(ngModel)]="name" required />
-      </mat-form-field>
-      <mat-form-field appearance="fill" class="full-width">
-        <mat-label>Email</mat-label>
-        <input matInput type="email" name="email" [(ngModel)]="email" required />
-      </mat-form-field>
-      <mat-form-field appearance="fill" class="full-width">
-        <mat-label>Senha</mat-label>
-        <input matInput type="password" name="password" [(ngModel)]="password" required />
-      </mat-form-field>
-      <button mat-raised-button color="primary" class="full-width" [disabled]="loading">Cadastrar</button>
-      <div *ngIf="error" class="error">{{ error }}</div>
-      <div *ngIf="success" class="success">Cadastro realizado com sucesso! Faça login.</div>
-    </form>
-    <div class="social-login">
-      <button mat-stroked-button color="accent" disabled><mat-icon>google</mat-icon> Cadastrar com Google</button>
-      <button mat-stroked-button color="accent" disabled><mat-icon>facebook</mat-icon> Cadastrar com Facebook</button>
+<div class="auth-container">
+  <div class="auth-background">
+    <div class="auth-overlay"></div>
+  </div>
+  
+  <div class="auth-content">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="logo">
+          <mat-icon class="logo-icon">school</mat-icon>
+          <h1>eSimulate</h1>
+        </div>
+        <p class="auth-subtitle">Crie sua conta para começar</p>
+      </div>
+      
+      <form (ngSubmit)="onSubmit()" #registerForm="ngForm" class="auth-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nome completo</mat-label>
+          <input matInput name="name" [(ngModel)]="name" required />
+          <mat-icon matSuffix>person</mat-icon>
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" name="email" [(ngModel)]="email" required />
+          <mat-icon matSuffix>email</mat-icon>
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Senha</mat-label>
+          <input matInput type="password" name="password" [(ngModel)]="password" required />
+          <mat-icon matSuffix>lock</mat-icon>
+        </mat-form-field>
+        
+        <button mat-raised-button color="primary" class="auth-button" [disabled]="loading">
+          @if (loading) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            <mat-icon>person_add</mat-icon>
+          }
+          {{ loading ? 'Cadastrando...' : 'Cadastrar' }}
+        </button>
+        
+        @if (error) { 
+          <div class="error-message">
+            <mat-icon>error</mat-icon>
+            {{ error }}
+          </div> 
+        }
+        
+        @if (success) { 
+          <div class="success-message">
+            <mat-icon>check_circle</mat-icon>
+            Cadastro realizado com sucesso! Faça login.
+          </div> 
+        }
+      </form>
+      
+      <div class="auth-divider">
+        <span>ou</span>
+      </div>
+      
+      <div class="social-login">
+        <button mat-stroked-button class="social-btn google-btn" disabled>
+          <mat-icon>google</mat-icon>
+          Cadastrar com Google
+        </button>
+        <button mat-stroked-button class="social-btn facebook-btn" disabled>
+          <mat-icon>facebook</mat-icon>
+          Cadastrar com Facebook
+        </button>
+      </div>
+      
+      <div class="auth-footer">
+        <p>Já tem uma conta? <a routerLink="/login">Faça login</a></p>
+      </div>
     </div>
-    <div class="login-link">
-      <a routerLink="/login">Já tem conta? Entrar</a>
-    </div>
-  </mat-card>
+  </div>
 </div>

@@ -1,7 +1,6 @@
 package interfaces
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -10,14 +9,12 @@ import (
 	"github.com/cristianorosa/eSimulate/backend/usecase"
 )
 
-// PerformanceHandler lida com relatórios de desempenho
-
-// PerformanceHandler lida com requisições HTTP relacionadas a relatórios de desempenho.
+// PerformanceHandler lida com requisições HTTP relacionadas a relatórios de desempenho
 type PerformanceHandler struct {
 	UC *usecase.PerformanceUsecase
 }
 
-// ReportHandler gera um relatório de desempenho para um usuário.
+// ReportHandler gera um relatório de desempenho para um usuário
 func (h *PerformanceHandler) ReportHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("PerformanceHandler: Iniciando relatório de desempenho")
 
@@ -32,7 +29,7 @@ func (h *PerformanceHandler) ReportHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	log.Printf("PerformanceHandler: Chamando usecase para usuário %d", userID)
-	report, err := h.UC.GetUserPerformance(context.Background(), userID)
+	report, err := h.UC.GetReport(userID)
 	if err != nil {
 		log.Printf("PerformanceHandler: Erro ao obter performance: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -7,9 +7,7 @@ import (
 	"github.com/cristianorosa/eSimulate/backend/domain"
 )
 
-// PerformanceRepositoryPG implementa PerformanceRepository usando PostgreSQL
-
-// PerformanceRepositoryPG implementa PerformanceRepository usando PostgreSQL.
+// PerformanceRepositoryPG implementa ReportRepository usando PostgreSQL
 type PerformanceRepositoryPG struct {
 	DB *sql.DB
 }

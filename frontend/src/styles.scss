@@ -1,0 +1,74 @@
+@import '@angular/material/prebuilt-themes/deeppurple-amber.css';
+
+/* You can add global styles to this file, and also import other style files */
+
+// Estilos globais para prevenir overflow
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  background-color: #f5f5f5;
+}
+
+// Garantir que todos os containers respeitem a largura
+.container,
+.mat-mdc-card,
+.mat-mdc-table,
+.mat-mdc-form-field,
+.mat-mdc-button,
+.mat-mdc-list,
+.mat-mdc-menu-panel,
+.mat-mdc-dialog-container {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+// Garantir que tabelas não causem overflow
+.mat-mdc-table-container {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+// Garantir que formulários não causem overflow
+.mat-mdc-form-field {
+  width: 100%;
+  max-width: 100%;
+}
+
+// Garantir que cards não causem overflow
+.mat-mdc-card {
+  width: 100%;
+  max-width: 100%;
+}
+
+// Garantir que botões não causem overflow
+.mat-mdc-button {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Garantir que o router-outlet não cause overflow
+router-outlet + * {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+// Correção específica para mat-mdc-paginator-touch-target
+.mat-mdc-paginator-touch-target {
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+  display: none !important;
+}

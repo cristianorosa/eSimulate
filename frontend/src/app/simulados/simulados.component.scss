@@ -1,0 +1,160 @@
+@use '../shared/styles.scss' as *;
+@use "sass:color";
+
+.simulados-container {
+  width: 100%;
+  max-width: 100%;
+  padding: 24px;
+  overflow-x: hidden;
+  
+  @include responsive(768px) {
+    padding: 16px;
+  }
+}
+
+.simulados-header {
+  margin-bottom: 30px;
+  
+  .header-card {
+    @extend .card;
+    
+    .header-content {
+      @extend .card-header;
+      
+      .header-actions {
+        .new-quiz-btn {
+          @extend .btn !optional;
+          @extend .btn-primary !optional;
+        }
+      }
+    }
+  }
+}
+
+.simulados-content {
+  .loading-container {
+    @extend .loading-container;
+  }
+  
+  .empty-state {
+    .empty-card {
+      @extend .card;
+      
+      .empty-content {
+        @extend .empty-state;
+      }
+    }
+  }
+  
+  .simulados-grid {
+    @extend .grid;
+    @extend .grid-auto;
+    
+    .simulado-card {
+      @extend .card;
+      transition: $transition;
+      overflow: hidden;
+      
+      &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+      }
+      
+      .card-header {
+        position: relative;
+        @include gradient(#f5f7fa, #c3cfe2);
+        padding: 20px;
+        @include flex-between;
+        
+        .card-icon {
+          mat-icon {
+            font-size: 32px;
+            width: 32px;
+            height: 32px;
+            color: $primary-color;
+          }
+        }
+        
+        .card-badge {
+          span {
+            background: $success-color;
+            color: white;
+            padding: 4px 12px;
+            border-radius: $border-radius;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+          }
+        }
+      }
+      
+      mat-card-content {
+        padding: 20px;
+        
+        .card-title {
+          margin: 0 0 10px 0;
+          font-size: 20px;
+          font-weight: 600;
+          color: $text-dark;
+        }
+        
+        .card-description {
+          margin: 0 0 20px 0;
+          color: $text-light;
+          line-height: 1.5;
+        }
+        
+        .card-details {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          
+          .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: $text-light;
+            font-size: 14px;
+            
+            mat-icon {
+              font-size: 16px;
+              width: 16px;
+              height: 16px;
+              color: $primary-color;
+            }
+          }
+        }
+      }
+      
+      mat-card-actions {
+        padding: 20px;
+        display: flex;
+        gap: 12px;
+        
+        @include responsive(480px) {
+          flex-direction: column;
+        }
+        
+        .start-btn {
+          flex: 1;
+          padding: 12px;
+          font-weight: 600;
+          border-radius: $border-radius-sm;
+          
+          mat-icon {
+            margin-right: 8px;
+          }
+        }
+        
+        .preview-btn {
+          padding: 12px 20px;
+          border-radius: $border-radius-sm;
+          
+          mat-icon {
+            margin-right: 8px;
+          }
+        }
+      }
+    }
+  }
+}

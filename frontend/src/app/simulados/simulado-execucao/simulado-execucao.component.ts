@@ -1,11 +1,30 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SimuladosService } from '../simulados.service';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-simulado-execucao',
   templateUrl: './simulado-execucao.component.html',
   styleUrls: ['./simulado-execucao.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatCardModule,
+    MatRadioModule,
+    MatButtonModule,
+    MatDividerModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+  ]
 })
 export class SimuladoExecucaoComponent implements OnInit {
   simulado: any = null;
@@ -15,8 +34,13 @@ export class SimuladoExecucaoComponent implements OnInit {
   loading = true;
   finalizado = false;
   resultado: any = null;
+  String = String; // Para usar no template
 
-  constructor(private route: ActivatedRoute, private simuladosService: SimuladosService) {}
+  constructor(
+    private route: ActivatedRoute, 
+    private simuladosService: SimuladosService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
@@ -64,5 +88,9 @@ export class SimuladoExecucaoComponent implements OnInit {
         this.resultado = { erro: 'Erro ao processar resultado.' };
       },
     });
+  }
+
+  get allQuestionsAnswered(): boolean {
+    return this.respostas.every(resposta => resposta !== undefined && resposta !== null);
   }
 }

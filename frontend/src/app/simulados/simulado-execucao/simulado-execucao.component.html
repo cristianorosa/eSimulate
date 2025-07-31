@@ -1,50 +1,218 @@
-<div class="simulado-execucao-container" *ngIf="!loading && simulado && !finalizado">
-  <mat-card>
-    <mat-card-title>{{ simulado.title }}</mat-card-title>
-    <mat-card-content>
-      <div class="questao-atual">
-        <div><strong>Questão {{ atual + 1 }} de {{ questoes.length }}</strong></div>
-        <div class="enunciado">{{ questoes[atual]?.statement }}</div>
-        <mat-radio-group [(ngModel)]="respostas[atual]">
-          <mat-radio-button *ngFor="let op of questoes[atual]?.options" [value]="op.id">
-            {{ op.text }}
-          </mat-radio-button>
-        </mat-radio-group>
-      </div>
-      <div class="navegacao">
-        <button mat-stroked-button (click)="anterior()" [disabled]="atual === 0">Anterior</button>
-        <button mat-stroked-button (click)="proxima()" [disabled]="atual === questoes.length - 1">Próxima</button>
-        <button mat-raised-button color="primary" (click)="finalizar()" [disabled]="respostas.includes(null)">Finalizar</button>
-      </div>
-    </mat-card-content>
-  </mat-card>
-</div>
-<div *ngIf="finalizado">
-  <mat-card>
-    <mat-card-title>Resultado do Simulado</mat-card-title>
-    <mat-card-content *ngIf="resultado && !resultado.erro">
-      <div><strong>Acertos:</strong> {{ resultado.acertos }} / {{ questoes.length }}</div>
-      <div><strong>Desempenho:</strong> {{ resultado.percentual }}%</div>
-      <div class="explicacoes" *ngIf="resultado.detalhes">
-        <mat-divider></mat-divider>
-        <div *ngFor="let det of resultado.detalhes; let i = index" class="detalhe-questao">
-          <div><strong>Questão {{ i + 1 }}:</strong> {{ det.statement }}</div>
-          <div>
-            <span [ngClass]="{'correta': det.correta, 'errada': !det.correta}">
-              Sua resposta: {{ det.resposta_usuario_texto }}
-            </span>
-            <span *ngIf="det.correta" class="correta">(Correta)</span>
-            <span *ngIf="!det.correta" class="errada">(Errada)</span>
+@if (!loading && simulado && !finalizado) {
+  <div class="simulado-execucao-container">
+    <div class="execucao-header">
+      <mat-card class="header-card">
+        <div class="header-content">
+          <div class="quiz-info">
+            <h1>{{ simulado.title }}</h1>
+            <p class="quiz-description">{{ simulado.description || 'Teste seus conhecimentos' }}</p>
           </div>
-          <div *ngIf="det.explanation"><strong>Explicação:</strong> {{ det.explanation }}</div>
-          <mat-divider></mat-divider>
+          <div class="progress-info">
+            <div class="progress-circle">
+              <div class="progress-text">
+                <span class="current">{{ atual + 1 }}</span>
+                <span class="total">/ {{ questoes.length }}</span>
+              </div>
+            </div>
+            <div class="progress-label">Questão</div>
+          </div>
         </div>
+      </mat-card>
+    </div>
+
+    <div class="questao-container">
+      <mat-card class="questao-card">
+        <div class="questao-header">
+          <div class="questao-number">
+            <span class="number">{{ atual + 1 }}</span>
+            <span class="label">de {{ questoes.length }}</span>
+          </div>
+          <div class="questao-timer">
+            <mat-icon>schedule</mat-icon>
+            <span>Tempo restante: 45:00</span>
+          </div>
+        </div>
+
+        <div class="questao-content">
+          <div class="enunciado">
+            <h3>Enunciado</h3>
+            <p>{{ questoes[atual]?.statement }}</p>
+          </div>
+
+          <div class="alternativas">
+            <h3>Alternativas</h3>
+            <mat-radio-group [(ngModel)]="respostas[atual]" class="alternativas-group">
+              @for (op of questoes[atual]?.options; track op.id; let i = $index) {
+                <div class="alternativa-item" [ngClass]="{'selected': respostas[atual] === op.id}">
+                  <mat-radio-button [value]="op.id" class="alternativa-radio">
+                    <div class="alternativa-content">
+                      <span class="alternativa-letter">{{ String.fromCharCode(65 + i) }}</span>
+                      <span class="alternativa-text">{{ op.text }}</span>
+                    </div>
+                  </mat-radio-button>
+                </div>
+              }
+            </mat-radio-group>
+          </div>
+        </div>
+
+        <div class="questao-actions">
+          <div class="navigation-buttons">
+            <button mat-stroked-button 
+                    (click)="anterior()" 
+                    [disabled]="atual === 0"
+                    class="nav-btn">
+              <mat-icon>arrow_back</mat-icon>
+              Anterior
+            </button>
+            
+            <button mat-raised-button 
+                    (click)="proxima()" 
+                    [disabled]="atual === questoes.length - 1"
+                    class="nav-btn next-btn">
+              Próxima
+              <mat-icon>arrow_forward</mat-icon>
+            </button>
+          </div>
+
+          <div class="finalizar-section">
+            <button mat-raised-button 
+                    color="accent" 
+                    (click)="finalizar()" 
+                    [disabled]="!allQuestionsAnswered"
+                    class="finalizar-btn">
+              <mat-icon>check_circle</mat-icon>
+              Finalizar Simulado
+            </button>
+          </div>
+        </div>
+      </mat-card>
+    </div>
+  </div>
+}
+
+@if (finalizado) {
+  <div class="resultado-container">
+    <div class="resultado-header">
+      <mat-card class="resultado-card">
+        <div class="resultado-content">
+          @if (resultado && !resultado.erro) {
+            <div class="resultado-main">
+              <div class="resultado-icon">
+                <mat-icon class="success-icon">emoji_events</mat-icon>
+              </div>
+              <div class="resultado-info">
+                <h1>Simulado Concluído!</h1>
+                <p>Parabéns por completar o simulado</p>
+              </div>
+            </div>
+
+            <div class="resultado-stats">
+              <div class="stat-item">
+                <div class="stat-value">{{ resultado.acertos }}</div>
+                <div class="stat-label">Acertos</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value">{{ questoes.length }}</div>
+                <div class="stat-label">Total</div>
+              </div>
+              <div class="stat-item highlight">
+                <div class="stat-value">{{ resultado.percentual }}%</div>
+                <div class="stat-label">Desempenho</div>
+              </div>
+            </div>
+          }
+          @if (resultado && resultado.erro) {
+            <div class="error-message">
+              <mat-icon>error</mat-icon>
+              <span>{{ resultado.erro }}</span>
+            </div>
+          }
+        </div>
+      </mat-card>
+    </div>
+
+    @if (resultado && !resultado.erro && resultado.detalhes) {
+      <div class="detalhes-container">
+        <mat-card class="detalhes-card">
+          <mat-card-title>Detalhes das Questões</mat-card-title>
+          <mat-card-content>
+            <div class="detalhes-list">
+              @for (det of resultado.detalhes; track i; let i = $index) {
+                <div class="detalhe-item" [ngClass]="{'correta': det.correta, 'incorreta': !det.correta}">
+                  <div class="detalhe-header">
+                    <div class="questao-number">
+                      <span class="number">{{ i + 1 }}</span>
+                    </div>
+                    <div class="questao-status">
+                      @if (det.correta) {
+                        <mat-icon class="status-icon correct">check_circle</mat-icon>
+                      } @else {
+                        <mat-icon class="status-icon incorrect">cancel</mat-icon>
+                      }
+                    </div>
+                  </div>
+                  
+                  <div class="questao-content">
+                    <div class="enunciado">
+                      <strong>Enunciado:</strong> {{ det.statement }}
+                    </div>
+                    
+                    <div class="resposta-info">
+                      <div class="sua-resposta">
+                        <strong>Sua resposta:</strong> 
+                        <span [ngClass]="{'correta': det.correta, 'incorreta': !det.correta}">
+                          {{ det.resposta_usuario_texto }}
+                        </span>
+                      </div>
+                      
+                      @if (!det.correta) {
+                        <div class="resposta-correta">
+                          <strong>Resposta correta:</strong> 
+                          <span class="correta">{{ det.resposta_correta_texto }}</span>
+                        </div>
+                      }
+                    </div>
+                    
+                    @if (det.explanation) {
+                      <div class="explicacao">
+                        <strong>Explicação:</strong> {{ det.explanation }}
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </mat-card-content>
+        </mat-card>
       </div>
-    </mat-card-content>
-    <mat-card-content *ngIf="resultado && resultado.erro">
-      <div style="color: #c00;">{{ resultado.erro }}</div>
-    </mat-card-content>
-  </mat-card>
-</div>
-<div *ngIf="loading" style="text-align:center; margin-top:2em; color:#888;">Carregando simulado...</div>
-<div *ngIf="!loading && !simulado" style="text-align:center; margin-top:2em; color:#888;">Simulado não encontrado.</div>
+    }
+  </div>
+}
+
+@if (loading) { 
+  <div class="loading-container">
+    <mat-card class="loading-card">
+      <div class="loading-content">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Carregando simulado...</p>
+      </div>
+    </mat-card>
+  </div>
+}
+
+@if (!loading && !simulado) { 
+  <div class="error-container">
+    <mat-card class="error-card">
+      <div class="error-content">
+        <mat-icon class="error-icon">error</mat-icon>
+        <h2>Simulado não encontrado</h2>
+        <p>O simulado solicitado não foi encontrado ou não está disponível.</p>
+        <button mat-raised-button color="primary" routerLink="/simulados">
+          <mat-icon>arrow_back</mat-icon>
+          Voltar aos Simulados
+        </button>
+      </div>
+    </mat-card>
+  </div>
+}

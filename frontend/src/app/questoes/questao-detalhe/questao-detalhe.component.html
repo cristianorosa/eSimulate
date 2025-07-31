@@ -1,23 +1,156 @@
-<div class="questao-detalhe-container" *ngIf="!loading && questao">
-  <mat-card>
-    <mat-card-title>Detalhes da Questão</mat-card-title>
-    <mat-card-content>
-      <div class="enunciado"><strong>Enunciado:</strong> {{ questao.statement }}</div>
-      <div class="tema"><strong>Tema:</strong> {{ questao.theme_id }}</div>
-      <div class="explicacao" *ngIf="questao.explanation"><strong>Explicação:</strong> {{ questao.explanation }}</div>
-      <div class="opcoes">
-        <strong>Opções:</strong>
-        <mat-list>
-          <mat-list-item *ngFor="let op of questao.options">
-            <span [ngClass]="{'correta': op.is_correct, 'errada': !op.is_correct}">{{ op.text }}</span>
-            <span class="op-expl" *ngIf="op.explanation">- {{ op.explanation }}</span>
-            <mat-icon *ngIf="op.is_correct" color="primary">check_circle</mat-icon>
-            <mat-icon *ngIf="!op.is_correct" color="warn">cancel</mat-icon>
-          </mat-list-item>
-        </mat-list>
+@if (!loading && questao) {
+  <div class="questao-detalhe-container">
+    <div class="detalhe-header">
+      <mat-card class="header-card">
+        <div class="header-content">
+          <div class="header-title">
+            <h1>Detalhes da Questão</h1>
+            <p>Visualize as informações completas da questão</p>
+          </div>
+          <div class="header-actions">
+            <button mat-stroked-button routerLink="/questoes">
+              <mat-icon>arrow_back</mat-icon>
+              Voltar
+            </button>
+            <button mat-raised-button color="accent">
+              <mat-icon>edit</mat-icon>
+              Editar
+            </button>
+          </div>
+        </div>
+      </mat-card>
+    </div>
+
+    <div class="detalhe-content">
+      <mat-card class="detalhe-card">
+        <div class="questao-info">
+          <div class="info-header">
+            <div class="questao-number">
+              <span class="number">#{{ questao.id }}</span>
+            </div>
+            <div class="questao-status">
+              @if (questao.isActive) {
+                <span class="status-badge active">Ativa</span>
+              } @else {
+                <span class="status-badge inactive">Inativa</span>
+              }
+            </div>
+          </div>
+
+          <div class="questao-details">
+            <div class="detail-section">
+              <h3 class="section-title">
+                <mat-icon>description</mat-icon>
+                Enunciado
+              </h3>
+              <div class="enunciado-content">
+                <p>{{ questao.statement }}</p>
+              </div>
+            </div>
+
+            <div class="detail-section">
+              <h3 class="section-title">
+                <mat-icon>category</mat-icon>
+                Informações
+              </h3>
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="label">Tema:</span>
+                  <span class="value">{{ questao.theme_id }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">Tipo:</span>
+                  <span class="value">{{ questao.type || 'Múltipla Escolha' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">Dificuldade:</span>
+                  <span class="value">{{ questao.difficulty || 'Médio' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">Alternativas:</span>
+                  <span class="value">{{ questao.options?.length || 4 }}</span>
+                </div>
+              </div>
+            </div>
+
+            @if (questao.explanation) {
+              <div class="detail-section">
+                <h3 class="section-title">
+                  <mat-icon>lightbulb</mat-icon>
+                  Explicação
+                </h3>
+                <div class="explicacao-content">
+                  <p>{{ questao.explanation }}</p>
+                </div>
+              </div>
+            }
+
+            <div class="detail-section">
+              <h3 class="section-title">
+                <mat-icon>radio_button_checked</mat-icon>
+                Alternativas
+              </h3>
+              <div class="alternativas-list">
+                @for (op of questao.options; track op.id; let i = $index) {
+                  <div class="alternativa-item" [ngClass]="{'correta': op.is_correct}">
+                    <div class="alternativa-header">
+                      <div class="alternativa-letter">
+                        <span>{{ String.fromCharCode(65 + i) }}</span>
+                      </div>
+                      <div class="alternativa-status">
+                        @if (op.is_correct) {
+                          <mat-icon class="status-icon correct">check_circle</mat-icon>
+                        } @else {
+                          <mat-icon class="status-icon incorrect">cancel</mat-icon>
+                        }
+                      </div>
+                    </div>
+                    
+                    <div class="alternativa-content">
+                      <div class="alternativa-text">
+                        <p>{{ op.text }}</p>
+                      </div>
+                      
+                      @if (op.explanation) {
+                        <div class="alternativa-explicacao">
+                          <strong>Explicação:</strong> {{ op.explanation }}
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-card>
+    </div>
+  </div>
+}
+
+@if (loading) { 
+  <div class="loading-container">
+    <mat-card class="loading-card">
+      <div class="loading-content">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Carregando detalhes da questão...</p>
       </div>
-    </mat-card-content>
-  </mat-card>
-</div>
-<div *ngIf="loading" style="text-align:center; margin-top:2em; color:#888;">Carregando...</div>
-<div *ngIf="!loading && !questao" style="text-align:center; margin-top:2em; color:#888;">Questão não encontrada.</div>
+    </mat-card>
+  </div>
+}
+
+@if (!loading && !questao) { 
+  <div class="error-container">
+    <mat-card class="error-card">
+      <div class="error-content">
+        <mat-icon class="error-icon">error</mat-icon>
+        <h2>Questão não encontrada</h2>
+        <p>A questão solicitada não foi encontrada ou não está disponível.</p>
+        <button mat-raised-button color="primary" routerLink="/questoes">
+          <mat-icon>arrow_back</mat-icon>
+          Voltar às Questões
+        </button>
+      </div>
+    </mat-card>
+  </div>
+}

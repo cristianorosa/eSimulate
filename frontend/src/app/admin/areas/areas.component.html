@@ -1,0 +1,119 @@
+<div class="areas-container">
+  <div class="header">
+    <mat-card class="header-card">
+      <div class="header-content">
+        <div class="header-title">
+          <h1>Gerenciar Áreas</h1>
+          <p>Gerencie as áreas de conhecimento do sistema</p>
+        </div>
+        <div class="header-actions">
+          <button mat-raised-button color="primary" (click)="openCreateDialog()">
+            <mat-icon>add</mat-icon>
+            Nova Área
+          </button>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <div class="content">
+    <mat-card class="content-card">
+      @if (loading) {
+        <div class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Carregando áreas...</p>
+        </div>
+      } @else {
+        <div class="table-container">
+          <table mat-table [dataSource]="areas" class="areas-table">
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef>ID</th>
+              <td mat-cell *matCellDef="let area">{{ area.id }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Nome</th>
+              <td mat-cell *matCellDef="let area">{{ area.name }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="description">
+              <th mat-header-cell *matHeaderCellDef>Descrição</th>
+              <td mat-cell *matCellDef="let area">{{ area.description || '-' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="created_at">
+              <th mat-header-cell *matHeaderCellDef>Criado em</th>
+              <td mat-cell *matCellDef="let area">{{ area.created_at | date:'dd/MM/yyyy' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Ações</th>
+              <td mat-cell *matCellDef="let area">
+                <button mat-icon-button color="primary" (click)="editArea(area)" matTooltip="Editar">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteArea(area)" matTooltip="Excluir">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+
+          @if (pagination) {
+            <mat-paginator
+              [length]="pagination.total_items"
+              [pageSize]="pagination.page_size"
+              [pageIndex]="pagination.page - 1"
+              [pageSizeOptions]="[5, 10, 25, 50]"
+              (page)="onPageChange($event)"
+              showFirstLastButtons>
+            </mat-paginator>
+          }
+        </div>
+      }
+    </mat-card>
+  </div>
+</div>
+
+<!-- Dialog para criar/editar área -->
+@if (showDialog) {
+  <div class="dialog-overlay" (click)="closeDialog()">
+    <div class="dialog-content" (click)="$event.stopPropagation()">
+      <mat-card class="dialog-card">
+        <mat-card-header>
+          <mat-card-title>{{ editingArea ? 'Editar' : 'Nova' }} Área</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <form (ngSubmit)="saveArea()" #areaForm="ngForm">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Nome da Área</mat-label>
+              <input matInput [(ngModel)]="formArea.name" name="name" required>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Descrição</mat-label>
+              <textarea matInput [(ngModel)]="formArea.description" name="description" rows="3"></textarea>
+            </mat-form-field>
+
+            <div class="dialog-actions">
+              <button mat-stroked-button type="button" (click)="closeDialog()">
+                Cancelar
+              </button>
+              <button mat-raised-button color="primary" type="submit" [disabled]="saving">
+                @if (saving) {
+                  <mat-spinner diameter="20"></mat-spinner>
+                } @else {
+                  <mat-icon>save</mat-icon>
+                }
+                {{ saving ? 'Salvando...' : 'Salvar' }}
+              </button>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+} 

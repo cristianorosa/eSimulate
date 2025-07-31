@@ -3,16 +3,40 @@ import { Router } from '@angular/router';
 import { QuestoesService } from '../questoes.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LoadingService } from '../../core/loading.service';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatSelectModule } from '@angular/material/select';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-questao-form',
   templateUrl: './questao-form.component.html',
   styleUrls: ['./questao-form.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatCardModule,
+    MatInputModule,
+    MatFormFieldModule,
+    MatButtonModule,
+    MatIconModule,
+    MatCheckboxModule,
+    MatSelectModule,
+    MatProgressSpinnerModule,
+  ]
 })
 export class QuestaoFormComponent {
   statement = '';
   theme_id: number | null = null;
   explanation = '';
+  difficulty = 'medio';
   options = [
     { text: '', is_correct: false, explanation: '' },
     { text: '', is_correct: false, explanation: '' },
@@ -47,6 +71,7 @@ export class QuestaoFormComponent {
       statement: this.statement,
       theme_id: this.theme_id,
       explanation: this.explanation,
+      difficulty: this.difficulty,
       options: this.options,
       created_by: 1, // Ajustar para pegar o usuário autenticado
     };

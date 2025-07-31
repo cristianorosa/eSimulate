@@ -1,0 +1,516 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+		"name": "eSimulate Backend API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"description": "Postman collection for the eSimulate Backend API."
+	},
+	"item": [
+		{
+			"name": "Auth & User",
+			"item": [
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"testuser\",\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
+						"description": "Registers a new user."
+					},
+					"response": []
+				},
+				{
+					"name": "Login User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Logs in a user and returns a JWT token."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Themes",
+			"item": [
+				{
+					"name": "List Themes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/themes",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"themes"
+							]
+						},
+						"description": "Lists all available themes."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Theme (Auth Required)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"New Theme Name\",\n    \"description\": \"Description for the new theme\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/themes/create",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"themes",
+								"create"
+							]
+						},
+						"description": "Creates a new theme. Requires authentication (Bearer Token)."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Theme (Auth Required)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"theme_id_here\",\n    \"name\": \"Updated Theme Name\",\n    \"description\": \"Updated description\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/themes/update",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"themes",
+								"update"
+							]
+						},
+						"description": "Updates an existing theme. Requires authentication (Bearer Token)."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Theme (Auth Required)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"theme_id_to_delete\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/themes/delete",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"themes",
+								"delete"
+							]
+						},
+						"description": "Deletes a theme. Requires authentication (Bearer Token)."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Questions",
+			"item": [
+				{
+					"name": "List Questions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/questions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"questions"
+							]
+						},
+						"description": "Lists all questions."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Question (Auth Required)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"theme_id\": \"theme_id_here\",\n    \"text\": \"What is the capital of France?\",\n    \"options\": [\n        {\n            \"text\": \"Berlin\",\n            \"is_correct\": false\n        },\n        {\n            \"text\": \"Paris\",\n            \"is_correct\": true\n        },\n        {\n            \"text\": \"Rome\",\n            \"is_correct\": false\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/questions/create",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"questions",
+								"create"
+							]
+						},
+						"description": "Creates a new question. Requires authentication (Bearer Token)."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Question (Auth Required)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"question_id_here\",\n    \"theme_id\": \"theme_id_here\",\n    \"text\": \"Updated question text?\",\n    \"options\": [\n        {\n            \"text\": \"Option A\",\n            \"is_correct\": false\n        },\n        {\n            \"text\": \"Option B\",\n            \"is_correct\": true\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/questions/update",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"questions",
+								"update"
+							]
+						},
+						"description": "Updates an existing question. Requires authentication (Bearer Token)."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Question (Auth Required)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"question_id_to_delete\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/questions/delete",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"questions",
+								"delete"
+							]
+						},
+						"description": "Deletes a question. Requires authentication (Bearer Token)."
+					},
+					"response": []
+				},
+				{
+					"name": "Question Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/questions/detail?id=question_id_here",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"questions",
+								"detail"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "question_id_here"
+								}
+							]
+						},
+						"description": "Gets details for a specific question by ID."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Quizzes",
+			"item": [
+				{
+					"name": "List Quizzes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/quizzes",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"quizzes"
+							]
+						},
+						"description": "Lists all available quizzes."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Quiz (Auth Required)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"New Quiz Title\",\n    \"description\": \"Description of the new quiz\",\n    \"theme_id\": \"theme_id_here\",\n    \"question_ids\": [\"question_id_1\", \"question_id_2\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/quizzes/create",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"quizzes",
+								"create"
+							]
+						},
+						"description": "Creates a new quiz. Requires authentication (Bearer Token)."
+					},
+					"response": []
+				},
+				{
+					"name": "Quiz Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/quizzes/detail?id=quiz_id_here",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"quizzes",
+								"detail"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "quiz_id_here"
+								}
+							]
+						},
+						"description": "Gets details for a specific quiz by ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Start Quiz (Auth Required)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"quiz_id\": \"quiz_id_to_start\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/quizzes/start",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"quizzes",
+								"start"
+							]
+						},
+						"description": "Starts a quiz for the authenticated user. Requires authentication (Bearer Token)."
+					},
+					"response": []
+				},
+				{
+					"name": "Answer Question (Auth Required)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_quiz_id\": \"user_quiz_session_id\",\n    \"question_id\": \"question_id_answered\",\n    \"selected_option_id\": \"option_id_selected\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/quizzes/answer",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"quizzes",
+								"answer"
+							]
+						},
+						"description": "Submits an answer for a question in an ongoing quiz. Requires authentication (Bearer Token)."
+					},
+					"response": []
+				},
+				{
+					"name": "Quiz Result (Auth Required)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/quizzes/result?user_quiz_id=user_quiz_session_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"quizzes",
+								"result"
+							],
+							"query": [
+								{
+									"key": "user_quiz_id",
+									"value": "user_quiz_session_id"
+								}
+							]
+						},
+						"description": "Gets the result of a completed quiz session. Requires authentication (Bearer Token)."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "History & Performance",
+			"item": [
+				{
+					"name": "List History (Auth Required)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/history",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"history"
+							]
+						},
+						"description": "Lists the user's quiz history. Requires authentication (Bearer Token)."
+					},
+					"response": []
+				},
+				{
+					"name": "Performance Report (Auth Required)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/performance",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"performance"
+							]
+						},
+						"description": "Gets a performance report for the authenticated user. Requires authentication (Bearer Token)."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string",
+			"description": "The base URL for the backend API."
+		}
+	]
+}

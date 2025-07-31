@@ -1,16 +1,105 @@
 <div class="questoes-container">
-  <mat-card>
-    <mat-card-title>Questões Cadastradas</mat-card-title>
-    <button mat-raised-button color="primary" style="margin-bottom: 16px;" routerLink="/questoes/new">Nova Questão</button>
-    <mat-list>
-      <mat-list-item *ngFor="let questao of questoes">
-        <div mat-line>{{ questao.statement }}</div>
-        <div mat-line class="secondary">Tema: {{ questao.theme_id }}</div>
-        <button mat-stroked-button color="accent" style="margin-left:auto;" (click)="detalharQuestao(questao.id)">Detalhar</button>
-      </mat-list-item>
-      <mat-list-item *ngIf="questoes.length === 0">
-        <div mat-line>Nenhuma questão cadastrada.</div>
-      </mat-list-item>
-    </mat-list>
-  </mat-card>
+  <div class="questoes-header">
+    <mat-card class="header-card">
+      <div class="header-content">
+        <div class="header-title">
+          <h1>Gerenciar Questões</h1>
+          <p>Crie e gerencie questões para os simulados</p>
+        </div>
+        <div class="header-actions">
+          <button mat-raised-button color="primary" class="new-question-btn" routerLink="/questoes/new">
+            <mat-icon>add</mat-icon>
+            Nova Questão
+          </button>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <div class="questoes-content">
+    @if (loading) {
+      <div class="loading-container">
+        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        <p>Carregando questões...</p>
+      </div>
+    } @else {
+                  @if (!questoes || questoes.length === 0) {
+        <div class="empty-state">
+          <mat-card class="empty-card">
+            <div class="empty-content">
+              <mat-icon class="empty-icon">help</mat-icon>
+              <h3>Nenhuma questão cadastrada</h3>
+              <p>Comece criando sua primeira questão para os simulados</p>
+              <button mat-raised-button color="primary" routerLink="/questoes/new">
+                <mat-icon>add</mat-icon>
+                Criar Primeira Questão
+              </button>
+            </div>
+          </mat-card>
+        </div>
+      } @else {
+        <div class="questoes-grid">
+          @for (questao of questoes; track questao.id) {
+            <mat-card class="questao-card">
+              <div class="card-header">
+                <div class="card-icon">
+                  <mat-icon>help</mat-icon>
+                </div>
+                <div class="card-actions">
+                  <button mat-icon-button class="action-btn" (click)="detalharQuestao(questao.id)">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
+                  <button mat-icon-button class="action-btn">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button class="action-btn delete-btn">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+              
+              <mat-card-content>
+                <h3 class="card-title">{{ questao.statement }}</h3>
+                
+                <div class="card-details">
+                  <div class="detail-item">
+                    <mat-icon>category</mat-icon>
+                    <span>Tema: {{ questao.theme_id }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <mat-icon>school</mat-icon>
+                    <span>Dificuldade: {{ questao.difficulty || 'Médio' }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <mat-icon>radio_button_checked</mat-icon>
+                    <span>{{ questao.options?.length || 4 }} alternativas</span>
+                  </div>
+                </div>
+                
+                <div class="card-tags">
+                  <span class="tag">{{ questao.type || 'Múltipla Escolha' }}</span>
+                  @if (questao.isActive) {
+                    <span class="tag active">Ativa</span>
+                  } @else {
+                    <span class="tag inactive">Inativa</span>
+                  }
+                </div>
+              </mat-card-content>
+              
+              <mat-card-actions>
+                <button mat-stroked-button color="primary" class="detail-btn" (click)="detalharQuestao(questao.id)">
+                  <mat-icon>visibility</mat-icon>
+                  Ver Detalhes
+                </button>
+                <button mat-raised-button color="accent" class="edit-btn">
+                  <mat-icon>edit</mat-icon>
+                  Editar
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          }
+        </div>
+      }
+    }
+  </div>
 </div>
