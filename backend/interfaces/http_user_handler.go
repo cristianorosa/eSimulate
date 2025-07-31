@@ -33,9 +33,9 @@ func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"id":    user.ID,
-		"name":  user.Name,
-		"email": user.Email,
+		"id":         user.ID,
+		"name":       user.Name,
+		"email":      user.Email,
 		"created_at": user.CreatedAt,
 	})
 }
@@ -66,10 +66,11 @@ func (h *UserHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"token": token,
-		"id":    user.ID,
-		"name":  user.Name,
-		"email": user.Email,
+		"token":   token,
+		"id":      user.ID,
+		"name":    user.Name,
+		"email":   user.Email,
+		"role_id": user.RoleID,
 	})
 }
 
@@ -91,4 +92,37 @@ func (h *UserHandler) FacebookLoginHandler(w http.ResponseWriter, r *http.Reques
 	// Gerar e retornar JWT do sistema
 	w.WriteHeader(http.StatusNotImplemented)
 	w.Write([]byte("Login via Facebook ainda não implementado"))
+}
+
+// ListUsersHandler trata o endpoint para listar todos os usuários
+func (h *UserHandler) ListUsersHandler(w http.ResponseWriter, r *http.Request) {
+	// Só aceita método GET
+	if r.Method != http.MethodGet {
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	users, err := h.UC.ListUsers(context.Background())
+	if err != nil {
+		http.Error(w, "Erro ao buscar usuários: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Prepara resposta JSON
+	response := make([]map[string]interface{}, len(users))
+	for i, user := range users {
+		response[i] = map[string]interface{}{
+			"id":         user.ID,
+			"name":       user.Name,
+			"email":      user.Email,
+			"created_at": user.CreatedAt,
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"users": response,
+		"total": len(users),
+	})
 }

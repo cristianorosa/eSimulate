@@ -1,13 +1,20 @@
 package domain
 
-// Question representa uma questão de simulado
+import "time"
+
+// Question representa uma questão de prova
 type Question struct {
-	ID          int
-	ThemeID     int
-	Statement   string
-	Explanation string
-	CreatedBy   int
-	Options     []*Option
+	ID              int
+	ExamID          int
+	DomainID        int
+	Statement       string
+	Explanation     string
+	DifficultyLevel int
+	CreatedBy       int
+	IsActive        bool
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	Options         []*Option
 }
 
 // Option representa uma opção de resposta para uma questão
@@ -17,6 +24,7 @@ type Option struct {
 	Text        string
 	IsCorrect   bool
 	Explanation string
+	OrderIndex  int
 }
 
 // QuestionRepository define a interface para operações de persistência de questões
@@ -25,5 +33,7 @@ type QuestionRepository interface {
 	Update(q *Question) error
 	Delete(id int) error
 	FindByID(id int) (*Question, error)
-	ListAll(themeID *int) ([]*Question, error)
+	ListByExam(examID int) ([]*Question, error)
+	ListByDomain(domainID int) ([]*Question, error)
+	ListActive() ([]*Question, error)
 }

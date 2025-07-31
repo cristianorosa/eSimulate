@@ -2,6 +2,7 @@ package infra
 
 import (
 	"database/sql"
+
 	"github.com/cristianorosa/eSimulate/backend/domain"
 )
 
@@ -87,7 +88,7 @@ func (r *QuizRepositoryPG) ListAll(themeID *int) ([]*domain.Quiz, error) {
 }
 
 func (r *QuizRepositoryPG) listQuizQuestions(quizID int) ([]*domain.Question, error) {
-	query := `SELECT q.id, q.theme_id, q.statement, q.explanation, q.created_by FROM quiz_questions qq JOIN questions q ON qq.question_id = q.id WHERE qq.quiz_id = $1`
+	query := `SELECT q.id, q.domain_id, q.statement, q.explanation, q.created_by FROM quiz_questions qq JOIN questions q ON qq.question_id = q.id WHERE qq.quiz_id = $1`
 	rows, err := r.DB.Query(query, quizID)
 	if err != nil {
 		return nil, err
@@ -96,7 +97,7 @@ func (r *QuizRepositoryPG) listQuizQuestions(quizID int) ([]*domain.Question, er
 	var questions []*domain.Question
 	for rows.Next() {
 		var q domain.Question
-		if err := rows.Scan(&q.ID, &q.ThemeID, &q.Statement, &q.Explanation, &q.CreatedBy); err != nil {
+		if err := rows.Scan(&q.ID, &q.DomainID, &q.Statement, &q.Explanation, &q.CreatedBy); err != nil {
 			return nil, err
 		}
 		questions = append(questions, &q)

@@ -47,12 +47,29 @@ func (uc *UserUsecase) RegisterUser(ctx context.Context, name, email, password s
 		Name:         name,
 		Email:        email,
 		PasswordHash: string(hash),
+		RoleID:       domain.RoleIDUser, // Usuário padrão
 		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
 	}
 	if err := uc.Repo.Create(user); err != nil {
 		return nil, err
 	}
 	return user, nil
+}
+
+// ListUsers retorna todos os usuários cadastrados (sem senha)
+func (uc *UserUsecase) ListUsers(ctx context.Context) ([]*domain.User, error) {
+	users, err := uc.Repo.ListAll()
+	if err != nil {
+		return nil, err
+	}
+
+	// Remove o hash da senha por segurança
+	for _, user := range users {
+		user.PasswordHash = ""
+	}
+
+	return users, nil
 }
 
 // isValidEmail faz uma validação simples de email

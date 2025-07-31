@@ -5,4 +5,5 @@ package domain
 type UserRepository interface {
 	Create(user *User) error
 	FindByEmail(email string) (*User, error)
+	ListAll() ([]*User, error) // Novo método para listar todos os usuários
 }

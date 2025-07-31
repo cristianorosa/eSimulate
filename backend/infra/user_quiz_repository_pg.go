@@ -20,6 +20,22 @@ func (r *UserQuizRepositoryPG) Create(uq *domain.UserQuiz) error {
 
 // ListByUser lista o histórico de simulados de um usuário.
 func (r *UserQuizRepositoryPG) ListByUser(userID int) ([]*domain.UserQuiz, error) {
+	// Verificar se a tabela user_quiz existe
+	var tableExists bool
+	err := r.DB.QueryRow(`SELECT EXISTS (
+		SELECT FROM information_schema.tables 
+		WHERE table_schema = 'public' 
+		AND table_name = 'user_quiz'
+	)`).Scan(&tableExists)
+	if err != nil {
+		return nil, err
+	}
+	
+	if !tableExists {
+		// Se a tabela não existe, retornar lista vazia
+		return []*domain.UserQuiz{}, nil
+	}
+	
 	query := `SELECT id, user_id, quiz_id, started_at, finished_at FROM user_quiz WHERE user_id = $1 ORDER BY started_at DESC`
 	rows, err := r.DB.Query(query, userID)
 	if err != nil {
