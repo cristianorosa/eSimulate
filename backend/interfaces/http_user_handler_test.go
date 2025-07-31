@@ -32,6 +32,14 @@ func (m *mockUserRepo) FindByEmail(email string) (*domain.User, error) {
 	return nil, nil
 }
 
+func (m *mockUserRepo) ListAll() ([]*domain.User, error) {
+	var users []*domain.User
+	for _, user := range m.users {
+		users = append(users, user)
+	}
+	return users, nil
+}
+
 func TestLoginHandler(t *testing.T) {
 	repo := &mockUserRepo{users: make(map[string]*domain.User)}
 	uc := &usecase.UserUsecase{Repo: repo}
