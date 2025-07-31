@@ -45,4 +45,5 @@ type Repository interface {
 	Delete(id int) error
 	FindByID(id int) (*Domain, error)
 	ListByExam(examID int) ([]*Domain, error)
+	ListAll() ([]*Domain, error)
 }

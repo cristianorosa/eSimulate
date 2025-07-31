@@ -80,3 +80,8 @@ func (uc *DomainUsecase) GetDomain(ctx context.Context, id int) (*domain.Domain,
 func (uc *DomainUsecase) ListDomainsByExam(ctx context.Context, examID int) ([]*domain.Domain, error) {
 	return uc.Repo.ListByExam(examID)
 }
+
+// ListAllDomains lista todos os domínios
+func (uc *DomainUsecase) ListAllDomains(ctx context.Context) ([]*domain.Domain, error) {
+	return uc.Repo.ListAll()
+}

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/cristianorosa/eSimulate/backend/domain"
 	"github.com/cristianorosa/eSimulate/backend/usecase"
 )
 
@@ -22,8 +23,23 @@ func (h *DomainHandler) ListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	examIDStr := r.URL.Query().Get("exam_id")
+	
+	// Se exam_id não foi fornecido, retornar todos os domínios
 	if examIDStr == "" {
-		http.Error(w, "exam_id é obrigatório", http.StatusBadRequest)
+		domains, err := h.UC.ListAllDomains(context.Background())
+		if err != nil {
+			http.Error(w, "Erro ao buscar domínios: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Garantir que sempre retorne um array, mesmo que vazio
+		if domains == nil {
+			domains = []*domain.Domain{}
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(domains)
 		return
 	}
 
@@ -37,6 +53,11 @@ func (h *DomainHandler) ListHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Erro ao buscar domínios: "+err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	// Garantir que sempre retorne um array, mesmo que vazio
+	if domains == nil {
+		domains = []*domain.Domain{}
 	}
 
 	w.Header().Set("Content-Type", "application/json")

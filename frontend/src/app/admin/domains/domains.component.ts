@@ -74,16 +74,22 @@ export class DomainsComponent implements OnInit {
     this.loading = true;
     this.adminService.getDomains(examId || 0).subscribe({
       next: (domains) => {
-        this.domains = domains.map(domain => ({
-          ...domain,
-          exam_name: this.getExamName(domain.exam_id)
-        }));
+        // Verificar se domains não é null ou undefined
+        if (domains && Array.isArray(domains)) {
+          this.domains = domains.map(domain => ({
+            ...domain,
+            exam_name: this.getExamName(domain.exam_id)
+          }));
+        } else {
+          this.domains = [];
+        }
         this.loading = false;
       },
       error: (error) => {
         console.error('Erro ao carregar domínios:', error);
         this.snackBar.open('Erro ao carregar domínios', 'Fechar', { duration: 3000 });
         this.loading = false;
+        this.domains = [];
       }
     });
   }

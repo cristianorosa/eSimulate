@@ -124,7 +124,7 @@ func (r *DomainRepositoryPG) ListByExam(examID int) ([]*domain.Domain, error) {
 
 	rows, err := r.DB.Query(query, examID)
 	if err != nil {
-		return nil, err
+		return []*domain.Domain{}, err
 	}
 	defer rows.Close()
 
@@ -141,13 +141,61 @@ func (r *DomainRepositoryPG) ListByExam(examID int) ([]*domain.Domain, error) {
 			&d.CreatedAt,
 		)
 		if err != nil {
-			return nil, err
+			return []*domain.Domain{}, err
 		}
 		domains = append(domains, d)
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, err
+		return []*domain.Domain{}, err
+	}
+
+	// Garantir que sempre retorne um array, mesmo que vazio
+	if domains == nil {
+		domains = []*domain.Domain{}
+	}
+
+	return domains, nil
+}
+
+// ListAll lista todos os domínios
+func (r *DomainRepositoryPG) ListAll() ([]*domain.Domain, error) {
+	query := `
+		SELECT id, exam_id, name, description, weight_percentage, order_index, created_at
+		FROM domains
+		ORDER BY exam_id, order_index, name`
+
+	rows, err := r.DB.Query(query)
+	if err != nil {
+		return []*domain.Domain{}, err
+	}
+	defer rows.Close()
+
+	var domains []*domain.Domain
+	for rows.Next() {
+		d := &domain.Domain{}
+		err := rows.Scan(
+			&d.ID,
+			&d.ExamID,
+			&d.Name,
+			&d.Description,
+			&d.WeightPercentage,
+			&d.OrderIndex,
+			&d.CreatedAt,
+		)
+		if err != nil {
+			return []*domain.Domain{}, err
+		}
+		domains = append(domains, d)
+	}
+
+	if err = rows.Err(); err != nil {
+		return []*domain.Domain{}, err
+	}
+
+	// Garantir que sempre retorne um array, mesmo que vazio
+	if domains == nil {
+		domains = []*domain.Domain{}
 	}
 
 	return domains, nil
