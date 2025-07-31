@@ -1,26 +1,91 @@
-<mat-sidenav-container class="main-container">
-  <mat-sidenav #drawer mode="side" class="main-sidenav" fixedInViewport [opened]="true">
-    <mat-toolbar color="primary" class="sidenav-header">eSimulate</mat-toolbar>
-    <mat-nav-list>
-      <a mat-list-item routerLink="/dashboard" routerLinkActive="active"><mat-icon>dashboard</mat-icon> Dashboard</a>
-      <a mat-list-item routerLink="/simulados" routerLinkActive="active"><mat-icon>assignment</mat-icon> Simulados</a>
-      <a mat-list-item routerLink="/questoes" routerLinkActive="active"><mat-icon>help</mat-icon> Questões</a>
-      <a mat-list-item routerLink="/perfil" routerLinkActive="active"><mat-icon>person</mat-icon> Perfil</a>
-    </mat-nav-list>
-  </mat-sidenav>
-  <mat-sidenav-content>
-    <mat-toolbar color="primary" class="main-toolbar">
-      <button mat-icon-button (click)="drawer.toggle()" class="hide-desktop">
+<div class="main-layout">
+  <!-- Header fixo ocupando toda a largura -->
+  <mat-toolbar color="primary" class="main-toolbar">
+    <div class="toolbar-left">
+      <button mat-icon-button (click)="toggleSidebar()" class="menu-button">
         <mat-icon>menu</mat-icon>
       </button>
       <span class="app-title">eSimulate</span>
-      <span class="spacer"></span>
-      <span *ngIf="(user$ | async) as user" class="user-name">{{ user.name }}</span>
-      <button mat-icon-button (click)="logout()"><mat-icon>logout</mat-icon></button>
-    </mat-toolbar>
-    <mat-progress-bar *ngIf="loading$ | async" mode="indeterminate" color="accent" style="position:fixed;top:0;left:0;width:100%;z-index:1000;"></mat-progress-bar>
+    </div>
+    
+    <!-- Menu do usuário -->
+    @if (auth.user()) {
+      <button mat-icon-button [matMenuTriggerFor]="userMenu" class="user-menu-button">
+        <mat-icon>account_circle</mat-icon>
+      </button>
+      <mat-menu #userMenu="matMenu" class="user-menu">
+        <div class="user-info">
+          <mat-icon>person</mat-icon>
+          <span>{{ auth.user().name }}</span>
+        </div>
+        <mat-divider></mat-divider>
+        <button mat-menu-item routerLink="/dashboard/perfil">
+          <mat-icon>person</mat-icon>
+          <span>Perfil</span>
+        </button>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Sair</span>
+        </button>
+      </mat-menu>
+    }
+  </mat-toolbar>
+  
+  @if (loadingService.loading()) { 
+    <mat-progress-bar mode="indeterminate" color="accent" style="position:fixed;top:0;left:0;width:100%;z-index:1000;"></mat-progress-bar> 
+  }
+  
+  <!-- Container principal com sidebar e conteúdo lado a lado -->
+  <div class="content-container">
+    <!-- Sidebar -->
+    <div class="sidebar" [class.sidebar-open]="sidebarOpen" [class.sidebar-mini]="sidebarMini">
+      <div class="sidenav-list">
+        <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-item">
+          <mat-icon>dashboard</mat-icon> 
+          <span class="nav-text">Dashboard</span>
+        </a>
+        <a routerLink="/dashboard/simulados" routerLinkActive="active" class="nav-item">
+          <mat-icon>assignment</mat-icon> 
+          <span class="nav-text">Simulados</span>
+        </a>
+        <a routerLink="/dashboard/historico" routerLinkActive="active" class="nav-item">
+          <mat-icon>history</mat-icon> 
+          <span class="nav-text">Histórico</span>
+        </a>
+        <a routerLink="/dashboard/perfil" routerLinkActive="active" class="nav-item">
+          <mat-icon>person</mat-icon> 
+          <span class="nav-text">Perfil</span>
+        </a>
+        
+        <!-- Links administrativos -->
+        @if (isAdminOrRedator()) {
+          <mat-divider></mat-divider>
+          <div class="admin-section">
+            <h3 class="admin-title">Administração</h3>
+            <a routerLink="/admin/areas" routerLinkActive="active" class="nav-item">
+              <mat-icon>category</mat-icon> 
+              <span class="nav-text">Áreas</span>
+            </a>
+            <a routerLink="/admin/exams" routerLinkActive="active" class="nav-item">
+              <mat-icon>school</mat-icon> 
+              <span class="nav-text">Exames</span>
+            </a>
+            <a routerLink="/admin/domains" routerLinkActive="active" class="nav-item">
+              <mat-icon>domain</mat-icon> 
+              <span class="nav-text">Domínios</span>
+            </a>
+            <a routerLink="/admin/questions" routerLinkActive="active" class="nav-item">
+              <mat-icon>quiz</mat-icon> 
+              <span class="nav-text">Questões</span>
+            </a>
+          </div>
+        }
+      </div>
+    </div>
+    
+    <!-- Conteúdo principal -->
     <div class="main-content">
       <router-outlet></router-outlet>
     </div>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+  </div>
+</div>
