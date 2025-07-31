@@ -9,12 +9,12 @@ import (
 	"github.com/cristianorosa/eSimulate/backend/usecase"
 )
 
-// DomainHandler lida com requisições HTTP relacionadas a domínios.
+// DomainHandler lida com requisições HTTP relacionadas a domínios
 type DomainHandler struct {
 	UC *usecase.DomainUsecase
 }
 
-// ListHandler trata o endpoint para listar domínios
+// ListHandler lista todos os domínios de um exame
 func (h *DomainHandler) ListHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
@@ -22,17 +22,18 @@ func (h *DomainHandler) ListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	examIDStr := r.URL.Query().Get("exam_id")
-	var examID int
-	var err error
-	if examIDStr != "" {
-		examID, err = strconv.Atoi(examIDStr)
-		if err != nil {
-			http.Error(w, "exam_id inválido", http.StatusBadRequest)
-			return
-		}
+	if examIDStr == "" {
+		http.Error(w, "exam_id é obrigatório", http.StatusBadRequest)
+		return
 	}
 
-	domains, err := h.UC.ListDomains(context.Background(), examID)
+	examID, err := strconv.Atoi(examIDStr)
+	if err != nil {
+		http.Error(w, "exam_id inválido", http.StatusBadRequest)
+		return
+	}
+
+	domains, err := h.UC.ListDomainsByExam(context.Background(), examID)
 	if err != nil {
 		http.Error(w, "Erro ao buscar domínios: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -81,11 +82,11 @@ func (h *DomainHandler) CreateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		ExamID           int    `json:"exam_id"`
-		Name             string `json:"name"`
-		Description      string `json:"description"`
-		WeightPercentage int    `json:"weight_percentage"`
-		OrderIndex       int    `json:"order_index"`
+		ExamID           int     `json:"exam_id"`
+		Name             string  `json:"name"`
+		Description      string  `json:"description"`
+		WeightPercentage float64 `json:"weight_percentage"`
+		OrderIndex       int     `json:"order_index"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -124,11 +125,10 @@ func (h *DomainHandler) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		ExamID           int    `json:"exam_id"`
-		Name             string `json:"name"`
-		Description      string `json:"description"`
-		WeightPercentage int    `json:"weight_percentage"`
-		OrderIndex       int    `json:"order_index"`
+		Name             string  `json:"name"`
+		Description      string  `json:"description"`
+		WeightPercentage float64 `json:"weight_percentage"`
+		OrderIndex       int     `json:"order_index"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -136,7 +136,7 @@ func (h *DomainHandler) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.UC.UpdateDomain(context.Background(), id, req.ExamID, req.Name, req.Description, req.WeightPercentage, req.OrderIndex)
+	err = h.UC.UpdateDomain(context.Background(), id, req.Name, req.Description, req.WeightPercentage, req.OrderIndex)
 	if err != nil {
 		http.Error(w, "Erro ao atualizar domínio: "+err.Error(), http.StatusBadRequest)
 		return

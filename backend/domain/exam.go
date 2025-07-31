@@ -38,8 +38,8 @@ type ExamRepository interface {
 	ListPaginated(page, pageSize int, areaID *int) ([]*Exam, *Pagination, error)
 }
 
-// DomainRepository define a interface para operações de persistência de domínios
-type DomainRepository interface {
+// Repository define a interface para operações de persistência de domínios
+type Repository interface {
 	Create(d *Domain) error
 	Update(d *Domain) error
 	Delete(id int) error

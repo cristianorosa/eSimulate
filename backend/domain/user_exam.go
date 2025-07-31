@@ -13,7 +13,7 @@ type UserExam struct {
 	Passed            *bool
 	TimeSpentMinutes  *int
 	Answers           []*UserAnswer
-	DomainPerformance []*DomainPerformance
+	DomainPerformance []*Performance
 }
 
 // UserAnswer representa uma resposta do usuário em uma prova
@@ -27,8 +27,8 @@ type UserAnswer struct {
 	AnsweredAt        time.Time
 }
 
-// DomainPerformance representa o desempenho do usuário em um domínio específico
-type DomainPerformance struct {
+// Performance representa o desempenho do usuário em um domínio específico
+type Performance struct {
 	ID                int
 	UserExamID        int
 	DomainID          int
@@ -58,7 +58,7 @@ type UserAnswerRepository interface {
 
 // DomainPerformanceRepository define a interface para operações de persistência de desempenho por domínio
 type DomainPerformanceRepository interface {
-	Create(dp *DomainPerformance) error
-	Update(dp *DomainPerformance) error
-	ListByUserExam(userExamID int) ([]*DomainPerformance, error)
+	Create(dp *Performance) error
+	Update(dp *Performance) error
+	ListByUserExam(userExamID int) ([]*Performance, error)
 }

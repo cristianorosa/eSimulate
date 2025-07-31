@@ -6,7 +6,7 @@ import (
 	"github.com/cristianorosa/eSimulate/backend/domain"
 )
 
-// DomainRepositoryPG implementa DomainRepository para PostgreSQL
+// DomainRepositoryPG implementa Repository para PostgreSQL
 type DomainRepositoryPG struct {
 	DB *sql.DB
 }

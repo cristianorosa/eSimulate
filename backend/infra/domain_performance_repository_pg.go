@@ -12,7 +12,7 @@ type DomainPerformanceRepositoryPG struct {
 }
 
 // Create cria um novo registro de desempenho por domínio
-func (r *DomainPerformanceRepositoryPG) Create(performance *domain.DomainPerformance) error {
+func (r *DomainPerformanceRepositoryPG) Create(performance *domain.Performance) error {
 	query := `
 		INSERT INTO domain_performance (user_exam_id, domain_id, questions_answered, correct_answers, score_percentage, needs_improvement)
 		VALUES ($1, $2, $3, $4, $5, $6)
@@ -36,7 +36,7 @@ func (r *DomainPerformanceRepositoryPG) Create(performance *domain.DomainPerform
 }
 
 // Update atualiza um registro de desempenho por domínio
-func (r *DomainPerformanceRepositoryPG) Update(performance *domain.DomainPerformance) error {
+func (r *DomainPerformanceRepositoryPG) Update(performance *domain.Performance) error {
 	query := `
 		UPDATE domain_performance 
 		SET questions_answered = $1, correct_answers = $2, score_percentage = $3, needs_improvement = $4
@@ -67,7 +67,7 @@ func (r *DomainPerformanceRepositoryPG) Update(performance *domain.DomainPerform
 }
 
 // ListByUserExam lista todos os desempenhos por domínio de um exame aplicado
-func (r *DomainPerformanceRepositoryPG) ListByUserExam(userExamID int) ([]*domain.DomainPerformance, error) {
+func (r *DomainPerformanceRepositoryPG) ListByUserExam(userExamID int) ([]*domain.Performance, error) {
 	query := `
 		SELECT id, user_exam_id, domain_id, questions_answered, correct_answers, score_percentage, needs_improvement
 		FROM domain_performance
@@ -80,9 +80,9 @@ func (r *DomainPerformanceRepositoryPG) ListByUserExam(userExamID int) ([]*domai
 	}
 	defer rows.Close()
 
-	var performances []*domain.DomainPerformance
+	var performances []*domain.Performance
 	for rows.Next() {
-		performance := &domain.DomainPerformance{}
+		performance := &domain.Performance{}
 		err := rows.Scan(
 			&performance.ID,
 			&performance.UserExamID,

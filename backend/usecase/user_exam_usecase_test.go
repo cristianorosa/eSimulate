@@ -120,25 +120,25 @@ func (m *MockUserAnswerRepository) FindByQuestion(userExamID int, questionID int
 
 // MockDomainPerformanceRepository implementa DomainPerformanceRepository para testes
 type MockDomainPerformanceRepository struct {
-	performances map[int]*domain.DomainPerformance
+	performances map[int]*domain.Performance
 	nextID       int
 }
 
 func NewMockDomainPerformanceRepository() *MockDomainPerformanceRepository {
 	return &MockDomainPerformanceRepository{
-		performances: make(map[int]*domain.DomainPerformance),
+		performances: make(map[int]*domain.Performance),
 		nextID:       1,
 	}
 }
 
-func (m *MockDomainPerformanceRepository) Create(performance *domain.DomainPerformance) error {
+func (m *MockDomainPerformanceRepository) Create(performance *domain.Performance) error {
 	performance.ID = m.nextID
 	m.performances[performance.ID] = performance
 	m.nextID++
 	return nil
 }
 
-func (m *MockDomainPerformanceRepository) Update(performance *domain.DomainPerformance) error {
+func (m *MockDomainPerformanceRepository) Update(performance *domain.Performance) error {
 	if _, exists := m.performances[performance.ID]; !exists {
 		return domain.ErrNotFound
 	}
@@ -146,8 +146,8 @@ func (m *MockDomainPerformanceRepository) Update(performance *domain.DomainPerfo
 	return nil
 }
 
-func (m *MockDomainPerformanceRepository) ListByUserExam(userExamID int) ([]*domain.DomainPerformance, error) {
-	var performances []*domain.DomainPerformance
+func (m *MockDomainPerformanceRepository) ListByUserExam(userExamID int) ([]*domain.Performance, error) {
+	var performances []*domain.Performance
 	for _, performance := range m.performances {
 		if performance.UserExamID == userExamID {
 			performances = append(performances, performance)
