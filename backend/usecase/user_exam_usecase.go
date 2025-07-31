@@ -10,7 +10,7 @@ import (
 type UserExamUsecase struct {
 	Repo            domain.UserExamRepository
 	AnswerRepo      domain.UserAnswerRepository
-	PerformanceRepo domain.DomainPerformanceRepository
+	PerformanceRepo domain.PerformanceRepository
 }
 
 // StartExam inicia um exame para um usuário

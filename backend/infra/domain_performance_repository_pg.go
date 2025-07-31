@@ -6,7 +6,7 @@ import (
 	"github.com/cristianorosa/eSimulate/backend/domain"
 )
 
-// DomainPerformanceRepositoryPG implementa DomainPerformanceRepository para PostgreSQL
+// DomainPerformanceRepositoryPG implementa PerformanceRepository para PostgreSQL
 type DomainPerformanceRepositoryPG struct {
 	DB *sql.DB
 }

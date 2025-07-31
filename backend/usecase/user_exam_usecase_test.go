@@ -118,7 +118,7 @@ func (m *MockUserAnswerRepository) FindByQuestion(userExamID int, questionID int
 	return nil, domain.ErrNotFound
 }
 
-// MockDomainPerformanceRepository implementa DomainPerformanceRepository para testes
+// MockDomainPerformanceRepository implementa PerformanceRepository para testes
 type MockDomainPerformanceRepository struct {
 	performances map[int]*domain.Performance
 	nextID       int

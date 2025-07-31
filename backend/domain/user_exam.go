@@ -56,8 +56,8 @@ type UserAnswerRepository interface {
 	FindByQuestion(userExamID int, questionID int) (*UserAnswer, error)
 }
 
-// DomainPerformanceRepository define a interface para operações de persistência de desempenho por domínio
-type DomainPerformanceRepository interface {
+// PerformanceRepository define a interface para operações de persistência de desempenho por domínio
+type PerformanceRepository interface {
 	Create(dp *Performance) error
 	Update(dp *Performance) error
 	ListByUserExam(userExamID int) ([]*Performance, error)
