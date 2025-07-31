@@ -5,6 +5,18 @@
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"description": "Postman collection for the eSimulate Backend API."
 	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string"
+		}
+	],
 	"item": [
 		{
 			"name": "Auth & User",
@@ -64,6 +76,52 @@
 						"description": "Logs in a user and returns a JWT token."
 					},
 					"response": []
+				},
+				{
+					"name": "List Users (Auth Required)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users"
+							]
+						},
+						"description": "Lists all users (requires authentication)."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Test & Health",
+			"item": [
+				{
+					"name": "Test Database Connection",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/test-db",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"test-db"
+							]
+						},
+						"description": "Tests database connectivity."
+					},
+					"response": []
 				}
 			]
 		},
@@ -96,11 +154,15 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"New Theme Name\",\n    \"description\": \"Description for the new theme\"\n}"
+							"raw": "{\n    \"name\": \"New Theme\",\n    \"description\": \"Theme description\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/themes/create",
@@ -112,23 +174,27 @@
 								"create"
 							]
 						},
-						"description": "Creates a new theme. Requires authentication (Bearer Token)."
+						"description": "Creates a new theme (requires authentication)."
 					},
 					"response": []
 				},
 				{
 					"name": "Update Theme (Auth Required)",
 					"request": {
-						"method": "POST",
+						"method": "PUT",
 						"header": [
 							{
 								"key": "Content-Type",
 								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"id\": \"theme_id_here\",\n    \"name\": \"Updated Theme Name\",\n    \"description\": \"Updated description\"\n}"
+							"raw": "{\n    \"name\": \"Updated Theme\",\n    \"description\": \"Updated description\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/themes/update",
@@ -140,35 +206,545 @@
 								"update"
 							]
 						},
-						"description": "Updates an existing theme. Requires authentication (Bearer Token)."
+						"description": "Updates an existing theme (requires authentication)."
 					},
 					"response": []
 				},
 				{
 					"name": "Delete Theme (Auth Required)",
 					"request": {
-						"method": "POST",
+						"method": "DELETE",
 						"header": [
 							{
-								"key": "Content-Type",
-								"value": "application/json"
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"id\": \"theme_id_to_delete\"\n}"
-						},
 						"url": {
-							"raw": "{{base_url}}/themes/delete",
+							"raw": "{{base_url}}/themes/delete?id=1",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"themes",
 								"delete"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "1"
+								}
 							]
 						},
-						"description": "Deletes a theme. Requires authentication (Bearer Token)."
+						"description": "Deletes a theme (requires authentication)."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Areas",
+			"item": [
+				{
+					"name": "List Areas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/areas",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"areas"
+							]
+						},
+						"description": "Lists all areas."
+					},
+					"response": []
+				},
+				{
+					"name": "List Areas Paginated",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/areas/paginated?page=1&page_size=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"areas",
+								"paginated"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "page_size",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Lists areas with pagination."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Area (Auth Required)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"TI - Tecnologia da Informação\",\n    \"description\": \"Certificações e provas de tecnologia\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/areas/create",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"areas",
+								"create"
+							]
+						},
+						"description": "Creates a new area (requires authentication)."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Area (Auth Required)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Updated Area\",\n    \"description\": \"Updated description\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/areas/update?id=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"areas",
+								"update"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Updates an existing area (requires authentication)."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Area (Auth Required)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/areas/delete?id=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"areas",
+								"delete"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Deletes an area (requires authentication)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Area Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/areas/detail?id=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"areas",
+								"detail"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Gets area details by ID."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Exams",
+			"item": [
+				{
+					"name": "List Exams",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/exams",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"exams"
+							]
+						},
+						"description": "Lists all exams."
+					},
+					"response": []
+				},
+				{
+					"name": "List Exams Paginated",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/exams/paginated?page=1&page_size=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"exams",
+								"paginated"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "page_size",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Lists exams with pagination."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Exam (Auth Required)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Exame de TI\",\n    \"description\": \"Exame de tecnologia da informação\",\n    \"area_id\": 1,\n    \"max_time_minutes\": 120,\n    \"passing_score\": 70.0,\n    \"is_active\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/exams/create",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"exams",
+								"create"
+							]
+						},
+						"description": "Creates a new exam (requires authentication)."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Exam (Auth Required)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Updated Exam\",\n    \"description\": \"Updated description\",\n    \"area_id\": 1,\n    \"max_time_minutes\": 90,\n    \"passing_score\": 75.0,\n    \"is_active\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/exams/update?id=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"exams",
+								"update"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Updates an existing exam (requires authentication)."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Exam (Auth Required)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/exams/delete?id=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"exams",
+								"delete"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Deletes an exam (requires authentication)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Exam Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/exams/detail?id=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"exams",
+								"detail"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Gets exam details by ID."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Domains",
+			"item": [
+				{
+					"name": "List Domains",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/domains?exam_id=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"domains"
+							],
+							"query": [
+								{
+									"key": "exam_id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Lists all domains for a specific exam."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Domain (Auth Required)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"exam_id\": 1,\n    \"name\": \"Programação\",\n    \"description\": \"Domínio de programação\",\n    \"weight_percentage\": 30.0,\n    \"order_index\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/domains/create",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"domains",
+								"create"
+							]
+						},
+						"description": "Creates a new domain (requires authentication)."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Domain (Auth Required)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Updated Domain\",\n    \"description\": \"Updated description\",\n    \"weight_percentage\": 40.0,\n    \"order_index\": 2\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/domains/update?id=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"domains",
+								"update"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Updates an existing domain (requires authentication)."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Domain (Auth Required)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/domains/delete?id=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"domains",
+								"delete"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Deletes a domain (requires authentication)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Domain Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/domains/detail?id=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"domains",
+								"detail"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Gets domain details by ID."
 					},
 					"response": []
 				}
@@ -203,11 +779,15 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"theme_id\": \"theme_id_here\",\n    \"text\": \"What is the capital of France?\",\n    \"options\": [\n        {\n            \"text\": \"Berlin\",\n            \"is_correct\": false\n        },\n        {\n            \"text\": \"Paris\",\n            \"is_correct\": true\n        },\n        {\n            \"text\": \"Rome\",\n            \"is_correct\": false\n        }\n    ]\n}"
+							"raw": "{\n    \"text\": \"What is Go?\",\n    \"type\": \"multiple_choice\",\n    \"difficulty\": \"medium\",\n    \"theme_id\": 1\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/questions/create",
@@ -219,23 +799,27 @@
 								"create"
 							]
 						},
-						"description": "Creates a new question. Requires authentication (Bearer Token)."
+						"description": "Creates a new question (requires authentication)."
 					},
 					"response": []
 				},
 				{
 					"name": "Update Question (Auth Required)",
 					"request": {
-						"method": "POST",
+						"method": "PUT",
 						"header": [
 							{
 								"key": "Content-Type",
 								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"id\": \"question_id_here\",\n    \"theme_id\": \"theme_id_here\",\n    \"text\": \"Updated question text?\",\n    \"options\": [\n        {\n            \"text\": \"Option A\",\n            \"is_correct\": false\n        },\n        {\n            \"text\": \"Option B\",\n            \"is_correct\": true\n        }\n    ]\n}"
+							"raw": "{\n    \"text\": \"Updated question text\",\n    \"type\": \"multiple_choice\",\n    \"difficulty\": \"hard\",\n    \"theme_id\": 1\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/questions/update",
@@ -247,45 +831,47 @@
 								"update"
 							]
 						},
-						"description": "Updates an existing question. Requires authentication (Bearer Token)."
+						"description": "Updates an existing question (requires authentication)."
 					},
 					"response": []
 				},
 				{
 					"name": "Delete Question (Auth Required)",
 					"request": {
-						"method": "POST",
+						"method": "DELETE",
 						"header": [
 							{
-								"key": "Content-Type",
-								"value": "application/json"
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"id\": \"question_id_to_delete\"\n}"
-						},
 						"url": {
-							"raw": "{{base_url}}/questions/delete",
+							"raw": "{{base_url}}/questions/delete?id=1",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"questions",
 								"delete"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "1"
+								}
 							]
 						},
-						"description": "Deletes a question. Requires authentication (Bearer Token)."
+						"description": "Deletes a question (requires authentication)."
 					},
 					"response": []
 				},
 				{
-					"name": "Question Detail",
+					"name": "Get Question Detail",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/questions/detail?id=question_id_here",
+							"raw": "{{base_url}}/questions/detail?id=1",
 							"host": [
 								"{{base_url}}"
 							],
@@ -296,11 +882,11 @@
 							"query": [
 								{
 									"key": "id",
-									"value": "question_id_here"
+									"value": "1"
 								}
 							]
 						},
-						"description": "Gets details for a specific question by ID."
+						"description": "Gets question details by ID."
 					},
 					"response": []
 				}
@@ -323,7 +909,7 @@
 								"quizzes"
 							]
 						},
-						"description": "Lists all available quizzes."
+						"description": "Lists all quizzes."
 					},
 					"response": []
 				},
@@ -335,11 +921,15 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"New Quiz Title\",\n    \"description\": \"Description of the new quiz\",\n    \"theme_id\": \"theme_id_here\",\n    \"question_ids\": [\"question_id_1\", \"question_id_2\"]\n}"
+							"raw": "{\n    \"title\": \"Quiz de TI\",\n    \"description\": \"Quiz sobre tecnologia\",\n    \"theme_id\": 1,\n    \"time_limit\": 30\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/quizzes/create",
@@ -351,17 +941,17 @@
 								"create"
 							]
 						},
-						"description": "Creates a new quiz. Requires authentication (Bearer Token)."
+						"description": "Creates a new quiz (requires authentication)."
 					},
 					"response": []
 				},
 				{
-					"name": "Quiz Detail",
+					"name": "Get Quiz Detail",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/quizzes/detail?id=quiz_id_here",
+							"raw": "{{base_url}}/quizzes/detail?id=1",
 							"host": [
 								"{{base_url}}"
 							],
@@ -372,11 +962,11 @@
 							"query": [
 								{
 									"key": "id",
-									"value": "quiz_id_here"
+									"value": "1"
 								}
 							]
 						},
-						"description": "Gets details for a specific quiz by ID."
+						"description": "Gets quiz details by ID."
 					},
 					"response": []
 				},
@@ -386,41 +976,47 @@
 						"method": "POST",
 						"header": [
 							{
-								"key": "Content-Type",
-								"value": "application/json"
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"quiz_id\": \"quiz_id_to_start\"\n}"
-						},
 						"url": {
-							"raw": "{{base_url}}/quizzes/start",
+							"raw": "{{base_url}}/quizzes/start?quiz_id=1",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"quizzes",
 								"start"
+							],
+							"query": [
+								{
+									"key": "quiz_id",
+									"value": "1"
+								}
 							]
 						},
-						"description": "Starts a quiz for the authenticated user. Requires authentication (Bearer Token)."
+						"description": "Starts a quiz (requires authentication)."
 					},
 					"response": []
 				},
 				{
-					"name": "Answer Question (Auth Required)",
+					"name": "Submit Answer (Auth Required)",
 					"request": {
 						"method": "POST",
 						"header": [
 							{
 								"key": "Content-Type",
 								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"user_quiz_id\": \"user_quiz_session_id\",\n    \"question_id\": \"question_id_answered\",\n    \"selected_option_id\": \"option_id_selected\"\n}"
+							"raw": "{\n    \"quiz_id\": 1,\n    \"question_id\": 1,\n    \"answer\": \"A\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/quizzes/answer",
@@ -432,17 +1028,22 @@
 								"answer"
 							]
 						},
-						"description": "Submits an answer for a question in an ongoing quiz. Requires authentication (Bearer Token)."
+						"description": "Submits an answer to a quiz question (requires authentication)."
 					},
 					"response": []
 				},
 				{
-					"name": "Quiz Result (Auth Required)",
+					"name": "Get Quiz Result (Auth Required)",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
 						"url": {
-							"raw": "{{base_url}}/quizzes/result?user_quiz_id=user_quiz_session_id",
+							"raw": "{{base_url}}/quizzes/result?quiz_id=1",
 							"host": [
 								"{{base_url}}"
 							],
@@ -452,12 +1053,171 @@
 							],
 							"query": [
 								{
-									"key": "user_quiz_id",
-									"value": "user_quiz_session_id"
+									"key": "quiz_id",
+									"value": "1"
 								}
 							]
 						},
-						"description": "Gets the result of a completed quiz session. Requires authentication (Bearer Token)."
+						"description": "Gets quiz results (requires authentication)."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User Exams",
+			"item": [
+				{
+					"name": "Start Exam (Auth Required)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"exam_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/user-exams/start",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user-exams",
+								"start"
+							]
+						},
+						"description": "Starts an exam for a user (requires authentication)."
+					},
+					"response": []
+				},
+				{
+					"name": "Submit Answer (Auth Required)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_exam_id\": 1,\n    \"question_id\": 1,\n    \"option_id\": 1,\n    \"marked_for_review\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/user-exams/submit-answer",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user-exams",
+								"submit-answer"
+							]
+						},
+						"description": "Submits an answer to an exam question (requires authentication)."
+					},
+					"response": []
+				},
+				{
+					"name": "Finish Exam (Auth Required)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/user-exams/finish?user_exam_id=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user-exams",
+								"finish"
+							],
+							"query": [
+								{
+									"key": "user_exam_id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Finishes an exam and calculates results (requires authentication)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Exam Detail (Auth Required)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/user-exams/detail?id=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user-exams",
+								"detail"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Gets user exam details (requires authentication)."
+					},
+					"response": []
+				},
+				{
+					"name": "List User Exams (Auth Required)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/user-exams/list?user_id=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user-exams",
+								"list"
+							],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Lists all exams for a specific user (requires authentication)."
 					},
 					"response": []
 				}
@@ -467,50 +1227,64 @@
 			"name": "History & Performance",
 			"item": [
 				{
-					"name": "List History (Auth Required)",
+					"name": "Get User History (Auth Required)",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
 						"url": {
-							"raw": "{{base_url}}/history",
+							"raw": "{{base_url}}/history?user_id=1",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"history"
+							],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "1"
+								}
 							]
 						},
-						"description": "Lists the user's quiz history. Requires authentication (Bearer Token)."
+						"description": "Gets user quiz/exam history (requires authentication)."
 					},
 					"response": []
 				},
 				{
-					"name": "Performance Report (Auth Required)",
+					"name": "Get Performance Report (Auth Required)",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
 						"url": {
-							"raw": "{{base_url}}/performance",
+							"raw": "{{base_url}}/performance?user_id=1",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"performance"
+							],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "1"
+								}
 							]
 						},
-						"description": "Gets a performance report for the authenticated user. Requires authentication (Bearer Token)."
+						"description": "Gets user performance report (requires authentication)."
 					},
 					"response": []
 				}
 			]
-		}
-	],
-	"variable": [
-		{
-			"key": "base_url",
-			"value": "http://localhost:8080",
-			"type": "string",
-			"description": "The base URL for the backend API."
 		}
 	]
 }
