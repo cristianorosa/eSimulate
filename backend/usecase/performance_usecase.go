@@ -8,7 +8,7 @@ import (
 
 // PerformanceUsecase implementa as regras de negócio para relatórios de desempenho
 type PerformanceUsecase struct {
-	Repo domain.ReportRepository
+	Repo domain.PerformanceRepository
 }
 
 // GetReport obtém o relatório de desempenho de um usuário

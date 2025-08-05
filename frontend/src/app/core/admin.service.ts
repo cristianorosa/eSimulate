@@ -28,28 +28,32 @@ export interface Exam {
   area_id: number;
   max_time_minutes: number;
   passing_score: number;
+  questions_count?: number;
   is_active?: boolean;
   created_by?: number;
   created_at?: string;
   updated_at?: string;
 }
 
-export interface Domain {
+export interface Topic {
   id?: number;
   exam_id: number;
   name: string;
-  description?: string;
   weight_percentage: number;
   order_index?: number;
+  questions_count?: number;
   created_at?: string;
 }
 
 export interface Question {
   id?: number;
   exam_id: number;
-  domain_id: number;
+  topic_id: number;
   statement: string;
+  problem: string;
+  content_type: 'text' | 'code';
   explanation?: string;
+  question_type: 'objective' | 'multiple_choice';
   difficulty_level?: number;
   created_by?: number;
   is_active?: boolean;
@@ -133,56 +137,56 @@ export class AdminService {
     return this.http.delete(`${this.apiUrl}/exams/delete?id=${id}`);
   }
 
-  // ===== DOMÍNIOS =====
-  getDomains(examId?: number): Observable<Domain[]> {
-    let url = `${this.apiUrl}/domains`;
+  // ===== TÓPICOS =====
+  getTopics(examId?: number): Observable<Topic[]> {
+    let url = `${this.apiUrl}/topics`;
     if (examId) {
       url += `?exam_id=${examId}`;
     }
-    return this.http.get<Domain[]>(url);
+    return this.http.get<Topic[]>(url);
   }
 
-  getDomainsPaginated(page: number = 1, pageSize: number = 10, examId?: number): Observable<PaginatedResponse<Domain>> {
-    let url = `${this.apiUrl}/domains/paginated?page=${page}&page_size=${pageSize}`;
+  getTopicsPaginated(page: number = 1, pageSize: number = 10, examId?: number): Observable<PaginatedResponse<Topic>> {
+    let url = `${this.apiUrl}/topics/paginated?page=${page}&page_size=${pageSize}`;
     if (examId) {
       url += `&exam_id=${examId}`;
     }
-    return this.http.get<PaginatedResponse<Domain>>(url);
+    return this.http.get<PaginatedResponse<Topic>>(url);
   }
 
-  getDomain(id: number): Observable<Domain> {
-    return this.http.get<Domain>(`${this.apiUrl}/domains/detail?id=${id}`);
+  getTopic(id: number): Observable<Topic> {
+    return this.http.get<Topic>(`${this.apiUrl}/topics/detail?id=${id}`);
   }
 
-  createDomain(domain: Domain): Observable<Domain> {
-    return this.http.post<Domain>(`${this.apiUrl}/domains/create`, domain);
+  createTopic(topic: Topic): Observable<Topic> {
+    return this.http.post<Topic>(`${this.apiUrl}/topics/create`, topic);
   }
 
-  updateDomain(id: number, domain: Domain): Observable<any> {
-    return this.http.put(`${this.apiUrl}/domains/update?id=${id}`, domain);
+  updateTopic(id: number, topic: Topic): Observable<any> {
+    return this.http.put(`${this.apiUrl}/topics/update?id=${id}`, topic);
   }
 
-  deleteDomain(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/domains/delete?id=${id}`);
+  deleteTopic(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/topics/delete?id=${id}`);
   }
 
   // ===== QUESTÕES =====
-  getQuestions(examId?: number, domainId?: number): Observable<Question[]> {
+  getQuestions(examId?: number, topicId?: number): Observable<Question[]> {
     let url = `${this.apiUrl}/questions`;
     const params = [];
     if (examId) params.push(`exam_id=${examId}`);
-    if (domainId) params.push(`domain_id=${domainId}`);
+    if (topicId) params.push(`topic_id=${topicId}`);
     if (params.length > 0) {
       url += `?${params.join('&')}`;
     }
     return this.http.get<Question[]>(url);
   }
 
-  getQuestionsPaginated(page: number = 1, pageSize: number = 10, examId?: number, domainId?: number): Observable<PaginatedResponse<Question>> {
+  getQuestionsPaginated(page: number = 1, pageSize: number = 10, examId?: number, topicId?: number): Observable<PaginatedResponse<Question>> {
     let url = `${this.apiUrl}/questions/paginated?page=${page}&page_size=${pageSize}`;
     const params = [];
     if (examId) params.push(`exam_id=${examId}`);
-    if (domainId) params.push(`domain_id=${domainId}`);
+    if (topicId) params.push(`topic_id=${topicId}`);
     if (params.length > 0) {
       url += `&${params.join('&')}`;
     }

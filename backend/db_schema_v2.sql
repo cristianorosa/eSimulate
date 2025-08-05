@@ -37,6 +37,7 @@ CREATE TABLE exams (
     area_id INTEGER NOT NULL,
     max_time_minutes INTEGER NOT NULL,
     passing_score DECIMAL(5,2) DEFAULT 70.0,
+    questions_count INTEGER DEFAULT 0,
     is_active BOOLEAN DEFAULT true,
     created_by INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -45,24 +46,27 @@ CREATE TABLE exams (
     CONSTRAINT fk_exams_user FOREIGN KEY (created_by) REFERENCES users(id)
 );
 
--- 5. Domínios da Prova
-CREATE TABLE domains (
+-- 5. Tópicos da Prova
+CREATE TABLE topics (
     id SERIAL PRIMARY KEY,
     exam_id INTEGER NOT NULL,
     name VARCHAR(150) NOT NULL,
-    description TEXT,
     weight_percentage DECIMAL(5,2) NOT NULL,
     order_index INTEGER DEFAULT 0,
+    questions_count INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_domains_exam FOREIGN KEY (exam_id) REFERENCES exams(id)
+    CONSTRAINT fk_topics_exam FOREIGN KEY (exam_id) REFERENCES exams(id)
 );
 
 -- 6. Questões
 CREATE TABLE questions (
     id SERIAL PRIMARY KEY,
     exam_id INTEGER NOT NULL,
-    domain_id INTEGER NOT NULL,
+    topic_id INTEGER NOT NULL,
     statement TEXT NOT NULL,
+    problem TEXT NOT NULL,
+    content_type VARCHAR(20) NOT NULL DEFAULT 'text' CHECK (content_type IN ('text', 'code')),
+    question_type VARCHAR(20) NOT NULL DEFAULT 'objective' CHECK (question_type IN ('objective', 'multiple_choice')),
     explanation TEXT,
     difficulty_level INTEGER DEFAULT 1,
     created_by INTEGER,
@@ -70,7 +74,7 @@ CREATE TABLE questions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_questions_exam FOREIGN KEY (exam_id) REFERENCES exams(id),
-    CONSTRAINT fk_questions_domain FOREIGN KEY (domain_id) REFERENCES domains(id),
+    CONSTRAINT fk_questions_topic FOREIGN KEY (topic_id) REFERENCES topics(id),
     CONSTRAINT fk_questions_user FOREIGN KEY (created_by) REFERENCES users(id)
 );
 
@@ -113,16 +117,16 @@ CREATE TABLE user_answers (
     CONSTRAINT fk_user_answers_option FOREIGN KEY (option_id) REFERENCES options(id)
 );
 
--- 10. Desempenho por Domínio
-CREATE TABLE domain_performance (
+-- 10. Desempenho por Tópico
+CREATE TABLE topic_performance (
     id SERIAL PRIMARY KEY,
     user_exam_id INTEGER NOT NULL,
-    domain_id INTEGER NOT NULL,
+    topic_id INTEGER NOT NULL,
     correct_answers INTEGER,
     total_questions INTEGER,
     score DECIMAL(5,2),
-    CONSTRAINT fk_domain_perf_user_exam FOREIGN KEY (user_exam_id) REFERENCES user_exams(id),
-    CONSTRAINT fk_domain_perf_domain FOREIGN KEY (domain_id) REFERENCES domains(id)
+    CONSTRAINT fk_topic_perf_user_exam FOREIGN KEY (user_exam_id) REFERENCES user_exams(id),
+    CONSTRAINT fk_topic_perf_topic FOREIGN KEY (topic_id) REFERENCES topics(id)
 );
 
 -- 11. Simulados (quizzes)
@@ -133,7 +137,7 @@ CREATE TABLE quizzes (
     theme_id INTEGER,
     created_by INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_quizzes_theme FOREIGN KEY (theme_id) REFERENCES domains(id),
+    CONSTRAINT fk_quizzes_theme FOREIGN KEY (theme_id) REFERENCES topics(id),
     CONSTRAINT fk_quizzes_user FOREIGN KEY (created_by) REFERENCES users(id)
 );
 
@@ -163,12 +167,12 @@ CREATE INDEX idx_users_role ON users(role_id);
 CREATE INDEX idx_exams_area ON exams(area_id);
 CREATE INDEX idx_exams_active ON exams(is_active);
 CREATE INDEX idx_questions_exam ON questions(exam_id);
-CREATE INDEX idx_questions_domain ON questions(domain_id);
+CREATE INDEX idx_questions_topic ON questions(topic_id);
 CREATE INDEX idx_questions_active ON questions(is_active);
 CREATE INDEX idx_user_exams_user ON user_exams(user_id);
 CREATE INDEX idx_user_exams_exam ON user_exams(exam_id);
 CREATE INDEX idx_user_answers_exam ON user_answers(user_exam_id);
-CREATE INDEX idx_domain_performance_exam ON domain_performance(user_exam_id);
+CREATE INDEX idx_topic_performance_exam ON topic_performance(user_exam_id);
 
 -- 15. Dados iniciais
 

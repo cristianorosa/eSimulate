@@ -12,12 +12,12 @@ type QuestionUsecase struct {
 }
 
 // CreateQuestion cria uma nova questão com suas opções.
-func (uc *QuestionUsecase) CreateQuestion(ctx context.Context, examID, domainID int, statement, explanation string, difficultyLevel, createdBy int, options []*domain.Option) (*domain.Question, error) {
+func (uc *QuestionUsecase) CreateQuestion(ctx context.Context, examID, topicID int, statement, explanation string, difficultyLevel, createdBy int, options []*domain.Option) (*domain.Question, error) {
 	return &domain.Question{}, nil
 }
 
 // UpdateQuestion atualiza uma questão existente.
-func (uc *QuestionUsecase) UpdateQuestion(ctx context.Context, id, examID, domainID int, statement, explanation string, difficultyLevel int) error {
+func (uc *QuestionUsecase) UpdateQuestion(ctx context.Context, id, examID, topicID int, statement, explanation string, difficultyLevel int) error {
 	return nil
 }
 

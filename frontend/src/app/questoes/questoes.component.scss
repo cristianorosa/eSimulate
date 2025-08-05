@@ -1,5 +1,3 @@
-@use '../shared/styles.scss' as *;
-@use "sass:color";
 
 .questoes-container {
   width: 100%;
@@ -7,7 +5,7 @@
   padding: 24px;
   overflow-x: hidden;
   
-  @include responsive(768px) {
+  @media (max-width: 768px) {
     padding: 16px;
   }
 }
@@ -16,15 +14,55 @@
   margin-bottom: 30px;
   
   .header-card {
-    @extend .card;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    margin-bottom: 20px;
     
     .header-content {
-      @extend .card-header;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      
+      .header-title {
+        h1 {
+          margin: 0 0 8px 0;
+          color: #333;
+          font-size: 24px;
+          font-weight: 600;
+        }
+        
+        p {
+          margin: 0;
+          color: #666;
+          font-size: 14px;
+        }
+      }
       
       .header-actions {
+        display: flex;
+        gap: 12px;
+        
         .new-question-btn {
-          @extend .btn !optional;
-          @extend .btn-primary !optional;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 12px 24px;
+          border-radius: 8px;
+          font-weight: 500;
+          text-decoration: none;
+          border: none;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          background-color: #1976d2;
+          color: white;
+          
+          &:hover {
+            transform: translateY(-1px);
+            background-color: #1565c0;
+          }
         }
       }
     }
@@ -33,26 +71,63 @@
 
 .questoes-content {
   .loading-container {
-    @extend .loading-container;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    
+    p {
+      margin-top: 16px;
+      color: #666;
+    }
   }
   
   .empty-state {
     .empty-card {
-      @extend .card;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 24px;
+      margin-bottom: 20px;
       
       .empty-content {
-        @extend .empty-state;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        text-align: center;
+        
+        .empty-icon {
+          font-size: 48px;
+          width: 48px;
+          height: 48px;
+          color: #ccc;
+          margin-bottom: 16px;
+        }
+        
+        p {
+          margin: 0 0 20px 0;
+          color: #666;
+          font-size: 16px;
+        }
       }
     }
   }
   
   .questoes-grid {
-    @extend .grid;
-    @extend .grid-auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
     
     .questao-card {
-      @extend .card;
-      transition: $transition;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 24px;
+      margin-bottom: 20px;
+      transition: all 0.3s ease;
       overflow: hidden;
       
       &:hover {
@@ -62,16 +137,18 @@
       
       .card-header {
         position: relative;
-        @include gradient(#f5f7fa, #c3cfe2);
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         padding: 20px;
-        @include flex-between;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         
         .card-icon {
           mat-icon {
             font-size: 32px;
             width: 32px;
             height: 32px;
-            color: $primary-color;
+            color: #1976d2;
           }
         }
         
@@ -82,10 +159,10 @@
           .action-btn {
             width: 36px;
             height: 36px;
-            border-radius: $border-radius-sm;
+            border-radius: 4px;
             
             &.delete-btn {
-              color: $error-color;
+              color: #f44336;
               
               &:hover {
                 background-color: #ffebee;
@@ -102,7 +179,7 @@
           margin: 0 0 15px 0;
           font-size: 18px;
           font-weight: 600;
-          color: $text-dark;
+          color: #333;
           line-height: 1.4;
           display: -webkit-box;
           -webkit-line-clamp: 2;
@@ -120,14 +197,14 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            color: $text-light;
+            color: #666;
             font-size: 14px;
             
             mat-icon {
               font-size: 16px;
               width: 16px;
               height: 16px;
-              color: $primary-color;
+              color: #1976d2;
             }
           }
         }
@@ -139,7 +216,7 @@
           
           .tag {
             padding: 4px 12px;
-            border-radius: $border-radius;
+            border-radius: 8px;
             font-size: 12px;
             font-weight: 600;
             text-transform: uppercase;
@@ -167,14 +244,14 @@
         display: flex;
         gap: 12px;
         
-        @include responsive(480px) {
+        @media (max-width: 480px) {
           flex-direction: column;
         }
         
         .detail-btn {
           flex: 1;
           padding: 12px;
-          border-radius: $border-radius-sm;
+          border-radius: 4px;
           
           mat-icon {
             margin-right: 8px;
@@ -183,7 +260,7 @@
         
         .edit-btn {
           padding: 12px 20px;
-          border-radius: $border-radius-sm;
+          border-radius: 4px;
           
           mat-icon {
             margin-right: 8px;

@@ -9,9 +9,11 @@ export class AuthService {
   private apiUrl = '/api';
   private tokenKey = 'esimulate_token';
   user = signal<any | null>(null);
+  private authState = signal<boolean>(false);
+  private lastAuthCheck = 0;
+  private readonly AUTH_CACHE_DURATION = 5000; // 5 segundos de cache
 
   constructor(private http: HttpClient, private router: Router) {
-    console.log('AuthService: Inicializando...');
     this.initializeUser();
   }
 
@@ -19,6 +21,7 @@ export class AuthService {
     const user = this.getUserFromToken();
     if (user) {
       this.user.set(user);
+      this.authState.set(true);
     } else {
       // Se não há usuário mas há token, limpar token inválido
       const token = localStorage.getItem(this.tokenKey);
@@ -26,14 +29,13 @@ export class AuthService {
         localStorage.removeItem(this.tokenKey);
         localStorage.removeItem('esimulate_user');
       }
+      this.authState.set(false);
     }
   }
 
   login(email: string, password: string): Observable<any> {
-    console.log('AuthService: Tentando login para:', email);
     return this.http.post<any>(`${this.apiUrl}/auth/login`, { email, password }).pipe(
       tap(res => {
-        console.log('AuthService: Resposta do login:', res);
         if (res.token) {
           localStorage.setItem(this.tokenKey, res.token);
           // Criar objeto usuário com dados da resposta
@@ -47,9 +49,7 @@ export class AuthService {
           // Salvar dados do usuário no localStorage
           localStorage.setItem('esimulate_user', JSON.stringify(userData));
           this.user.set(userData);
-          console.log('AuthService: Login bem-sucedido para:', email);
-        } else {
-          console.error('AuthService: Resposta sem token:', res);
+          this.authState.set(true);
         }
       })
     );
@@ -59,35 +59,48 @@ export class AuthService {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem('esimulate_user');
     this.user.set(null);
+    this.authState.set(false);
     this.router.navigate(['/login']);
   }
 
   isAuthenticated(): boolean {
+    const now = Date.now();
+    
+    // Usar cache se a verificação foi feita recentemente
+    if (now - this.lastAuthCheck < this.AUTH_CACHE_DURATION) {
+      return this.authState();
+    }
+    
+    this.lastAuthCheck = now;
     const token = localStorage.getItem(this.tokenKey);
     const user = this.user();
     
     // Se não há token, não está autenticado
     if (!token) {
-      console.log('AuthService: Sem token de autenticação');
+      this.authState.set(false);
       return false;
     }
     
     // Se não há usuário no signal, tenta recuperar
     if (!user) {
-      console.log('AuthService: Recuperando usuário do localStorage...');
-      this.initializeUser();
-      const recoveredUser = this.user();
-      return !!recoveredUser;
+      const recoveredUser = this.getUserFromToken();
+      if (recoveredUser) {
+        this.user.set(recoveredUser);
+        this.authState.set(true);
+        return true;
+      } else {
+        this.authState.set(false);
+        return false;
+      }
     }
     
     // Verificar se o token não expirou
     if (!this.isTokenValid()) {
-      console.log('AuthService: Token expirado, fazendo logout');
       this.logout();
       return false;
     }
     
-    console.log('AuthService: Usuário autenticado:', user.email);
+    this.authState.set(true);
     return true;
   }
 
@@ -147,7 +160,6 @@ export class AuthService {
       const currentTime = Math.floor(Date.now() / 1000);
       return tokenData.exp && tokenData.exp > currentTime;
     } catch (error) {
-      console.error('Erro ao verificar token:', error);
       return false;
     }
   }
@@ -155,5 +167,11 @@ export class AuthService {
   // Método para recarregar o usuário do localStorage
   reloadUser() {
     this.initializeUser();
+  }
+
+  // Método para forçar verificação de autenticação (ignora cache)
+  forceAuthCheck(): boolean {
+    this.lastAuthCheck = 0;
+    return this.isAuthenticated();
   }
 }

@@ -7,9 +7,102 @@ import (
 	"github.com/cristianorosa/eSimulate/backend/domain"
 )
 
-// PerformanceRepositoryPG implementa ReportRepository usando PostgreSQL
+// PerformanceRepositoryPG implementa PerformanceRepository usando PostgreSQL
 type PerformanceRepositoryPG struct {
 	DB *sql.DB
+}
+
+// Create cria um novo registro de performance
+func (r *PerformanceRepositoryPG) Create(performance *domain.Performance) error {
+	query := `
+		INSERT INTO performance (user_exam_id, domain_id, questions_answered, correct_answers, score_percentage, needs_improvement, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)
+		RETURNING id, created_at`
+
+	err := r.DB.QueryRow(
+		query,
+		performance.UserExamID,
+		performance.DomainID,
+		performance.QuestionsAnswered,
+		performance.CorrectAnswers,
+		performance.ScorePercentage,
+		performance.NeedsImprovement,
+	).Scan(&performance.ID, &performance.CreatedAt)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Update atualiza um registro de performance
+func (r *PerformanceRepositoryPG) Update(performance *domain.Performance) error {
+	query := `
+		UPDATE performance 
+		SET user_exam_id = $1, domain_id = $2, questions_answered = $3, correct_answers = $4, score_percentage = $5, needs_improvement = $6
+		WHERE id = $7`
+
+	result, err := r.DB.Exec(
+		query,
+		performance.UserExamID,
+		performance.DomainID,
+		performance.QuestionsAnswered,
+		performance.CorrectAnswers,
+		performance.ScorePercentage,
+		performance.NeedsImprovement,
+		performance.ID,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return domain.ErrNotFound
+	}
+
+	return nil
+}
+
+// ListByUserExam lista todas as performances de um user_exam
+func (r *PerformanceRepositoryPG) ListByUserExam(userExamID int) ([]*domain.Performance, error) {
+	query := `
+		SELECT id, user_exam_id, domain_id, questions_answered, correct_answers, score_percentage, needs_improvement, created_at
+		FROM performance 
+		WHERE user_exam_id = $1
+		ORDER BY created_at DESC`
+
+	rows, err := r.DB.Query(query, userExamID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var performances []*domain.Performance
+	for rows.Next() {
+		var performance domain.Performance
+		err := rows.Scan(
+			&performance.ID,
+			&performance.UserExamID,
+			&performance.DomainID,
+			&performance.QuestionsAnswered,
+			&performance.CorrectAnswers,
+			&performance.ScorePercentage,
+			&performance.NeedsImprovement,
+			&performance.CreatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		performances = append(performances, &performance)
+	}
+
+	return performances, nil
 }
 
 // GetReport obtém o relatório de desempenho de um usuário.

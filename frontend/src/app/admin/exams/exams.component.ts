@@ -50,7 +50,9 @@ export class ExamsComponent implements OnInit {
     area_id: 0,
     max_time_minutes: 60,
     passing_score: 70.0,
-    is_active: true
+    questions_count: 0,
+    is_active: true,
+    created_by: 1 // TODO: Pegar do usuário autenticado
   };
   displayedColumns = ['id', 'title', 'area', 'max_time', 'passing_score', 'is_active', 'actions'];
   pagination: any = null;
@@ -117,7 +119,9 @@ export class ExamsComponent implements OnInit {
       area_id: 0,
       max_time_minutes: 60,
       passing_score: 70.0,
-      is_active: true
+      questions_count: 0,
+      is_active: true,
+      created_by: 1 // TODO: Pegar do usuário autenticado
     };
     this.showDialog = true;
   }
@@ -137,7 +141,9 @@ export class ExamsComponent implements OnInit {
       area_id: 0,
       max_time_minutes: 60,
       passing_score: 70.0,
-      is_active: true
+      questions_count: 0,
+      is_active: true,
+      created_by: 1 // TODO: Pegar do usuário autenticado
     };
   }
 

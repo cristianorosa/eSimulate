@@ -65,12 +65,12 @@ func SetupRoutes(mux *http.ServeMux, handlers *Handlers) {
 	mux.HandleFunc("/exams/delete", AuthMiddleware(handlers.Exam.DeleteHandler))
 	mux.HandleFunc("/exams/detail", handlers.Exam.GetHandler)
 
-	// Domínios - Novos handlers
-	mux.HandleFunc("/domains", handlers.Domain.ListHandler)
-	mux.HandleFunc("/domains/create", AuthMiddleware(handlers.Domain.CreateHandler))
-	mux.HandleFunc("/domains/update", AuthMiddleware(handlers.Domain.UpdateHandler))
-	mux.HandleFunc("/domains/delete", AuthMiddleware(handlers.Domain.DeleteHandler))
-	mux.HandleFunc("/domains/detail", handlers.Domain.GetHandler)
+	// Tópicos - Novos handlers
+	mux.HandleFunc("/topics", handlers.Topic.ListHandler)
+	mux.HandleFunc("/topics/create", AuthMiddleware(handlers.Topic.CreateHandler))
+	mux.HandleFunc("/topics/update", AuthMiddleware(handlers.Topic.UpdateHandler))
+	mux.HandleFunc("/topics/delete", AuthMiddleware(handlers.Topic.DeleteHandler))
+	mux.HandleFunc("/topics/detail", handlers.Topic.GetHandler)
 
 	// Aplicação de exames
 	mux.HandleFunc("/user-exams/start", AuthMiddleware(handlers.UserExam.StartExam))
@@ -94,6 +94,6 @@ type Handlers struct {
 	Performance *PerformanceHandler
 	Area        *AreaHandler
 	Exam        *ExamHandler
-	Domain      *DomainHandler
+	Topic       *TopicHandler
 	UserExam    *UserExamHandler
 }

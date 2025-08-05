@@ -14,12 +14,12 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
-import { AdminService, Question, Exam, Domain, Option } from '../../core/admin.service';
+import { AdminService, Question, Exam, Option, Topic } from '../../core/admin.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 interface QuestionWithDetails extends Question {
   exam_name?: string;
-  domain_name?: string;
+  topic_name?: string;
   options_count?: number;
 }
 
@@ -38,9 +38,9 @@ interface QuestionWithDetails extends Question {
     MatSnackBarModule,
     MatProgressSpinnerModule,
     MatDialogModule,
+    MatTooltipModule,
     MatChipsModule,
     MatCheckboxModule,
-    MatTooltipModule,
     FormsModule,
     ReactiveFormsModule
   ],
@@ -50,13 +50,14 @@ interface QuestionWithDetails extends Question {
 export class QuestionsComponent implements OnInit {
   questions: QuestionWithDetails[] = [];
   exams: Exam[] = [];
-  domains: Domain[] = [];
+  topics: Topic[] = [];
   loading = false;
+  saving = false;
   showDialog = false;
   editingQuestion: QuestionWithDetails | null = null;
   questionForm: FormGroup;
 
-  displayedColumns: string[] = ['id', 'statement', 'exam_name', 'domain_name', 'difficulty_level', 'is_active', 'options_count', 'actions'];
+  displayedColumns: string[] = ['id', 'statement', 'problem', 'exam_name', 'topic_name', 'content_type', 'question_type', 'difficulty_level', 'is_active', 'options_count', 'actions'];
 
   constructor(
     private adminService: AdminService,
@@ -65,9 +66,12 @@ export class QuestionsComponent implements OnInit {
   ) {
     this.questionForm = this.fb.group({
       exam_id: ['', Validators.required],
-      domain_id: ['', Validators.required],
+      topic_id: ['', Validators.required],
       statement: ['', [Validators.required, Validators.minLength(10)]],
+      problem: ['', [Validators.required, Validators.minLength(10)]],
+      content_type: ['text', Validators.required],
       explanation: ['', [Validators.required, Validators.minLength(10)]],
+      question_type: ['objective', Validators.required],
       difficulty_level: [1, [Validators.required, Validators.min(1), Validators.max(5)]],
       is_active: [true],
       options: this.fb.array([])
@@ -86,7 +90,7 @@ export class QuestionsComponent implements OnInit {
         this.questions = questions.map(question => ({
           ...question,
           exam_name: this.getExamName(question.exam_id),
-          domain_name: this.getDomainName(question.domain_id),
+          topic_name: this.getTopicName(question.topic_id),
           options_count: question.options?.length || 0
         }));
         this.loading = false;
@@ -110,13 +114,13 @@ export class QuestionsComponent implements OnInit {
     });
   }
 
-  loadDomains(examId: number) {
-    this.adminService.getDomains(examId).subscribe({
-      next: (domains) => {
-        this.domains = domains;
+  loadTopics(examId: number) {
+    this.adminService.getTopics(examId).subscribe({
+      next: (topics) => {
+        this.topics = topics;
       },
       error: (error) => {
-        console.error('Erro ao carregar domínios:', error);
+        console.error('Erro ao carregar tópicos:', error);
       }
     });
   }
@@ -124,10 +128,10 @@ export class QuestionsComponent implements OnInit {
   onExamChange() {
     const examId = this.questionForm.get('exam_id')?.value;
     if (examId) {
-      this.loadDomains(examId);
-      this.questionForm.get('domain_id')?.setValue('');
+      this.loadTopics(examId);
+      this.questionForm.get('topic_id')?.setValue('');
     } else {
-      this.domains = [];
+      this.topics = [];
     }
   }
 
@@ -139,7 +143,6 @@ export class QuestionsComponent implements OnInit {
     const optionGroup = this.fb.group({
       text: ['', [Validators.required, Validators.minLength(3)]],
       is_correct: [false],
-      explanation: [''],
       order_index: [this.optionsArray.length]
     });
     this.optionsArray.push(optionGroup);
@@ -156,14 +159,17 @@ export class QuestionsComponent implements OnInit {
   openDialog(question?: QuestionWithDetails) {
     this.editingQuestion = question || null;
     if (question) {
-      // Carregar domínios do exame
-      this.loadDomains(question.exam_id);
+      // Carregar tópicos do exame
+      this.loadTopics(question.exam_id);
       
       this.questionForm.patchValue({
         exam_id: question.exam_id,
-        domain_id: question.domain_id,
+        topic_id: question.topic_id,
         statement: question.statement,
+        problem: question.problem,
+        content_type: question.content_type,
         explanation: question.explanation,
+        question_type: question.question_type,
         difficulty_level: question.difficulty_level,
         is_active: question.is_active
       });
@@ -175,7 +181,6 @@ export class QuestionsComponent implements OnInit {
           const optionGroup = this.fb.group({
             text: [option.text, [Validators.required, Validators.minLength(3)]],
             is_correct: [option.is_correct],
-            explanation: [option.explanation || ''],
             order_index: [option.order_index || 0]
           });
           this.optionsArray.push(optionGroup);
@@ -183,11 +188,13 @@ export class QuestionsComponent implements OnInit {
       }
     } else {
       this.questionForm.reset({
+        content_type: 'text',
+        question_type: 'objective',
         difficulty_level: 1,
         is_active: true
       });
       this.optionsArray.clear();
-      this.domains = [];
+      this.topics = [];
     }
     this.showDialog = true;
   }
@@ -201,6 +208,21 @@ export class QuestionsComponent implements OnInit {
 
   onSubmit() {
     if (this.questionForm.valid && this.optionsArray.length >= 2) {
+      // Validar alternativas corretas baseado no tipo de questão
+      const questionType = this.questionForm.get('question_type')?.value;
+      const correctOptions = this.optionsArray.controls.filter(option => option.get('is_correct')?.value).length;
+      
+      if (questionType === 'objective' && correctOptions !== 1) {
+        this.snackBar.open('Questões objetivas devem ter exatamente uma alternativa correta', 'Fechar', { duration: 3000 });
+        return;
+      }
+      
+      if (questionType === 'multiple_choice' && correctOptions < 1) {
+        this.snackBar.open('Questões de múltipla escolha devem ter pelo menos uma alternativa correta', 'Fechar', { duration: 3000 });
+        return;
+      }
+
+      this.saving = true;
       const questionData = this.questionForm.value;
       
       if (this.editingQuestion) {
@@ -210,10 +232,12 @@ export class QuestionsComponent implements OnInit {
             this.snackBar.open('Questão atualizada com sucesso!', 'Fechar', { duration: 3000 });
             this.closeDialog();
             this.loadQuestions();
+            this.saving = false;
           },
           error: (error) => {
             console.error('Erro ao atualizar questão:', error);
             this.snackBar.open('Erro ao atualizar questão', 'Fechar', { duration: 3000 });
+            this.saving = false;
           }
         });
       } else {
@@ -223,10 +247,12 @@ export class QuestionsComponent implements OnInit {
             this.snackBar.open('Questão criada com sucesso!', 'Fechar', { duration: 3000 });
             this.closeDialog();
             this.loadQuestions();
+            this.saving = false;
           },
           error: (error) => {
             console.error('Erro ao criar questão:', error);
             this.snackBar.open('Erro ao criar questão', 'Fechar', { duration: 3000 });
+            this.saving = false;
           }
         });
       }
@@ -255,9 +281,9 @@ export class QuestionsComponent implements OnInit {
     return exam ? exam.title : 'N/A';
   }
 
-  getDomainName(domainId: number): string {
-    const domain = this.domains.find(d => d.id === domainId);
-    return domain ? domain.name : 'N/A';
+  getTopicName(topicId: number): string {
+    const topic = this.topics.find(t => t.id === topicId);
+    return topic ? topic.name : 'N/A';
   }
 
   getDifficultyLabel(level: number): string {
@@ -266,7 +292,29 @@ export class QuestionsComponent implements OnInit {
   }
 
   getDifficultyColor(level: number): string {
-    const colors = ['', 'success', 'primary', 'accent', 'warn', 'error'];
-    return colors[level] || 'primary';
+    switch (level) {
+      case 1: return 'primary';
+      case 2: return 'accent';
+      case 3: return 'warn';
+      case 4: return 'warn';
+      case 5: return 'warn';
+      default: return 'primary';
+    }
+  }
+
+  getQuestionTypeLabel(type: string): string {
+    switch (type) {
+      case 'objective': return 'Objetiva';
+      case 'multiple_choice': return 'Múltipla Escolha';
+      default: return type;
+    }
+  }
+
+  getContentTypeLabel(type: string): string {
+    switch (type) {
+      case 'text': return 'Texto';
+      case 'code': return 'Código';
+      default: return type;
+    }
   }
 } 

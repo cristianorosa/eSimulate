@@ -1,5 +1,3 @@
-@use '../shared/styles.scss' as *;
-@use "sass:color";
 
 .profile-container {
   width: 100%;
@@ -7,7 +5,7 @@
   padding: 24px;
   overflow-x: hidden;
   
-  @include responsive(768px) {
+  @media (max-width: 768px) {
     padding: 16px;
   }
 }
@@ -16,15 +14,19 @@
   margin-bottom: 30px;
   
   .profile-card {
-    @extend .card;
-    @include gradient-primary;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
     color: white;
     display: flex;
     align-items: center;
     gap: 30px;
-    box-shadow: $shadow-primary;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     
-    @include responsive(768px) {
+    @media (max-width: 768px) {
       flex-direction: column;
       text-align: center;
       padding: 20px;
@@ -36,7 +38,7 @@
         width: 80px;
         height: 80px;
         color: rgba(255, 255, 255, 0.9);
-        @include responsive(768px) {
+        @media (max-width: 768px) {
           font-size: 60px;
           width: 60px;
           height: 60px;
@@ -51,7 +53,7 @@
         margin: 0 0 8px 0;
         font-size: 28px;
         font-weight: 600;
-        @include responsive(768px) {
+        @media (max-width: 768px) {
           font-size: 24px;
         }
       }
@@ -79,34 +81,40 @@
   grid-template-columns: 1fr 1fr;
   gap: 30px;
   
-  @include responsive(768px) {
+  @media (max-width: 768px) {
     grid-template-columns: 1fr;
   }
 }
 
 .stats-section {
   .stats-card {
-    @extend .card;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    margin-bottom: 20px;
     
     .stats-grid {
-      @extend .grid !optional;
+      display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 20px;
       
-      @include responsive(768px) {
+      @media (max-width: 768px) {
         grid-template-columns: 1fr;
         gap: 15px;
       }
       
       .stat-item {
-        @include flex-between;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         gap: 15px;
         padding: 20px;
-        @include gradient(#f5f7fa, #c3cfe2);
-        border-radius: $border-radius;
-        transition: $transition-fast;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border-radius: 8px;
+        transition: all 0.2s ease;
         
-        @include responsive(768px) {
+        @media (max-width: 768px) {
           padding: 15px;
         }
         
@@ -118,22 +126,22 @@
           font-size: 32px;
           width: 32px;
           height: 32px;
-          color: $primary-color;
+          color: #1976d2;
         }
         
         .stat-content {
           .stat-value {
             font-size: 24px;
             font-weight: 700;
-            color: $text-dark;
+            color: #333;
             margin-bottom: 4px;
-            @include responsive(768px) {
+            @media (max-width: 768px) {
               font-size: 20px;
             }
           }
           .stat-label {
             font-size: 12px;
-            color: $text-light;
+            color: #666;
             text-transform: uppercase;
             letter-spacing: 0.5px;
           }
@@ -145,14 +153,29 @@
 
 .edit-section {
   .edit-card {
-    @extend .card;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    margin-bottom: 20px;
     
     .form-row {
-      @extend .form-row;
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
       margin-bottom: 20px;
       
       .full-width {
         width: 100%;
+      }
+      
+      @media (max-width: 768px) {
+        flex-direction: column;
+        gap: 0;
+        
+        .half-width {
+          margin-bottom: 16px;
+        }
       }
     }
     
@@ -164,11 +187,26 @@
       margin-top: 30px;
       
       button {
-        @extend .btn;
-        @extend .btn-primary;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 500;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background-color: #1976d2;
+        color: white;
         padding: 12px 24px;
         font-size: 16px;
-        border-radius: $border-radius-sm;
+        border-radius: 4px;
+        
+        &:hover {
+          transform: translateY(-1px);
+          background-color: #1565c0;
+        }
         
         mat-icon {
           margin-right: 8px;

@@ -13,7 +13,7 @@ type UserExam struct {
 	Passed            *bool
 	TimeSpentMinutes  *int
 	Answers           []*UserAnswer
-	DomainPerformance []*Performance
+	TopicPerformance  []*TopicPerformance
 }
 
 // UserAnswer representa uma resposta do usuário em uma prova
@@ -25,17 +25,6 @@ type UserAnswer struct {
 	IsCorrect         *bool
 	IsMarkedForReview bool
 	AnsweredAt        time.Time
-}
-
-// Performance representa o desempenho do usuário em um domínio específico
-type Performance struct {
-	ID                int
-	UserExamID        int
-	DomainID          int
-	QuestionsAnswered int
-	CorrectAnswers    int
-	ScorePercentage   float64
-	NeedsImprovement  bool
 }
 
 // UserExamRepository define a interface para operações de persistência de provas aplicadas
@@ -54,11 +43,4 @@ type UserAnswerRepository interface {
 	Update(ua *UserAnswer) error
 	ListByUserExam(userExamID int) ([]*UserAnswer, error)
 	FindByQuestion(userExamID int, questionID int) (*UserAnswer, error)
-}
-
-// PerformanceRepository define a interface para operações de persistência de desempenho por domínio
-type PerformanceRepository interface {
-	Create(dp *Performance) error
-	Update(dp *Performance) error
-	ListByUserExam(userExamID int) ([]*Performance, error)
 }

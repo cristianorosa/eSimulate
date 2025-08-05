@@ -10,21 +10,22 @@ type Exam struct {
 	AreaID         int       `json:"area_id"`
 	MaxTimeMinutes int       `json:"max_time_minutes"`
 	PassingScore   float64   `json:"passing_score"`
+	QuestionsCount int       `json:"questions_count"`
 	IsActive       bool      `json:"is_active"`
 	CreatedBy      int       `json:"created_by"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at,omitempty"`
 }
 
-// Domain representa um domínio de uma prova
-type Domain struct {
-	ID               int
-	ExamID           int
-	Name             string
-	Description      string
-	WeightPercentage float64
-	OrderIndex       int
-	CreatedAt        time.Time
+// Topic representa um tópico de uma prova
+type Topic struct {
+	ID               int       `json:"id"`
+	ExamID           int       `json:"exam_id"`
+	Name             string    `json:"name"`
+	WeightPercentage float64   `json:"weight_percentage"`
+	OrderIndex       int       `json:"order_index"`
+	QuestionsCount   int       `json:"questions_count"`
+	CreatedAt        time.Time `json:"created_at"`
 }
 
 // ExamRepository define as operações de persistência para exames
@@ -38,12 +39,12 @@ type ExamRepository interface {
 	ListPaginated(page, pageSize int, areaID *int) ([]*Exam, *Pagination, error)
 }
 
-// Repository define a interface para operações de persistência de domínios
-type Repository interface {
-	Create(d *Domain) error
-	Update(d *Domain) error
+// TopicRepository define a interface para operações de persistência de tópicos
+type TopicRepository interface {
+	Create(t *Topic) error
+	Update(t *Topic) error
 	Delete(id int) error
-	FindByID(id int) (*Domain, error)
-	ListByExam(examID int) ([]*Domain, error)
-	ListAll() ([]*Domain, error)
+	FindByID(id int) (*Topic, error)
+	ListByExam(examID int) ([]*Topic, error)
+	ListAll() ([]*Topic, error)
 }

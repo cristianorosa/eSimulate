@@ -51,8 +51,8 @@ func main() {
 	examRepo := &infra.ExamRepositoryPG{DB: db}
 	examUC := &usecase.ExamUsecase{Repo: examRepo}
 
-	domainRepo := &infra.DomainRepositoryPG{DB: db}
-	domainUC := &usecase.DomainUsecase{Repo: domainRepo}
+	topicRepo := &infra.TopicRepositoryPG{DB: db}
+	topicUC := &usecase.TopicUsecase{Repo: topicRepo}
 
 	questionRepo := &infra.QuestionRepositoryPG{DB: db}
 	questionUC := &usecase.QuestionUsecase{Repo: questionRepo}
@@ -64,11 +64,11 @@ func main() {
 
 	userExamRepo := &infra.UserExamRepositoryPG{DB: db}
 	userAnswerRepo := &infra.UserAnswerRepositoryPG{DB: db}
-	domainPerformanceRepo := &infra.DomainPerformanceRepositoryPG{DB: db}
+	topicPerformanceRepo := &infra.TopicPerformanceRepositoryPG{DB: db}
 	userExamUC := &usecase.UserExamUsecase{
 		Repo:            userExamRepo,
 		AnswerRepo:      userAnswerRepo,
-		PerformanceRepo: domainPerformanceRepo,
+		PerformanceRepo: topicPerformanceRepo,
 	}
 
 	// Cria usuários iniciais se não existirem
@@ -87,7 +87,7 @@ func main() {
 		Performance: &interfaces.PerformanceHandler{UC: performanceUC},
 		Area:        &interfaces.AreaHandler{UC: areaUC},
 		Exam:        &interfaces.ExamHandler{UC: examUC},
-		Domain:      &interfaces.DomainHandler{UC: domainUC},
+		Topic:       &interfaces.TopicHandler{UC: topicUC},
 		UserExam:    &interfaces.UserExamHandler{UC: userExamUC},
 	}
 	log.Printf("QuestionHandler inicializado: %+v", handlers.Question)

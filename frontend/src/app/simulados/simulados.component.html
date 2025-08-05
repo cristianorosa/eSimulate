@@ -1,5 +1,5 @@
 <div class="simulados-container">
-  <div class="simulados-header">
+  <div class="header">
     <mat-card class="header-card">
       <div class="header-content">
         <div class="header-title">
@@ -7,7 +7,7 @@
           <p>Escolha um simulado para testar seus conhecimentos</p>
         </div>
         <div class="header-actions">
-          <button mat-raised-button color="primary" class="new-quiz-btn">
+          <button mat-raised-button color="primary" >
             <mat-icon>add</mat-icon>
             Novo Simulado
           </button>
@@ -16,16 +16,16 @@
     </mat-card>
   </div>
 
-  <div class="simulados-content">
-    @if (loading) {
-      <div class="loading-container">
-        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-        <p>Carregando simulados...</p>
-      </div>
-    } @else {
-                  @if (!simulados || simulados.length === 0) {
-        <div class="empty-state">
-          <mat-card class="empty-card">
+  <div class="content">
+    <mat-card class="content-card">
+      @if (loading) {
+        <div class="loading-container">
+          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+          <p>Carregando simulados...</p>
+        </div>
+      } @else {
+        @if (!simulados || simulados.length === 0) {
+          <div class="empty-state">
             <div class="empty-content">
               <mat-icon class="empty-icon">assignment</mat-icon>
               <h3>Nenhum simulado disponível</h3>
@@ -35,55 +35,55 @@
                 Receber Notificação
               </button>
             </div>
-          </mat-card>
-        </div>
-      } @else {
-        <div class="simulados-grid">
-          @for (simulado of simulados; track simulado.id) {
-            <mat-card class="simulado-card">
-              <div class="card-header">
-                <div class="card-icon">
-                  <mat-icon>assignment</mat-icon>
+          </div>
+        } @else {
+          <div class="simulados-grid">
+            @for (simulado of simulados; track simulado.id) {
+              <mat-card class="simulado-card">
+                <div class="card-header">
+                  <div class="card-icon">
+                    <mat-icon>assignment</mat-icon>
+                  </div>
+                  <div class="card-badge" *ngIf="simulado.isNew">
+                    <span>Novo</span>
+                  </div>
                 </div>
-                <div class="card-badge" *ngIf="simulado.isNew">
-                  <span>Novo</span>
-                </div>
-              </div>
-              
-              <mat-card-content>
-                <h3 class="card-title">{{ simulado.title }}</h3>
-                <p class="card-description">{{ simulado.description }}</p>
                 
-                <div class="card-details">
-                  <div class="detail-item">
-                    <mat-icon>help</mat-icon>
-                    <span>{{ simulado.questionCount || 20 }} questões</span>
+                <mat-card-content>
+                  <h3 class="card-title">{{ simulado.title }}</h3>
+                  <p class="card-description">{{ simulado.description }}</p>
+                  
+                  <div class="card-details">
+                    <div class="detail-item">
+                      <mat-icon>help</mat-icon>
+                      <span>{{ simulado.questionCount || 20 }} questões</span>
+                    </div>
+                    <div class="detail-item">
+                      <mat-icon>schedule</mat-icon>
+                      <span>{{ simulado.duration || '45 min' }}</span>
+                    </div>
+                    <div class="detail-item">
+                      <mat-icon>school</mat-icon>
+                      <span>{{ simulado.difficulty || 'Médio' }}</span>
+                    </div>
                   </div>
-                  <div class="detail-item">
-                    <mat-icon>schedule</mat-icon>
-                    <span>{{ simulado.duration || '45 min' }}</span>
-                  </div>
-                  <div class="detail-item">
-                    <mat-icon>school</mat-icon>
-                    <span>{{ simulado.difficulty || 'Médio' }}</span>
-                  </div>
-                </div>
-              </mat-card-content>
-              
-              <mat-card-actions>
-                <button mat-raised-button color="primary" class="start-btn" [routerLink]="['/simulados', simulado.id, 'executar']">
-                  <mat-icon>play_arrow</mat-icon>
-                  Iniciar Simulado
-                </button>
-                <button mat-stroked-button class="preview-btn">
-                  <mat-icon>visibility</mat-icon>
-                  Prévia
-                </button>
-              </mat-card-actions>
-            </mat-card>
-          }
-        </div>
+                </mat-card-content>
+                
+                <mat-card-actions>
+                  <button mat-raised-button color="primary" class="start-btn" [routerLink]="['/simulados', simulado.id, 'executar']">
+                    <mat-icon>play_arrow</mat-icon>
+                    Iniciar Simulado
+                  </button>
+                  <button mat-stroked-button class="preview-btn">
+                    <mat-icon>visibility</mat-icon>
+                    Prévia
+                  </button>
+                </mat-card-actions>
+              </mat-card>
+            }
+          </div>
+        }
       }
-    }
+    </mat-card>
   </div>
 </div>

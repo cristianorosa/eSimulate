@@ -1,12 +1,12 @@
-<div class="history-container">
-  <div class="history-header">
+<div class="historico-container">
+  <div class="header">
     <mat-card class="header-card">
       <div class="header-content">
         <div class="header-title">
           <h1>Histórico de Simulados</h1>
           <p>Acompanhe seu progresso e desempenho nos simulados</p>
         </div>
-        <div class="header-filters">
+        <div class="header-actions">
           <mat-form-field appearance="outline" class="filter-field">
             <mat-label>Período</mat-label>
             <mat-select [(ngModel)]="selectedPeriod">
@@ -57,7 +57,7 @@
     </mat-card>
   </div>
 
-  <div class="history-content">
+  <div class="content">
     <mat-card class="content-card">
       <mat-card-title>Simulados Realizados</mat-card-title>
       <mat-card-content>
@@ -67,7 +67,7 @@
             <p>Carregando histórico...</p>
           </div>
         } @else {
-                      @if (!getFilteredHistory() || getFilteredHistory().length === 0) {
+          @if (!getFilteredHistory() || getFilteredHistory().length === 0) {
             <div class="empty-state">
               <mat-icon class="empty-icon">history</mat-icon>
               <h3>Nenhum simulado realizado ainda</h3>

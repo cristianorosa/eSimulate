@@ -6,7 +6,7 @@ import { AuthGuard } from './core/auth.guard';
 import { AdminGuard } from './core/admin.guard';
 import { AreasComponent } from './admin/areas/areas.component';
 import { ExamsComponent } from './admin/exams/exams.component';
-import { DomainsComponent } from './admin/domains/domains.component';
+import { TopicsComponent } from './admin/topics/topics.component';
 import { QuestionsComponent } from './admin/questions/questions.component';
 
 export const routes: Routes = [
@@ -44,8 +44,8 @@ export const routes: Routes = [
         component: ExamsComponent
       },
       { 
-        path: 'domains', 
-        component: DomainsComponent
+        path: 'topics', 
+        component: TopicsComponent
       },
       { 
         path: 'questions', 

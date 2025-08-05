@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -98,11 +98,6 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   }
 
   isAdminOrRedator(): boolean {
-    // Primeiro verificar se está autenticado
-    if (!this.auth.isAuthenticated()) {
-      return false;
-    }
-    
     const user = this.auth.user();
     
     if (!user || !user.role_id) {

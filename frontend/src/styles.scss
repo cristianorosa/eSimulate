@@ -2,6 +2,73 @@
 
 /* You can add global styles to this file, and also import other style files */
 
+// Variáveis de cores globais
+$primary-color: #1976d2;
+$secondary-color: #424242;
+$accent-color: #ff4081;
+$success-color: #4caf50;
+$warning-color: #ff9800;
+$error-color: #f44336;
+$background-color: #f5f5f5;
+$bg-light: #fafafa;
+$text-dark: #333;
+$text-light: #666;
+$border-color: #e0e0e0;
+$text-muted: #999;
+
+// Variáveis de transição
+$transition: all 0.3s ease;
+$transition-fast: all 0.2s ease;
+
+// Variáveis de border-radius
+$border-radius: 8px;
+$border-radius-sm: 4px;
+
+// Variáveis de sombra
+$card-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+$shadow-primary: 0 4px 20px rgba(0, 0, 0, 0.15);
+
+// Mixins globais
+@mixin responsive($breakpoint) {
+  @media (max-width: $breakpoint) {
+    @content;
+  }
+}
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// Mixins específicos para componentes
+@mixin gradient($start-color, $end-color) {
+  background: linear-gradient(135deg, $start-color 0%, $end-color 100%);
+}
+
+@mixin gradient-primary {
+  background: linear-gradient(135deg, $primary-color 0%, #1565c0 100%);
+}
+
+@mixin card-shadow {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+@mixin grid {
+  display: grid;
+}
+
+@mixin grid-auto {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
 // Estilos globais para prevenir overflow
 * {
   box-sizing: border-box;
@@ -9,7 +76,6 @@
 
 html, body {
   width: 100%;
-  overflow-x: hidden;
   margin: 0;
   padding: 0;
 }
@@ -23,18 +89,15 @@ body {
 .container,
 .mat-mdc-card,
 .mat-mdc-table,
-.mat-mdc-form-field,
 .mat-mdc-button,
 .mat-mdc-list,
 .mat-mdc-menu-panel,
 .mat-mdc-dialog-container {
   max-width: 100% !important;
-  overflow-x: hidden !important;
 }
 
 // Garantir que tabelas não causem overflow
 .mat-mdc-table-container {
-  overflow-x: auto;
   max-width: 100%;
 }
 
@@ -42,6 +105,8 @@ body {
 .mat-mdc-form-field {
   width: 100%;
   max-width: 100%;
+  margin-bottom: 16px;
+  overflow: visible !important;
 }
 
 // Garantir que cards não causem overflow
@@ -54,7 +119,6 @@ body {
 .mat-mdc-button {
   max-width: 100%;
   white-space: nowrap;
-  overflow: hidden;
   text-overflow: ellipsis;
 }
 
@@ -62,13 +126,232 @@ body {
 router-outlet + * {
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
 }
 
-// Correção específica para mat-mdc-paginator-touch-target
-.mat-mdc-paginator-touch-target {
-  width: 0 !important;
-  min-width: 0 !important;
-  max-width: 0 !important;
-  display: none !important;
+// Estilos globais para diálogos
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  
+  .dialog-content {
+    background: white;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    
+    .dialog-card {
+      margin: 0;
+      
+      mat-card-header {
+        margin-bottom: 20px;
+      }
+      
+      mat-card-content {
+        form {
+          .dialog-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 24px;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Estilos globais para loading
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  
+  p {
+    margin-top: 16px;
+    color: $text-light;
+  }
+}
+
+// Estilos globais para empty state
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+  
+  .empty-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: #ccc;
+    margin-bottom: 16px;
+  }
+  
+  p {
+    margin: 0 0 20px 0;
+    color: $text-light;
+    font-size: 16px;
+  }
+}
+
+// Estilos base para cards
+.card {
+  background: white;
+  border-radius: 8px;
+  @include card-shadow;
+  padding: 24px;
+  margin-bottom: 20px;
+  
+  @include responsive(768px) {
+    padding: 16px;
+  }
+}
+
+// Estilos base para botões
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  border-radius: $border-radius;
+  font-weight: 500;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: $transition;
+  
+  &:hover {
+    transform: translateY(-1px);
+  }
+  
+  &.btn-primary {
+    background-color: $primary-color;
+    color: white;
+    
+    &:hover {
+      background-color: #1565c0;
+    }
+  }
+}
+
+// Estilos base para grid
+.grid {
+  display: grid;
+  
+  &.grid-auto {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  
+  &.grid-2 {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    
+    @include responsive(768px) {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  
+  .header-title {
+    h1 {
+      margin: 0 0 8px 0;
+      color: $text-dark;
+      font-size: 24px;
+      font-weight: 600;
+    }
+    
+    p {
+      margin: 0;
+      color: $text-light;
+      font-size: 14px;
+    }
+  }
+  
+  .header-actions {
+    display: flex;
+    gap: 12px;
+  }
+}
+
+// Estilos para tabelas
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    
+    th, td {
+      text-align: left;
+      vertical-align: middle;
+    }
+  }
+}
+
+// Estilos para status badges
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  
+  &.active {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  &.inactive {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+}
+
+// Padronização elegante para botões Material Design
+.mat-mdc-raised-button {
+  // Aproveita as configurações padrão do Material
+  // Apenas ajustes mínimos para consistência
+  
+  &.mat-primary {
+    // Garante que botões primary tenham aparência consistente
+    font-weight: 500;
+    
+    mat-icon {
+      margin-right: 8px;
+    }
+  }
+}
+
+// Garantir que botões com ícones tenham alinhamento correto
+.mat-mdc-raised-button mat-icon {
+  margin-right: 8px;
+}
+
+// Hover suave para todos os botões raised
+.mat-mdc-raised-button:hover {
+  transform: translateY(-1px);
+  transition: transform 0.2s ease;
 }

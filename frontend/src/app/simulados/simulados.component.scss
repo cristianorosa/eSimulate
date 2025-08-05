@@ -1,5 +1,3 @@
-@use '../shared/styles.scss' as *;
-@use "sass:color";
 
 .simulados-container {
   width: 100%;
@@ -7,151 +5,217 @@
   padding: 24px;
   overflow-x: hidden;
   
-  @include responsive(768px) {
+  @media (max-width: 768px) {
     padding: 16px;
   }
 }
 
-.simulados-header {
-  margin-bottom: 30px;
-  
+.header {
+  margin-bottom: 20px;
+
   .header-card {
-    @extend .card;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    margin-bottom: 20px;
     
     .header-content {
-      @extend .card-header;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      
+      .header-title {
+        h1 {
+          margin: 0 0 8px 0;
+          color: #333;
+          font-size: 24px;
+          font-weight: 600;
+        }
+        
+        p {
+          margin: 0;
+          color: #666;
+          font-size: 14px;
+        }
+      }
       
       .header-actions {
-        .new-quiz-btn {
-          @extend .btn !optional;
-          @extend .btn-primary !optional;
-        }
+        display: flex;
+        gap: 12px;        
       }
     }
   }
 }
 
-.simulados-content {
-  .loading-container {
-    @extend .loading-container;
-  }
-  
-  .empty-state {
-    .empty-card {
-      @extend .card;
+.content {
+  .content-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    margin-bottom: 20px;
+
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
       
-      .empty-content {
-        @extend .empty-state;
+      p {
+        margin-top: 16px;
+        color: #666;
       }
     }
-  }
-  
-  .simulados-grid {
-    @extend .grid;
-    @extend .grid-auto;
     
-    .simulado-card {
-      @extend .card;
-      transition: $transition;
-      overflow: hidden;
-      
-      &:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-      }
-      
-      .card-header {
-        position: relative;
-        @include gradient(#f5f7fa, #c3cfe2);
-        padding: 20px;
-        @include flex-between;
+    .empty-state {
+      .empty-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        text-align: center;
         
-        .card-icon {
-          mat-icon {
-            font-size: 32px;
-            width: 32px;
-            height: 32px;
-            color: $primary-color;
-          }
+        .empty-icon {
+          font-size: 48px;
+          width: 48px;
+          height: 48px;
+          color: #ccc;
+          margin-bottom: 16px;
         }
         
-        .card-badge {
-          span {
-            background: $success-color;
-            color: white;
-            padding: 4px 12px;
-            border-radius: $border-radius;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-          }
-        }
-      }
-      
-      mat-card-content {
-        padding: 20px;
-        
-        .card-title {
-          margin: 0 0 10px 0;
+        h3 {
+          margin: 0 0 8px 0;
+          color: #333;
           font-size: 20px;
           font-weight: 600;
-          color: $text-dark;
         }
         
-        .card-description {
+        p {
           margin: 0 0 20px 0;
-          color: $text-light;
-          line-height: 1.5;
+          color: #666;
+          font-size: 16px;
+        }
+      }
+    }
+    
+    .simulados-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      
+      .simulado-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        padding: 24px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+        overflow: hidden;
+        
+        &:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
         }
         
-        .card-details {
+        .card-header {
+          position: relative;
+          background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+          padding: 20px;
           display: flex;
-          flex-direction: column;
-          gap: 12px;
+          align-items: center;
+          justify-content: space-between;
           
-          .detail-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: $text-light;
-            font-size: 14px;
-            
+          .card-icon {
             mat-icon {
-              font-size: 16px;
-              width: 16px;
-              height: 16px;
-              color: $primary-color;
+              font-size: 32px;
+              width: 32px;
+              height: 32px;
+              color: #1976d2;
+            }
+          }
+          
+          .card-badge {
+            span {
+              background: #4caf50;
+              color: white;
+              padding: 4px 12px;
+              border-radius: 8px;
+              font-size: 12px;
+              font-weight: 600;
+              text-transform: uppercase;
             }
           }
         }
-      }
-      
-      mat-card-actions {
-        padding: 20px;
-        display: flex;
-        gap: 12px;
         
-        @include responsive(480px) {
-          flex-direction: column;
-        }
-        
-        .start-btn {
-          flex: 1;
-          padding: 12px;
-          font-weight: 600;
-          border-radius: $border-radius-sm;
+        mat-card-content {
+          padding: 20px;
           
-          mat-icon {
-            margin-right: 8px;
+          .card-title {
+            margin: 0 0 10px 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+          }
+          
+          .card-description {
+            margin: 0 0 20px 0;
+            color: #666;
+            line-height: 1.5;
+          }
+          
+          .card-details {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            
+            .detail-item {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              color: #666;
+              font-size: 14px;
+              
+              mat-icon {
+                font-size: 16px;
+                width: 16px;
+                height: 16px;
+                color: #1976d2;
+              }
+            }
           }
         }
         
-        .preview-btn {
-          padding: 12px 20px;
-          border-radius: $border-radius-sm;
+        mat-card-actions {
+          padding: 20px;
+          display: flex;
+          gap: 12px;
           
-          mat-icon {
-            margin-right: 8px;
+          @media (max-width: 480px) {
+            flex-direction: column;
+          }
+          
+          .start-btn {
+            flex: 1;
+            padding: 12px;
+            font-weight: 600;
+            border-radius: 4px;
+            
+            mat-icon {
+              margin-right: 8px;
+            }
+          }
+          
+          .preview-btn {
+            padding: 12px 20px;
+            border-radius: 4px;
+            
+            mat-icon {
+              margin-right: 8px;
+            }
           }
         }
       }

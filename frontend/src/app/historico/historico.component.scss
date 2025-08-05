@@ -1,53 +1,56 @@
-@use '../shared/styles.scss' as *;
-@use "sass:color";
 
-.history-container {
+.historico-container {
   width: 100%;
   max-width: 100%;
   padding: 24px;
   overflow-x: hidden;
   
-  @include responsive(768px) {
+  @media (max-width: 768px) {
     padding: 16px;
   }
 }
 
-.history-header {
-  margin-bottom: 30px;
-  
+.header {
+  margin-bottom: 20px;
+
   .header-card {
-    @extend .card;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    margin-bottom: 20px;
     
     .header-content {
-      @extend .card-header;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
       
-      .header-filters {
+      .header-title {
+        h1 {
+          margin: 0 0 8px 0;
+          color: #333;
+          font-size: 24px;
+          font-weight: 600;
+        }
+        
+        p {
+          margin: 0;
+          color: #666;
+          font-size: 14px;
+        }
+      }
+      
+      .header-actions {
+        display: flex;
+        gap: 12px;
+        
         .filter-field {
           min-width: 200px;
+          margin-bottom: 0;
           
-          ::ng-deep .mat-mdc-form-field {
-            color: white;
-          }
-          
-          ::ng-deep .mat-mdc-form-field-focus-overlay {
-            background-color: rgba(255, 255, 255, 0.1);
-          }
-          
-          ::ng-deep .mat-mdc-text-field-wrapper {
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: $border-radius-sm;
-          }
-          
-          ::ng-deep .mat-mdc-form-field-label {
-            color: rgba(255, 255, 255, 0.8);
-          }
-          
-          ::ng-deep .mat-mdc-select-value {
-            color: white;
-          }
-          
-          ::ng-deep .mat-mdc-select-arrow {
-            color: rgba(255, 255, 255, 0.8);
+          ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+            height: 0;
           }
         }
       }
@@ -59,52 +62,52 @@
   margin-bottom: 30px;
   
   .stats-card {
-    @extend .card;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    margin-bottom: 20px;
     
     .stats-grid {
-      @extend .grid !optional;
-      @extend .grid-auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
       
       .stat-item {
-        @include flex-between;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         gap: 15px;
         padding: 20px;
-        @include gradient(#f5f7fa, #c3cfe2);
-        border-radius: $border-radius;
-        transition: $transition-fast;
-        
-        @include responsive(768px) {
-          padding: 15px;
-        }
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border-radius: 8px;
+        transition: all 0.3s ease;
         
         &:hover {
           transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         
         .stat-icon {
           font-size: 32px;
           width: 32px;
           height: 32px;
-          color: $primary-color;
+          color: #1976d2;
         }
         
         .stat-content {
+          flex: 1;
+          
           .stat-value {
             font-size: 24px;
             font-weight: 700;
-            color: $text-dark;
+            color: #333;
             margin-bottom: 4px;
-            
-            @include responsive(768px) {
-              font-size: 20px;
-            }
           }
           
           .stat-label {
-            font-size: 12px;
-            color: $text-light;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-size: 14px;
+            color: #666;
           }
         }
       }
@@ -112,54 +115,89 @@
   }
 }
 
-.history-content {
+.content {
   .content-card {
-    @extend .card;
-    
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    margin-bottom: 20px;
+
     .loading-container {
-      @extend .loading-container;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      
+      p {
+        margin-top: 16px;
+        color: #666;
+      }
     }
     
     .empty-state {
-      @extend .empty-state;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      text-align: center;
+      
+      .empty-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        color: #ccc;
+        margin-bottom: 16px;
+      }
+      
+      h3 {
+        margin: 0 0 8px 0;
+        color: #333;
+        font-size: 20px;
+        font-weight: 600;
+      }
+      
+      p {
+        margin: 0;
+        color: #666;
+        font-size: 16px;
+      }
     }
     
     .history-list {
       .history-item {
-        border: 1px solid $border-color;
-        border-radius: $border-radius;
+        border: 1px solid #eee;
+        border-radius: 8px;
         padding: 20px;
-        margin-bottom: 20px;
-        transition: $transition;
+        margin-bottom: 16px;
+        transition: all 0.3s ease;
         
         &:hover {
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
           transform: translateY(-2px);
         }
         
         .item-main {
-          @include flex-between;
-          margin-bottom: 20px;
-          
-          @include responsive(768px) {
-            flex-direction: column;
-            gap: 20px;
-            text-align: center;
-          }
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 16px;
           
           .item-info {
             flex: 1;
             
             h3 {
               margin: 0 0 8px 0;
+              color: #333;
               font-size: 18px;
               font-weight: 600;
-              color: $text-dark;
             }
             
             .item-date {
               margin: 0 0 12px 0;
-              color: $text-light;
+              color: #666;
               font-size: 14px;
             }
             
@@ -167,21 +205,18 @@
               display: flex;
               gap: 20px;
               
-              @include responsive(768px) {
-                justify-content: center;
-              }
-              
               .detail-item {
                 display: flex;
                 align-items: center;
-                gap: 5px;
-                color: $text-light;
+                gap: 6px;
+                color: #666;
                 font-size: 14px;
                 
                 mat-icon {
                   font-size: 16px;
                   width: 16px;
                   height: 16px;
+                  color: #1976d2;
                 }
               }
             }
@@ -191,25 +226,34 @@
             text-align: center;
             
             .score-circle {
-              width: 80px;
-              height: 80px;
+              width: 60px;
+              height: 60px;
               border-radius: 50%;
-              @include flex-center;
-              margin: 0 auto 8px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              margin-bottom: 8px;
               font-weight: 700;
-              font-size: 18px;
-              color: white;
+              font-size: 16px;
               
-              &.success {
-                @include gradient($success-color, #66bb6a);
+              &.excellent {
+                background: linear-gradient(135deg, #4caf50, #45a049);
+                color: white;
               }
               
-              &.warning {
-                @include gradient($warning-color, #ffb74d);
+              &.good {
+                background: linear-gradient(135deg, #2196f3, #1976d2);
+                color: white;
               }
               
-              &.error {
-                @include gradient($error-color, #ef5350);
+              &.average {
+                background: linear-gradient(135deg, #ff9800, #f57c00);
+                color: white;
+              }
+              
+              &.poor {
+                background: linear-gradient(135deg, #f44336, #d32f2f);
+                color: white;
               }
             }
             
@@ -217,18 +261,21 @@
               font-size: 12px;
               font-weight: 600;
               text-transform: uppercase;
-              letter-spacing: 0.5px;
               
-              &.success {
-                color: $success-color;
+              &.excellent {
+                color: #4caf50;
               }
               
-              &.warning {
-                color: $warning-color;
+              &.good {
+                color: #2196f3;
               }
               
-              &.error {
-                color: $error-color;
+              &.average {
+                color: #ff9800;
+              }
+              
+              &.poor {
+                color: #f44336;
               }
             }
           }
@@ -236,18 +283,10 @@
         
         .item-actions {
           display: flex;
-          gap: 10px;
-          justify-content: flex-end;
+          gap: 12px;
           
-          @include responsive(768px) {
-            justify-content: center;
-            flex-wrap: wrap;
-          }
-          
-          button {
-            mat-icon {
-              margin-right: 5px;
-            }
+          @media (max-width: 480px) {
+            flex-direction: column;
           }
         }
       }

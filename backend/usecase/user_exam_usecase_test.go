@@ -118,27 +118,27 @@ func (m *MockUserAnswerRepository) FindByQuestion(userExamID int, questionID int
 	return nil, domain.ErrNotFound
 }
 
-// MockDomainPerformanceRepository implementa PerformanceRepository para testes
-type MockDomainPerformanceRepository struct {
-	performances map[int]*domain.Performance
+// MockTopicPerformanceRepository implementa TopicPerformanceRepository para testes
+type MockTopicPerformanceRepository struct {
+	performances map[int]*domain.TopicPerformance
 	nextID       int
 }
 
-func NewMockDomainPerformanceRepository() *MockDomainPerformanceRepository {
-	return &MockDomainPerformanceRepository{
-		performances: make(map[int]*domain.Performance),
+func NewMockTopicPerformanceRepository() *MockTopicPerformanceRepository {
+	return &MockTopicPerformanceRepository{
+		performances: make(map[int]*domain.TopicPerformance),
 		nextID:       1,
 	}
 }
 
-func (m *MockDomainPerformanceRepository) Create(performance *domain.Performance) error {
+func (m *MockTopicPerformanceRepository) Create(performance *domain.TopicPerformance) error {
 	performance.ID = m.nextID
 	m.performances[performance.ID] = performance
 	m.nextID++
 	return nil
 }
 
-func (m *MockDomainPerformanceRepository) Update(performance *domain.Performance) error {
+func (m *MockTopicPerformanceRepository) Update(performance *domain.TopicPerformance) error {
 	if _, exists := m.performances[performance.ID]; !exists {
 		return domain.ErrNotFound
 	}
@@ -146,8 +146,8 @@ func (m *MockDomainPerformanceRepository) Update(performance *domain.Performance
 	return nil
 }
 
-func (m *MockDomainPerformanceRepository) ListByUserExam(userExamID int) ([]*domain.Performance, error) {
-	var performances []*domain.Performance
+func (m *MockTopicPerformanceRepository) FindByUserExam(userExamID int) ([]*domain.TopicPerformance, error) {
+	var performances []*domain.TopicPerformance
 	for _, performance := range m.performances {
 		if performance.UserExamID == userExamID {
 			performances = append(performances, performance)
@@ -159,7 +159,7 @@ func (m *MockDomainPerformanceRepository) ListByUserExam(userExamID int) ([]*dom
 func TestUserExamUsecase_StartExam(t *testing.T) {
 	mockUserExamRepo := NewMockUserExamRepository()
 	mockUserAnswerRepo := NewMockUserAnswerRepository()
-	mockPerformanceRepo := NewMockDomainPerformanceRepository()
+	mockPerformanceRepo := NewMockTopicPerformanceRepository()
 
 	uc := &UserExamUsecase{
 		Repo:            mockUserExamRepo,
@@ -222,7 +222,7 @@ func TestUserExamUsecase_StartExam(t *testing.T) {
 func TestUserExamUsecase_SubmitAnswer(t *testing.T) {
 	mockUserExamRepo := NewMockUserExamRepository()
 	mockUserAnswerRepo := NewMockUserAnswerRepository()
-	mockPerformanceRepo := NewMockDomainPerformanceRepository()
+	mockPerformanceRepo := NewMockTopicPerformanceRepository()
 
 	uc := &UserExamUsecase{
 		Repo:            mockUserExamRepo,
@@ -292,7 +292,7 @@ func TestUserExamUsecase_SubmitAnswer(t *testing.T) {
 func TestUserExamUsecase_FinishExam(t *testing.T) {
 	mockUserExamRepo := NewMockUserExamRepository()
 	mockUserAnswerRepo := NewMockUserAnswerRepository()
-	mockPerformanceRepo := NewMockDomainPerformanceRepository()
+	mockPerformanceRepo := NewMockTopicPerformanceRepository()
 
 	uc := &UserExamUsecase{
 		Repo:            mockUserExamRepo,
@@ -366,7 +366,7 @@ func TestUserExamUsecase_FinishExam(t *testing.T) {
 func TestUserExamUsecase_GetUserExam(t *testing.T) {
 	mockUserExamRepo := NewMockUserExamRepository()
 	mockUserAnswerRepo := NewMockUserAnswerRepository()
-	mockPerformanceRepo := NewMockDomainPerformanceRepository()
+	mockPerformanceRepo := NewMockTopicPerformanceRepository()
 
 	uc := &UserExamUsecase{
 		Repo:            mockUserExamRepo,
@@ -425,7 +425,7 @@ func TestUserExamUsecase_GetUserExam(t *testing.T) {
 func TestUserExamUsecase_ListByUser(t *testing.T) {
 	mockUserExamRepo := NewMockUserExamRepository()
 	mockUserAnswerRepo := NewMockUserAnswerRepository()
-	mockPerformanceRepo := NewMockDomainPerformanceRepository()
+	mockPerformanceRepo := NewMockTopicPerformanceRepository()
 
 	uc := &UserExamUsecase{
 		Repo:            mockUserExamRepo,
