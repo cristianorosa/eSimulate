@@ -47,7 +47,7 @@ export interface Topic {
 
 export interface Question {
   id?: number;
-  exam_id: number;
+  exam_id?: number;  // Para uso no frontend (filtros, exibição)
   topic_id: number;
   statement: string;
   problem: string;
@@ -60,6 +60,9 @@ export interface Question {
   created_at?: string;
   updated_at?: string;
   options?: Option[];
+  // Campos adicionais que vêm do backend
+  exam_title?: string;
+  topic_name?: string;
 }
 
 export interface Option {

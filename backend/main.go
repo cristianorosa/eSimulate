@@ -55,7 +55,8 @@ func main() {
 	topicUC := &usecase.TopicUsecase{Repo: topicRepo}
 
 	questionRepo := &infra.QuestionRepositoryPG{DB: db}
-	questionUC := &usecase.QuestionUsecase{Repo: questionRepo}
+	optionRepo := &infra.OptionRepositoryPG{DB: db}
+	questionUC := &usecase.QuestionUsecase{Repo: questionRepo, OptionRepo: optionRepo}
 	log.Printf("QuestionUsecase inicializado: %+v", questionUC)
 
 	quizRepo := &infra.QuizRepositoryPG{DB: db}

@@ -2,36 +2,209 @@ package usecase
 
 import (
 	"context"
+	"log"
 
 	"github.com/cristianorosa/eSimulate/backend/domain"
 )
 
 // QuestionUsecase implementa as regras de negócio para questões.
 type QuestionUsecase struct {
-	Repo domain.QuestionRepository
+	Repo       domain.QuestionRepository
+	OptionRepo domain.OptionRepository
 }
 
 // CreateQuestion cria uma nova questão com suas opções.
-func (uc *QuestionUsecase) CreateQuestion(ctx context.Context, examID, topicID int, statement, explanation string, difficultyLevel, createdBy int, options []*domain.Option) (*domain.Question, error) {
-	return &domain.Question{}, nil
+func (uc *QuestionUsecase) CreateQuestion(ctx context.Context, topicID int, statement, problem, contentType, explanation, questionType string, difficultyLevel, createdBy int, options []*domain.Option) (*domain.Question, error) {
+	log.Printf("Criando questão: topicID=%d, statement=%s, problem=%s, contentType=%s, questionType=%s, difficultyLevel=%d, options=%d",
+		topicID, statement[:min(50, len(statement))], problem[:min(50, len(problem))], contentType, questionType, difficultyLevel, len(options))
+
+	// Validar regras de negócio
+	if len(options) < 2 {
+		return nil, domain.ErrInvalidData
+	}
+
+	// Validar tipo de questão
+	correctOptions := 0
+	for _, opt := range options {
+		if opt.IsCorrect {
+			correctOptions++
+		}
+	}
+
+	if questionType == string(domain.QuestionTypeObjective) && correctOptions != 1 {
+		return nil, domain.ErrInvalidData
+	}
+
+	if questionType == string(domain.QuestionTypeMultipleChoice) && correctOptions < 1 {
+		return nil, domain.ErrInvalidData
+	}
+
+	// Criar questão
+	question := &domain.Question{
+		TopicID:         topicID,
+		Statement:       statement,
+		Problem:         problem,
+		ContentType:     domain.QuestionContentType(contentType),
+		Explanation:     explanation,
+		QuestionType:    domain.QuestionType(questionType),
+		DifficultyLevel: difficultyLevel,
+		CreatedBy:       createdBy,
+		IsActive:        true,
+	}
+
+	// Salvar questão no repositório
+	err := uc.Repo.Create(question)
+	if err != nil {
+		log.Printf("Erro ao criar questão: %v", err)
+		return nil, err
+	}
+
+	// Salvar opções
+	for _, option := range options {
+		option.QuestionID = question.ID
+		err := uc.OptionRepo.Create(option)
+		if err != nil {
+			log.Printf("Erro ao criar opção: %v", err)
+			return nil, err
+		}
+	}
+
+	// Carregar opções salvas
+	savedOptions, err := uc.OptionRepo.FindByQuestionID(question.ID)
+	if err != nil {
+		log.Printf("Erro ao carregar opções: %v", err)
+		return nil, err
+	}
+	question.Options = savedOptions
+
+	log.Printf("Questão criada com sucesso: ID=%d, opções=%d", question.ID, len(savedOptions))
+	return question, nil
 }
 
 // UpdateQuestion atualiza uma questão existente.
-func (uc *QuestionUsecase) UpdateQuestion(ctx context.Context, id, examID, topicID int, statement, explanation string, difficultyLevel int) error {
+func (uc *QuestionUsecase) UpdateQuestion(ctx context.Context, id, topicID int, statement, problem, contentType, explanation, questionType string, difficultyLevel int, isActive bool) error {
+	log.Printf("Atualizando questão: ID=%d, topicID=%d", id, topicID)
+
+	// Buscar questão existente
+	existingQuestion, err := uc.Repo.FindByID(id)
+	if err != nil {
+		log.Printf("Erro ao buscar questão para atualização: %v", err)
+		return err
+	}
+
+	// Atualizar campos
+	existingQuestion.TopicID = topicID
+	existingQuestion.Statement = statement
+	existingQuestion.Problem = problem
+	existingQuestion.ContentType = domain.QuestionContentType(contentType)
+	existingQuestion.Explanation = explanation
+	existingQuestion.QuestionType = domain.QuestionType(questionType)
+	existingQuestion.DifficultyLevel = difficultyLevel
+	existingQuestion.IsActive = isActive
+
+	// Salvar atualização
+	err = uc.Repo.Update(existingQuestion)
+	if err != nil {
+		log.Printf("Erro ao atualizar questão: %v", err)
+		return err
+	}
+
+	log.Printf("Questão atualizada com sucesso: ID=%d", id)
 	return nil
 }
 
 // DeleteQuestion remove uma questão.
 func (uc *QuestionUsecase) DeleteQuestion(ctx context.Context, id int) error {
+	log.Printf("Deletando questão: ID=%d", id)
+
+	// Deletar opções primeiro (devido à foreign key)
+	err := uc.OptionRepo.DeleteByQuestionID(id)
+	if err != nil {
+		log.Printf("Erro ao deletar opções da questão: %v", err)
+		return err
+	}
+
+	// Deletar questão
+	err = uc.Repo.Delete(id)
+	if err != nil {
+		log.Printf("Erro ao deletar questão: %v", err)
+		return err
+	}
+
+	log.Printf("Questão deletada com sucesso: ID=%d", id)
 	return nil
 }
 
 // ListQuestions lista todas as questões, opcionalmente filtradas por exame.
-func (uc *QuestionUsecase) ListQuestions(ctx context.Context, examID *int) ([]*domain.Question, error) {
-	return []*domain.Question{}, nil
+func (uc *QuestionUsecase) ListQuestions(ctx context.Context, examID *int) ([]*domain.QuestionWithDetails, error) {
+	log.Printf("Listando questões: examID=%v", examID)
+
+	var questions []*domain.QuestionWithDetails
+	var err error
+
+	if examID != nil {
+		// Para filtrar por exame, precisamos buscar questões básicas e depois adicionar detalhes
+		basicQuestions, err := uc.Repo.ListByExam(*examID)
+		if err != nil {
+			log.Printf("Erro ao listar questões por exame: %v", err)
+			return nil, err
+		}
+
+		// Converter para QuestionWithDetails (por enquanto sem detalhes)
+		questions = make([]*domain.QuestionWithDetails, len(basicQuestions))
+		for i, q := range basicQuestions {
+			questions[i] = &domain.QuestionWithDetails{
+				Question: q,
+			}
+		}
+	} else {
+		questions, err = uc.Repo.ListAllWithDetails()
+		if err != nil {
+			log.Printf("Erro ao listar questões: %v", err)
+			return nil, err
+		}
+	}
+
+	// Carregar opções para cada questão
+	for _, question := range questions {
+		options, err := uc.OptionRepo.FindByQuestionID(question.ID)
+		if err != nil {
+			log.Printf("Erro ao carregar opções da questão %d: %v", question.ID, err)
+			continue
+		}
+		question.Options = options
+	}
+
+	log.Printf("Questões listadas com sucesso: %d questões", len(questions))
+	return questions, nil
 }
 
 // GetQuestion busca uma questão pelo seu ID.
 func (uc *QuestionUsecase) GetQuestion(ctx context.Context, id int) (*domain.Question, error) {
-	return &domain.Question{}, nil
+	log.Printf("Buscando questão: ID=%d", id)
+
+	question, err := uc.Repo.FindByID(id)
+	if err != nil {
+		log.Printf("Erro ao buscar questão: %v", err)
+		return nil, err
+	}
+
+	// Carregar opções da questão
+	options, err := uc.OptionRepo.FindByQuestionID(id)
+	if err != nil {
+		log.Printf("Erro ao carregar opções da questão %d: %v", id, err)
+		return nil, err
+	}
+	question.Options = options
+
+	log.Printf("Questão encontrada: ID=%d, opções=%d", id, len(options))
+	return question, nil
+}
+
+// Função auxiliar para min
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }

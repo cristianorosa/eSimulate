@@ -1,5 +1,6 @@
 -- Script de criação do banco de dados para o eSimulate v2 (PostgreSQL/ANSI SQL)
 -- Compatível com PostgreSQL, MySQL, MariaDB, SQL Server, Oracle, etc.
+-- Versão: 2.0 - Inclui suporte a questões com enunciado/problema separados e tipos de questão
 
 -- 1. Tabela de Papéis (Roles)
 CREATE TABLE roles (
@@ -46,7 +47,7 @@ CREATE TABLE exams (
     CONSTRAINT fk_exams_user FOREIGN KEY (created_by) REFERENCES users(id)
 );
 
--- 5. Tópicos da Prova
+-- 5. Tópicos da Prova (antigamente "domains")
 CREATE TABLE topics (
     id SERIAL PRIMARY KEY,
     exam_id INTEGER NOT NULL,
@@ -58,34 +59,32 @@ CREATE TABLE topics (
     CONSTRAINT fk_topics_exam FOREIGN KEY (exam_id) REFERENCES exams(id)
 );
 
--- 6. Questões
+-- 6. Questões com suporte a enunciado/problema separados e tipos de questão
 CREATE TABLE questions (
     id SERIAL PRIMARY KEY,
-    exam_id INTEGER NOT NULL,
-    topic_id INTEGER NOT NULL,
-    statement TEXT NOT NULL,
-    problem TEXT NOT NULL,
+    topic_id INTEGER NOT NULL,                  -- Relacionamento direto apenas com tópico
+    statement TEXT NOT NULL,                    -- Enunciado da questão
+    problem TEXT NOT NULL,                      -- Problema (texto ou código)
     content_type VARCHAR(20) NOT NULL DEFAULT 'text' CHECK (content_type IN ('text', 'code')),
     question_type VARCHAR(20) NOT NULL DEFAULT 'objective' CHECK (question_type IN ('objective', 'multiple_choice')),
-    explanation TEXT,
-    difficulty_level INTEGER DEFAULT 1,
+    explanation TEXT,                           -- Explicação da questão
+    difficulty_level INTEGER DEFAULT 1,         -- 1=Fácil, 2=Médio, 3=Difícil, 4=Muito Difícil, 5=Expert
     created_by INTEGER,
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_questions_exam FOREIGN KEY (exam_id) REFERENCES exams(id),
     CONSTRAINT fk_questions_topic FOREIGN KEY (topic_id) REFERENCES topics(id),
     CONSTRAINT fk_questions_user FOREIGN KEY (created_by) REFERENCES users(id)
 );
 
--- 7. Opções de resposta
+-- 7. Opções de resposta das questões
 CREATE TABLE options (
     id SERIAL PRIMARY KEY,
     question_id INTEGER NOT NULL,
-    text TEXT NOT NULL,
-    is_correct BOOLEAN NOT NULL,
-    explanation TEXT,
-    order_index INTEGER DEFAULT 0,
+    text TEXT NOT NULL,                         -- Texto da opção
+    is_correct BOOLEAN NOT NULL,                -- Se é a resposta correta
+    explanation TEXT,                           -- Explicação da opção (opcional)
+    order_index INTEGER DEFAULT 0,              -- Ordem de exibição
     CONSTRAINT fk_options_question FOREIGN KEY (question_id) REFERENCES questions(id)
 );
 
@@ -117,7 +116,7 @@ CREATE TABLE user_answers (
     CONSTRAINT fk_user_answers_option FOREIGN KEY (option_id) REFERENCES options(id)
 );
 
--- 10. Desempenho por Tópico
+-- 10. Desempenho por Tópico (antigamente "domain_performance")
 CREATE TABLE topic_performance (
     id SERIAL PRIMARY KEY,
     user_exam_id INTEGER NOT NULL,
@@ -161,14 +160,17 @@ CREATE TABLE user_quiz (
     CONSTRAINT fk_user_quiz_quiz FOREIGN KEY (quiz_id) REFERENCES quizzes(id)
 );
 
--- 14. Índices adicionais
+-- 14. Índices para otimização de performance
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_role ON users(role_id);
 CREATE INDEX idx_exams_area ON exams(area_id);
 CREATE INDEX idx_exams_active ON exams(is_active);
-CREATE INDEX idx_questions_exam ON questions(exam_id);
 CREATE INDEX idx_questions_topic ON questions(topic_id);
 CREATE INDEX idx_questions_active ON questions(is_active);
+CREATE INDEX idx_questions_type ON questions(question_type);
+CREATE INDEX idx_questions_content_type ON questions(content_type);
+CREATE INDEX idx_options_question ON options(question_id);
+CREATE INDEX idx_options_correct ON options(is_correct);
 CREATE INDEX idx_user_exams_user ON user_exams(user_id);
 CREATE INDEX idx_user_exams_exam ON user_exams(exam_id);
 CREATE INDEX idx_user_answers_exam ON user_answers(user_exam_id);

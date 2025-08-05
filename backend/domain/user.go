@@ -30,6 +30,9 @@ var ErrUserExists = errors.New("user already exists")
 // ErrInvalidInput indica que os dados de entrada são inválidos
 var ErrInvalidInput = errors.New("invalid input")
 
+// ErrInvalidData indica que os dados são inválidos
+var ErrInvalidData = errors.New("invalid data")
+
 // ErrNotFound indica que o recurso não foi encontrado
 var ErrNotFound = errors.New("not found")
 

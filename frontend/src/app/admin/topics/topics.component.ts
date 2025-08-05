@@ -190,8 +190,9 @@ export class TopicsComponent implements OnInit {
     }
   }
 
-  getExamName(examId: number): string {
-    const exam = this.exams.find(e => e.id === examId);
-    return exam ? exam.title : 'N/A';
+  getExamName(examId: number | undefined): string {
+    if (!examId) return "N/A";
+    const exam = this.exams.find((e) => e.id === examId);
+    return exam ? exam.title : "N/A";
   }
 } 
