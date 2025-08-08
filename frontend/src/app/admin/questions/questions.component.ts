@@ -539,7 +539,7 @@ export class QuestionsComponent implements OnInit {
     const newExam = await this.adminService.createExam({
       title: examData.title,
       description: examData.description || '',
-      max_time: examData.max_time || 120,
+      max_time_minutes: examData.max_time || 120,
       passing_score: examData.passing_score || 70,
       area_id: areaId,
       is_active: examData.is_active !== false
@@ -564,7 +564,8 @@ export class QuestionsComponent implements OnInit {
     const newTopic = await this.adminService.createTopic({
       name: topicData.name,
       questions_count: topicData.questions_count || 0,
-      exam_id: examId
+      exam_id: examId,
+      weight_percentage: 100 // Valor padrão para weight_percentage
     }).toPromise();
     
     return newTopic;
@@ -599,12 +600,14 @@ export class QuestionsComponent implements OnInit {
     }).toPromise();
 
     // Criar opções
-    for (const optionData of questionData.options) {
-      await this.adminService.createOption({
-        question_id: question.id,
-        text: optionData.text,
-        is_correct: optionData.is_correct
-      }).toPromise();
+    if (question && question.id) {
+      for (const optionData of questionData.options) {
+        await this.adminService.createOption({
+          question_id: question.id,
+          text: optionData.text,
+          is_correct: optionData.is_correct
+        }).toPromise();
+      }
     }
 
     return question;
