@@ -63,6 +63,7 @@ type QuestionRepository interface {
 	ListByTopic(topicID int) ([]*Question, error)
 	ListAll() ([]*Question, error)
 	ListAllWithDetails() ([]*QuestionWithDetails, error)
+	ListPaginated(page, pageSize int, examID, topicID *int) ([]*QuestionWithDetails, *Pagination, error)
 }
 
 // OptionRepository define as operações de persistência para opções

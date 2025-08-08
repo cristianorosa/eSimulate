@@ -1,4 +1,4 @@
-@import '@angular/material/prebuilt-themes/deeppurple-amber.css';
+@import "@angular/material/prebuilt-themes/deeppurple-amber.css";
 
 /* You can add global styles to this file, and also import other style files */
 
@@ -28,53 +28,13 @@ $border-radius-sm: 4px;
 $card-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 $shadow-primary: 0 4px 20px rgba(0, 0, 0, 0.15);
 
-// Mixins globais
-@mixin responsive($breakpoint) {
-  @media (max-width: $breakpoint) {
-    @content;
-  }
-}
-
-@mixin flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-@mixin flex-between {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-// Mixins específicos para componentes
-@mixin gradient($start-color, $end-color) {
-  background: linear-gradient(135deg, $start-color 0%, $end-color 100%);
-}
-
-@mixin gradient-primary {
-  background: linear-gradient(135deg, $primary-color 0%, #1565c0 100%);
-}
-
-@mixin card-shadow {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-@mixin grid {
-  display: grid;
-}
-
-@mixin grid-auto {
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-}
-
 // Estilos globais para prevenir overflow
 * {
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   width: 100%;
   margin: 0;
   padding: 0;
@@ -85,36 +45,121 @@ body {
   background-color: #f5f5f5;
 }
 
-// Garantir que tabelas não causem overflow
-.mat-mdc-table-container {
-  max-width: 100%;
-}
-
-// Garantir que formulários não causem overflow
-.mat-mdc-form-field {
+// Configuração para o container das paginas
+.main-container {
   width: 100%;
   max-width: 100%;
-  margin-bottom: 16px;
-  overflow: visible !important;
+  padding: 24px;
+  overflow-x: hidden;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
 }
 
-// Garantir que cards não causem overflow
-.mat-mdc-card {
-  width: 100%;
-  max-width: 100%;
+// Configuração para o layout do hearder das paginas
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+
+  .header-title {
+    padding: 0 0 10px 20px;
+    h1 {
+      margin: 0 0 8px 0;
+      color: #333;
+      font-size: 32px;
+      font-weight: 600;
+    }
+
+    p {
+      margin: 0;
+      color: #666;
+      font-size: 16px;
+    }
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 12px;
+  }
 }
 
-// Garantir que botões não causem overflow
-.mat-mdc-button {
-  max-width: 100%;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+// Configuração para o layout do conteudos das paginas
+.main-content {
+  .content-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .table {
+    border-bottom: solid 1px
+      var(
+        --mat-table-row-item-outline-color,
+        var(--mat-sys-outline, rgba(0, 0, 0, 0.12))
+      );
+    margin-bottom: 10px;
+
+    .mat-column-actions {
+      width: 130px;
+      text-align: center;
+    }
+    .mat-column-id {
+      width: 80px;
+    }
+    .mat-column-is_active {
+      text-align: center;
+    }
+  }
 }
 
-// Garantir que o router-outlet não cause overflow
-router-outlet + * {
-  width: 100%;
-  max-width: 100%;
+// Estilos globais para loading
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+
+  p {
+    margin-top: 16px;
+    color: $text-light;
+  }
+}
+
+// Estilos globais para empty state
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+
+  .empty-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: #ccc;
+    margin-bottom: 16px;
+  }
+
+  p {
+    margin: 0 0 20px 0;
+    color: $text-light;
+    font-size: 16px;
+  }
+}
+
+// Melhorar espaçamento em telas grandes
+.dialog-content {
+  @media (min-width: 1200px) {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
 }
 
 // Estilos globais para diálogos
@@ -130,7 +175,7 @@ router-outlet + * {
   justify-content: center;
   z-index: 1000;
   padding: 20px;
-  
+
   .dialog-content {
     background: white;
     border-radius: 8px;
@@ -138,14 +183,14 @@ router-outlet + * {
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
-    
+
     .dialog-card {
       margin: 0;
-      
+
       mat-card-header {
         margin-bottom: 20px;
       }
-      
+
       mat-card-content {
         form {
           .dialog-actions {
@@ -160,187 +205,120 @@ router-outlet + * {
   }
 }
 
-// Estilos globais para loading
-.loading-container {
+// Layout responsivo para formulário
+.form-row {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-  
-  p {
-    margin-top: 16px;
-    color: $text-light;
-  }
-}
+  gap: 20px;
+  flex-wrap: wrap; // Permite quebra de linha quando necessário
 
-// Estilos globais para empty state
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-  text-align: center;
-  
-  .empty-icon {
-    font-size: 48px;
-    width: 48px;
-    height: 48px;
-    color: #ccc;
-    margin-bottom: 16px;
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 8px;
+    //margin-bottom: 16px; // Manter consistência
   }
-  
-  p {
-    margin: 0 0 20px 0;
-    color: $text-light;
-    font-size: 16px;
-  }
-}
 
-// Estilos base para cards
-.card {
-  background: white;
-  border-radius: 8px;
-  @include card-shadow;
-  padding: 24px;
-  margin-bottom: 20px;
-  
-  @include responsive(768px) {
-    padding: 16px;
-  }
-}
-
-// Estilos base para botões
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 24px;
-  border-radius: $border-radius;
-  font-weight: 500;
-  text-decoration: none;
-  border: none;
-  cursor: pointer;
-  transition: $transition;
-  
-  &:hover {
-    transform: translateY(-1px);
-  }
-  
-  &.btn-primary {
-    background-color: $primary-color;
-    color: white;
-    
-    &:hover {
-      background-color: #1565c0;
-    }
-  }
-}
-
-// Estilos base para grid
-.grid {
-  display: grid;
-  
-  &.grid-auto {
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-  }
-  
-  &.grid-2 {
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    
-    @include responsive(768px) {
-      grid-template-columns: 1fr;
-    }
-  }
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  
-  .header-title {
-    h1 {
-      margin: 0 0 8px 0;
-      color: $text-dark;
-      font-size: 24px;
-      font-weight: 600;
-    }
-    
-    p {
-      margin: 0;
-      color: $text-light;
-      font-size: 14px;
-    }
-  }
-  
-  .header-actions {
-    display: flex;
+  @media (min-width: 769px) and (max-width: 1199px) {
     gap: 12px;
+
+    // Em telas médias, quebra para 2 linhas se necessário
+    .full-with-2-cols {
+      flex: 1 1 100%; // Ocupa toda a largura
+      margin-bottom: 8px;
+    }
+
+    .small-field {
+      flex: 1 1 calc(50% - 6px); // Metade da largura menos gap
+    }
+  }
+
+  @media (min-width: 1200px) {
+    gap: 16px;
+    flex-wrap: nowrap; // Não quebra em telas grandes
   }
 }
 
-// Estilos para tabelas
-.table-container {
+.form-field {
+  flex: 1;
+  min-width: 0; // Evita overflow em telas pequenas
+
+  // Para 3 campos na mesma linha, ajustar largura mínima
+  @media (min-width: 768px) {
+    min-width: 200px;
+  }
+
+  @media (min-width: 1200px) {
+    min-width: 250px;
+  }
+}
+// Estilos para chips de status
+.status-active {
+  background-color: #4caf50 !important;
+  color: white !important;
+}
+
+.status-inactive {
+  background-color: #f44336 !important;
+  color: white !important;
+}
+
+.mat-mdc-form-field {
+  margin-bottom: 10px;
   width: 100%;
-  overflow-x: auto;
-  
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    
-    th, td {
-      text-align: left;
-      vertical-align: middle;
+}
+
+.full-width {
+  width: 100%;
+}
+
+// Seção de filtros
+.filters-section {
+  margin-bottom: 24px;
+  padding: 16px;
+  border-radius: 8px;
+
+  h3 {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .filters-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+
+    mat-form-field {
+      min-width: 250px;
+      flex: 1;
+    }
+
+    .filters-actions {
+      display: flex;
+      gap: 8px;
     }
   }
 }
 
-// Estilos para status badges
-.status-badge {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  
-  &.active {
-    background-color: #d4edda;
-    color: #155724;
-  }
-  
-  &.inactive {
-    background-color: #f8d7da;
-    color: #721c24;
-  }
-}
+// Responsividade
+@media (max-width: 768px) {
+  .filters-section {
+    .filters-content {
+      flex-direction: column;
+      align-items: stretch;
 
-// Padronização elegante para botões Material Design
-.mat-mdc-raised-button {
-  // Aproveita as configurações padrão do Material
-  // Apenas ajustes mínimos para consistência
-  
-  &.mat-primary {
-    // Garante que botões primary tenham aparência consistente
-    font-weight: 500;
-    
-    mat-icon {
-      margin-right: 8px;
+      mat-form-field {
+        min-width: auto;
+      }
+
+      .filters-actions {
+        justify-content: flex-end;
+      }
     }
   }
 }
 
-// Garantir que botões com ícones tenham alinhamento correto
-.mat-mdc-raised-button mat-icon {
-  margin-right: 8px;
-}
-
-// Hover suave para todos os botões raised
-.mat-mdc-raised-button:hover {
-  transform: translateY(-1px);
-  transition: transform 0.2s ease;
+.mat-mdc-card-title {
+  padding-bottom: 20px !important;
 }

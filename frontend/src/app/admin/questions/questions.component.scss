@@ -1,367 +1,13 @@
-.questions-container {
-  width: 100%;
-  max-width: 100%;
-  padding: 24px;
-  overflow-x: hidden;
-  
-  @media (max-width: 768px) {
-    padding: 16px;
-  }
-}
-
-.header {
-  margin-bottom: 20px;
-
-  .header-card {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    padding: 24px;
-    margin-bottom: 20px;
-    
-    .header-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      
-      .header-title {
-        h1 {
-          margin: 0 0 8px 0;
-          color: #333;
-          font-size: 24px;
-          font-weight: 600;
-        }
-        
-        p {
-          margin: 0;
-          color: #666;
-          font-size: 14px;
-        }
-      }
-      
-      .header-actions {
-        display: flex;
-        gap: 12px;
-      }
-    }
-  }
-}
-
-.content {
-  .content-card {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    padding: 24px;
-    margin-bottom: 20px;
-
-    .table-container {
-      .questions-table {
-        th {
-          background-color: #fafafa;
-          color: #333;
-          font-weight: 600;
-          padding: 16px 12px;
-        }
-        
-        td {
-          padding: 12px;
-          border-bottom: 1px solid #eee;
-        }
-        
-        tr:hover {
-          background-color: #f5f5f5;
-        }
-
-        .statement-cell {
-          .statement-text {
-            max-width: 300px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-          }
-        }
-      }
-    }
-  }
-}
-
-// Estilos específicos para seção de opções
-.options-section {
-  margin-top: 30px;
-  padding-top: 20px;
-  border-top: 1px solid #e0e0e0;
-
-  .section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-
-    h3 {
-      margin: 0;
-      color: #333;
-      font-size: 18px;
-      font-weight: 600;
-    }
-  }
-
-  .options-list {
-    .option-item {
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 12px;
-      background: white;
-
-      .option-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 12px;
-
-        .option-number {
-          font-weight: 600;
-          color: #333;
-        }
-      }
-    }
-  }
-}
-
-// Responsividade específica
-@media (max-width: 768px) {
-  .content {
-    .content-card {
-      .table-container {
-        .questions-table {
-          .mat-column-description {
-            display: none;
-          }
-
-          .mat-column-created_at {
-            display: none;
-          }
-        }
-      }
-    }
-  }
-} 
-
-.problem-cell {
-  .problem-text {
-    font-size: 14px;
-    line-height: 1.4;
-    color: #333;
-  }
-}
-
-.option-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin: 8px 0;
-  padding: 8px;
-  background-color: #f5f5f5;
-  border-radius: 4px;
-
-  .option-hint {
-    font-size: 12px;
-    color: #666;
-    font-style: italic;
-  }
-}
-
-.content-type-chip {
-  &.text {
-    background-color: #e3f2fd;
-    color: #1976d2;
-  }
-
-  &.code {
-    background-color: #2d3748;
-    color: #ffffff;
-  }
-}
-
-.question-type-hint {
-  font-size: 12px;
-  color: #666;
-  margin-top: 4px;
-  font-style: italic;
-}
-
-// Espaçamento consistente para o formulário
-.question-form {
-  .form-row,
-  .full-width {
-    // /margin-bottom: 16px;
-  }
-  
-  .form-row:last-child,
-  .full-width:last-child {
-    margin-bottom: 0;
-  }
-  
-  // Campo de largura total dentro de form-row
-  .form-row .full-width {
-    width: 100%;
-    flex: 1;
-  }
-} 
-
-// Layout responsivo para formulário
-.form-row {
-  display: flex;
-  gap: 16px;
-  //margin-bottom: 16px;
-  flex-wrap: wrap; // Permite quebra de linha quando necessário
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: 8px;
-    //margin-bottom: 16px; // Manter consistência
-  }
-
-  @media (min-width: 769px) and (max-width: 1199px) {
-    gap: 12px;
-    
-    // Em telas médias, quebra para 2 linhas se necessário
-    .question-type {
-      flex: 1 1 100%; // Ocupa toda a largura
-      margin-bottom: 8px;
-    }
-    
-    .small-field {
-      flex: 1 1 calc(50% - 6px); // Metade da largura menos gap
-    }
-  }
-
-  @media (min-width: 1200px) {
-    gap: 16px;
-    ////margin-bottom: 16px; // Manter consistência
-    flex-wrap: nowrap; // Não quebra em telas grandes
-  }
-}
-
-.form-field {
-  flex: 1;
-  min-width: 0; // Evita overflow em telas pequenas
-  
-  // Para 3 campos na mesma linha, ajustar largura mínima
-  @media (min-width: 768px) {
-    min-width: 200px;
-  }
-  
-  @media (min-width: 1200px) {
-    min-width: 250px;
-  }
-}
-
-// Campo de tipo de questão com largura maior
-.form-field.question-type {
-  flex: 2; // Ocupa o dobro do espaço dos outros campos
-  
-  @media (max-width: 1199px) {
-    flex: 1; // Em telas menores, volta ao tamanho normal
-  }
-}
-
-// Campos menores (dificuldade e status)
-.form-field.small-field {
-  flex: 1;
-  min-width: 120px; // Largura mínima para evitar campos muito estreitos
-  
-  @media (max-width: 1199px) {
-    flex: 1;
-    min-width: 100px;
-  }
-}
-
-.full-width {
-  width: 100%;
-  margin-bottom: 16px;
-  
-  // Garantir consistência com form-row
-  &:last-child {
-    margin-bottom: 0; // Remover margem do último elemento
-  }
-}
-
-// Melhorar espaçamento em telas grandes
-.dialog-content {
-  @media (min-width: 1200px) {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-}
-
-// Melhorar tabela em telas grandes
-.questions-table {
-  @media (min-width: 1200px) {
-    font-size: 14px;
-  }
-}
-
-// Células da tabela responsivas
-.statement-cell,
-.problem-cell {
-  max-width: 200px;
-  
-  @media (min-width: 768px) {
-    max-width: 250px;
-  }
-  
-  @media (min-width: 1200px) {
-    max-width: 300px;
-  }
-
-  .statement-text,
-  .problem-text {
-    font-size: 14px;
-    line-height: 1.4;
-    color: #333;
-    word-wrap: break-word;
-  }
-}
-
-// Melhorar diálogo em telas grandes
-.mat-dialog-container {
-  @media (min-width: 1200px) {
-    max-width: 90vw;
-    max-height: 90vh;
-  }
-}
-
-// Melhorar campos de texto em telas grandes
-.mat-form-field {
-  @media (min-width: 1200px) {
-    .mat-form-field-wrapper {
-      padding-bottom: 1.34375em;
-    }
-  }
-}
-
-// Melhorar botões em telas grandes
-.mat-raised-button {
-  @media (min-width: 1200px) {
-    padding: 0 24px;
-    height: 48px;
-    font-size: 16px;
-  }
-}
-
 // Melhorar seção de opções
 .options-section {
   margin-top: 16px; // Consistente com o espaçamento do formulário
-  
+
   .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 16px;
-    
+
     @media (max-width: 768px) {
       flex-direction: column;
       gap: 12px;
@@ -376,7 +22,7 @@
   padding: 16px;
   margin-bottom: 16px;
   background-color: #fafafa;
-  
+
   @media (min-width: 1200px) {
     padding: 20px;
   }
@@ -387,7 +33,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
-  
+
   .option-number {
     font-weight: 600;
     color: #1976d2;
@@ -406,7 +52,7 @@
   padding: 0;
   background-color: #f5f5f5;
   border-radius: 6px;
-  
+
   @media (max-width: 768px) {
     flex-direction: column;
     align-items: flex-start;
@@ -420,21 +66,35 @@
   }
 }
 
-.content-type-chip {
-  &.text {
-    background-color: #e3f2fd;
-    color: #1976d2;
-  }
-
-  &.code {
-    background-color: #2d3748;
-    color: #ffffff;
+.dialog-content {
+  @media (min-width: 1200px) {
+    max-width: 1200px;
+    margin: 0 auto;
   }
 }
 
-.question-type-hint {
-  font-size: 12px;
-  color: #666;
-  margin-top: 4px;
-  font-style: italic;
-} 
+// Tentativa com ::ng-deep para quebrar encapsulamento
+::ng-deep #filter-topic .mat-mdc-form-field-subscript-wrapper {
+  height: 0 !important;
+}
+
+::ng-deep #filter-exam .mat-mdc-form-field-subscript-wrapper {
+  height: 0 !important;
+}
+
+// Regra específica para o filtro de tópicos
+#filter-topic {
+  margin-bottom: 0;
+}
+
+#filter-exam {
+  margin-bottom: 0;
+}
+
+.mat-column-question_type {
+  text-align: center;
+}
+
+.mat-column-difficulty_level {
+  text-align: center;
+}

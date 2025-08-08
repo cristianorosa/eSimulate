@@ -154,6 +154,7 @@ export class AdminService {
     if (examId) {
       url += `&exam_id=${examId}`;
     }
+    console.log('Chamando URL dos tópicos:', url);
     return this.http.get<PaginatedResponse<Topic>>(url);
   }
 
@@ -193,6 +194,7 @@ export class AdminService {
     if (params.length > 0) {
       url += `&${params.join('&')}`;
     }
+    console.log('Chamando URL das questões:', url);
     return this.http.get<PaginatedResponse<Question>>(url);
   }
 

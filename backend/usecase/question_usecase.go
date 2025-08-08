@@ -135,34 +135,25 @@ func (uc *QuestionUsecase) DeleteQuestion(ctx context.Context, id int) error {
 	return nil
 }
 
-// ListQuestions lista todas as questões, opcionalmente filtradas por exame.
+// ListQuestions lista todas as questões com detalhes.
 func (uc *QuestionUsecase) ListQuestions(ctx context.Context, examID *int) ([]*domain.QuestionWithDetails, error) {
 	log.Printf("Listando questões: examID=%v", examID)
 
-	var questions []*domain.QuestionWithDetails
-	var err error
+	questions, err := uc.Repo.ListAllWithDetails()
+	if err != nil {
+		log.Printf("Erro ao listar questões: %v", err)
+		return nil, err
+	}
 
+	// Filtrar por exame se especificado
 	if examID != nil {
-		// Para filtrar por exame, precisamos buscar questões básicas e depois adicionar detalhes
-		basicQuestions, err := uc.Repo.ListByExam(*examID)
-		if err != nil {
-			log.Printf("Erro ao listar questões por exame: %v", err)
-			return nil, err
-		}
-
-		// Converter para QuestionWithDetails (por enquanto sem detalhes)
-		questions = make([]*domain.QuestionWithDetails, len(basicQuestions))
-		for i, q := range basicQuestions {
-			questions[i] = &domain.QuestionWithDetails{
-				Question: q,
+		filteredQuestions := make([]*domain.QuestionWithDetails, 0)
+		for _, q := range questions {
+			if q.ExamID == *examID {
+				filteredQuestions = append(filteredQuestions, q)
 			}
 		}
-	} else {
-		questions, err = uc.Repo.ListAllWithDetails()
-		if err != nil {
-			log.Printf("Erro ao listar questões: %v", err)
-			return nil, err
-		}
+		questions = filteredQuestions
 	}
 
 	// Carregar opções para cada questão
@@ -177,6 +168,30 @@ func (uc *QuestionUsecase) ListQuestions(ctx context.Context, examID *int) ([]*d
 
 	log.Printf("Questões listadas com sucesso: %d questões", len(questions))
 	return questions, nil
+}
+
+// ListQuestionsPaginated lista questões com paginação.
+func (uc *QuestionUsecase) ListQuestionsPaginated(ctx context.Context, page, pageSize int, examID, topicID *int) ([]*domain.QuestionWithDetails, *domain.Pagination, error) {
+	log.Printf("Listando questões paginadas: page=%d, pageSize=%d, examID=%v, topicID=%v", page, pageSize, examID, topicID)
+
+	questions, pagination, err := uc.Repo.ListPaginated(page, pageSize, examID, topicID)
+	if err != nil {
+		log.Printf("Erro ao listar questões paginadas: %v", err)
+		return nil, nil, err
+	}
+
+	// Carregar opções para cada questão
+	for _, question := range questions {
+		options, err := uc.OptionRepo.FindByQuestionID(question.ID)
+		if err != nil {
+			log.Printf("Erro ao carregar opções da questão %d: %v", question.ID, err)
+			continue
+		}
+		question.Options = options
+	}
+
+	log.Printf("Questões paginadas listadas com sucesso: %d questões", len(questions))
+	return questions, pagination, nil
 }
 
 // GetQuestion busca uma questão pelo seu ID.

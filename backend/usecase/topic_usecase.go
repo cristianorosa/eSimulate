@@ -70,3 +70,12 @@ func (uc *TopicUsecase) ListTopicsByExam(ctx context.Context, examID int) ([]*do
 func (uc *TopicUsecase) ListAllTopics(ctx context.Context) ([]*domain.Topic, error) {
 	return uc.Repo.ListAll()
 }
+
+// ListTopicsPaginated lista tópicos com paginação
+func (uc *TopicUsecase) ListTopicsPaginated(ctx context.Context, page, pageSize int, examID *int) ([]*domain.Topic, *domain.Pagination, error) {
+	topics, pagination, err := uc.Repo.ListPaginated(page, pageSize, examID)
+	if err != nil {
+		return nil, nil, err
+	}
+	return topics, pagination, nil
+}

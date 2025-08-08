@@ -11,8 +11,9 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { AdminService, Topic, Exam } from '../../core/admin.service';
+import { AdminService, Topic, Exam, PaginatedResponse } from '../../core/admin.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 interface TopicWithExam extends Topic {
@@ -36,6 +37,7 @@ interface TopicWithExam extends Topic {
     MatProgressSpinnerModule,
     MatDialogModule,
     MatTooltipModule,
+    MatPaginatorModule,
     FormsModule,
     ReactiveFormsModule
   ],
@@ -50,8 +52,11 @@ export class TopicsComponent implements OnInit {
   showDialog = false;
   editingTopic: TopicWithExam | null = null;
   topicForm: FormGroup;
-
   displayedColumns: string[] = ['id', 'name', 'exam_name', 'questions_count', 'created_at', 'actions'];
+  pagination: any = null;
+  currentPage = 1;
+  currentPageSize = 10;
+  selectedExamId: number | undefined = undefined;
 
   constructor(
     private adminService: AdminService,
@@ -69,23 +74,21 @@ export class TopicsComponent implements OnInit {
 
   ngOnInit() {
     this.loadExams();
+    this.loadTopics();
   }
 
-  loadTopics(examId?: number) {
+  loadTopics() {
     this.loading = true;
+    console.log('Carregando tópicos com filtros:', { page: this.currentPage, pageSize: this.currentPageSize, examId: this.selectedExamId });
     
-    this.adminService.getTopics(examId || 0).subscribe({
-      next: (topics) => {
-        // Verificar se topics não é null ou undefined
-        if (topics && Array.isArray(topics)) {
-          this.topics = topics.map(topic => ({
-            ...topic,
-            exam_name: this.getExamName(topic.exam_id)
-          }));
-        } else {
-          this.topics = [];
-        }
-        
+    this.adminService.getTopicsPaginated(this.currentPage, this.currentPageSize, this.selectedExamId).subscribe({
+      next: (response: PaginatedResponse<Topic>) => {
+        console.log('Topics carregados:', response);
+        this.topics = response.data.map(topic => ({
+          ...topic,
+          exam_name: this.getExamName(topic.exam_id)
+        }));
+        this.pagination = response.pagination;
         this.loading = false;
       },
       error: (error) => {
@@ -97,12 +100,27 @@ export class TopicsComponent implements OnInit {
     });
   }
 
+  onPageChange(event: PageEvent) {
+    this.currentPage = event.pageIndex + 1;
+    this.currentPageSize = event.pageSize;
+    this.loadTopics();
+  }
+
+  onExamFilterChange() {
+    this.currentPage = 1; // Reset para primeira página
+    this.loadTopics();
+  }
+
+  clearFilters() {
+    this.selectedExamId = undefined;
+    this.currentPage = 1;
+    this.loadTopics();
+  }
+
   loadExams() {
     this.adminService.getExams().subscribe({
       next: (exams) => {
         this.exams = exams;
-        // Carregar tópicos após carregar exames
-        this.loadTopics();
       },
       error: (error) => {
         console.error('Erro ao carregar exames:', error);

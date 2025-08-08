@@ -163,7 +163,7 @@ func (r *TopicRepositoryPG) ListAll() ([]*domain.Topic, error) {
 	query := `
 		SELECT id, exam_id, name, weight_percentage, order_index, questions_count, created_at
 		FROM topics
-		ORDER BY exam_id, order_index, name`
+		ORDER BY created_at DESC`
 
 	rows, err := r.DB.Query(query)
 	if err != nil {
@@ -193,10 +193,97 @@ func (r *TopicRepositoryPG) ListAll() ([]*domain.Topic, error) {
 		return []*domain.Topic{}, err
 	}
 
-	// Garantir que sempre retorne um array, mesmo que vazio
 	if topics == nil {
 		topics = []*domain.Topic{}
 	}
 
 	return topics, nil
+}
+
+// ListPaginated lista tópicos com paginação
+func (r *TopicRepositoryPG) ListPaginated(page, pageSize int, examID *int) ([]*domain.Topic, *domain.Pagination, error) {
+	// Calcular offset
+	offset := (page - 1) * pageSize
+
+	// Construir query base
+	baseQuery := `
+		SELECT id, exam_id, name, weight_percentage, order_index, questions_count, created_at
+		FROM topics`
+
+	countQuery := `SELECT COUNT(*) FROM topics`
+
+	// Adicionar filtro por exame se fornecido
+	whereClause := ""
+	if examID != nil {
+		whereClause = " WHERE exam_id = $1"
+	}
+
+	// Query para contar total de registros
+	var totalItems int
+	var countErr error
+	if examID != nil {
+		countErr = r.DB.QueryRow(countQuery+whereClause, *examID).Scan(&totalItems)
+	} else {
+		countErr = r.DB.QueryRow(countQuery + whereClause).Scan(&totalItems)
+	}
+
+	if countErr != nil {
+		return nil, nil, countErr
+	}
+
+	// Query para buscar dados paginados
+	var dataQuery string
+	var rows *sql.Rows
+	var queryErr error
+
+	if examID != nil {
+		dataQuery = baseQuery + whereClause + ` ORDER BY created_at DESC LIMIT $2 OFFSET $3`
+		rows, queryErr = r.DB.Query(dataQuery, *examID, pageSize, offset)
+	} else {
+		dataQuery = baseQuery + whereClause + ` ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+		rows, queryErr = r.DB.Query(dataQuery, pageSize, offset)
+	}
+
+	if queryErr != nil {
+		return nil, nil, queryErr
+	}
+	defer rows.Close()
+
+	var topics []*domain.Topic
+	for rows.Next() {
+		t := &domain.Topic{}
+		err := rows.Scan(
+			&t.ID,
+			&t.ExamID,
+			&t.Name,
+			&t.WeightPercentage,
+			&t.OrderIndex,
+			&t.QuestionsCount,
+			&t.CreatedAt,
+		)
+		if err != nil {
+			return nil, nil, err
+		}
+		topics = append(topics, t)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, nil, err
+	}
+
+	// Calcular informações de paginação
+	totalPages := (totalItems + pageSize - 1) / pageSize
+
+	pagination := &domain.Pagination{
+		Page:       page,
+		PageSize:   pageSize,
+		TotalItems: totalItems,
+		TotalPages: totalPages,
+	}
+
+	if topics == nil {
+		topics = []*domain.Topic{}
+	}
+
+	return topics, pagination, nil
 }

@@ -1,9 +1,9 @@
 import { Component, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { MatCardModule } from "@angular/material/card";
+import { MatTableModule } from "@angular/material/table";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
-import { MatTableModule } from "@angular/material/table";
+import { MatCardModule } from "@angular/material/card";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { MatSelectModule } from "@angular/material/select";
@@ -11,23 +11,13 @@ import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatDialogModule } from "@angular/material/dialog";
 import { MatChipsModule } from "@angular/material/chips";
-import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MatTooltipModule } from "@angular/material/tooltip";
-import {
-  FormsModule,
-  ReactiveFormsModule,
-  FormBuilder,
-  FormGroup,
-  Validators,
-  FormArray,
-} from "@angular/forms";
-import {
-  AdminService,
-  Question,
-  Exam,
-  Option,
-  Topic,
-} from "../../core/admin.service";
+import { MatPaginatorModule, PageEvent } from "@angular/material/paginator";
+import { FormsModule } from "@angular/forms";
+import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from "@angular/forms";
+import { MatCheckboxModule } from "@angular/material/checkbox";
+
+import { AdminService, Question, Exam, Topic, Option } from "../../core/admin.service";
 import { MatSnackBar } from "@angular/material/snack-bar";
 
 interface QuestionWithDetails extends Question {
@@ -41,21 +31,22 @@ interface QuestionWithDetails extends Question {
   standalone: true,
   imports: [
     CommonModule,
-    MatCardModule,
+    MatTableModule,
     MatButtonModule,
     MatIconModule,
-    MatTableModule,
+    MatCardModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
     MatDialogModule,
-    MatTooltipModule,
     MatChipsModule,
-    MatCheckboxModule,
+    MatTooltipModule,
+    MatPaginatorModule,
     FormsModule,
     ReactiveFormsModule,
+    MatCheckboxModule,
   ],
   templateUrl: "./questions.component.html",
   styleUrls: ["./questions.component.scss"],
@@ -83,6 +74,12 @@ export class QuestionsComponent implements OnInit {
     "is_active",
     "actions",
   ];
+
+  pagination: any = null;
+  currentPage = 1;
+  currentPageSize = 10;
+  selectedExamId: number | undefined = undefined;
+  selectedTopicId: number | undefined = undefined;
 
   constructor(
     private adminService: AdminService,
@@ -125,15 +122,22 @@ export class QuestionsComponent implements OnInit {
 
   loadQuestions() {
     this.loading = true;
-    this.adminService.getQuestions().subscribe({
-      next: (questions) => {
-        this.questions = questions.map((question) => ({
+    console.log('Carregando questões com paginação:', { page: this.currentPage, pageSize: this.currentPageSize, examId: this.selectedExamId, topicId: this.selectedTopicId });
+    
+    this.adminService.getQuestionsPaginated(this.currentPage, this.currentPageSize, this.selectedExamId, this.selectedTopicId).subscribe({
+      next: (response) => {
+        console.log('Questões carregadas:', response);
+        // Garantir que data seja sempre um array
+        const questionsData = response.data || [];
+        this.questions = questionsData.map((question) => ({
           ...question,
           exam_id: question.exam_id || 0,
           exam_name: question.exam_title || "N/A",
           topic_name: question.topic_name || "N/A",
           options_count: question.options?.length || 0,
         }));
+        this.pagination = response.pagination;
+        console.log('Paginação:', this.pagination);
         this.loading = false;
       },
       error: (error) => {
@@ -142,8 +146,34 @@ export class QuestionsComponent implements OnInit {
           duration: 3000,
         });
         this.loading = false;
+        this.questions = []; // Garantir que questions seja um array vazio em caso de erro
       },
     });
+  }
+
+  onPageChange(event: PageEvent) {
+    this.currentPage = event.pageIndex + 1;
+    this.currentPageSize = event.pageSize;
+    this.loadQuestions();
+  }
+
+  onExamFilterChange() {
+    this.currentPage = 1; // Reset para primeira página
+    this.loadTopics(); // Recarregar tópicos baseado no exame selecionado
+    this.loadQuestions();
+  }
+
+  onTopicFilterChange() {
+    this.currentPage = 1; // Reset para primeira página
+    this.loadQuestions();
+  }
+
+  clearFilters() {
+    this.selectedExamId = undefined;
+    this.selectedTopicId = undefined;
+    this.currentPage = 1;
+    this.loadTopics(); // Recarregar todos os tópicos
+    this.loadQuestions();
   }
 
   loadExams() {
@@ -157,27 +187,24 @@ export class QuestionsComponent implements OnInit {
     });
   }
 
-  loadTopics(examId: number) {
-    this.adminService.getTopics(examId).subscribe({
+  loadTopics() {
+    this.adminService.getTopics(this.selectedExamId).subscribe({
       next: (topics) => {
         this.topics = topics;
-        // Adicionar ao cache para buscar exam_id
-        this.topicsCache = [...this.topicsCache, ...topics];
       },
       error: (error) => {
         console.error("Erro ao carregar tópicos:", error);
+        this.snackBar.open("Erro ao carregar tópicos", "Fechar", {
+          duration: 3000,
+        });
       },
     });
   }
 
   onExamChange() {
-    const examId = this.questionForm.get("exam_id")?.value;
-    if (examId) {
-      this.loadTopics(examId);
-      this.questionForm.get("topic_id")?.setValue("");
-    } else {
-      this.topics = [];
-    }
+    // Reset topic_id quando exame muda
+    this.questionForm.patchValue({ topic_id: null });
+    this.loadTopics();
   }
 
   get optionsArray() {
@@ -206,7 +233,8 @@ export class QuestionsComponent implements OnInit {
     if (question) {
       // Carregar tópicos do exame
       if (question.exam_id) {
-        this.loadTopics(question.exam_id);
+        this.selectedExamId = question.exam_id;
+        this.loadTopics();
       }
 
       this.questionForm.patchValue({
@@ -326,22 +354,11 @@ export class QuestionsComponent implements OnInit {
           },
         });
       }
-    } else if (this.optionsArray.length < 2) {
-      this.snackBar.open("Adicione pelo menos 2 opções", "Fechar", {
-        duration: 3000,
-      });
     }
   }
 
   deleteQuestion(question: QuestionWithDetails) {
-    if (
-      confirm(
-        `Tem certeza que deseja excluir a questão "${question.statement.substring(
-          0,
-          50
-        )}..."?`
-      )
-    ) {
+    if (confirm(`Tem certeza que deseja excluir a questão "${question.statement}"?`)) {
       this.adminService.deleteQuestion(question.id!).subscribe({
         next: () => {
           this.snackBar.open("Questão excluída com sucesso!", "Fechar", {
@@ -366,7 +383,7 @@ export class QuestionsComponent implements OnInit {
   }
 
   getTopicName(topicId: number): string {
-    const topic = this.topics.find((t) => t.id === topicId);
+    const topic = this.topicsCache.find((t) => t.id === topicId);
     return topic ? topic.name : "N/A";
   }
 
@@ -376,20 +393,8 @@ export class QuestionsComponent implements OnInit {
   }
 
   getDifficultyColor(level: number): string {
-    switch (level) {
-      case 1:
-        return "primary";
-      case 2:
-        return "accent";
-      case 3:
-        return "warn";
-      case 4:
-        return "warn";
-      case 5:
-        return "warn";
-      default:
-        return "primary";
-    }
+    const colors = ["", "primary", "accent", "warn", "warn", "warn"];
+    return colors[level] || "primary";
   }
 
   getQuestionTypeLabel(type: string): string {
@@ -399,7 +404,7 @@ export class QuestionsComponent implements OnInit {
       case "multiple_choice":
         return "Múltipla Escolha";
       default:
-        return type;
+        return "N/A";
     }
   }
 
@@ -410,12 +415,12 @@ export class QuestionsComponent implements OnInit {
       case "code":
         return "Código";
       default:
-        return type;
+        return "N/A";
     }
   }
 
   private getExamIdFromTopic(topicId: number): number {
     const topic = this.topicsCache.find((t) => t.id === topicId);
-    return topic?.exam_id || 0;
+    return topic ? topic.exam_id : 0;
   }
 }

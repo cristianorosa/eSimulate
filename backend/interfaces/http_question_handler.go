@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -35,6 +36,72 @@ func (h *QuestionHandler) ListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(questions)
+}
+
+// ListPaginatedHandler lista questões com paginação.
+func (h *QuestionHandler) ListPaginatedHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	// Extrair parâmetros de query
+	pageStr := r.URL.Query().Get("page")
+	pageSizeStr := r.URL.Query().Get("page_size")
+	examIDStr := r.URL.Query().Get("exam_id")
+	topicIDStr := r.URL.Query().Get("topic_id")
+
+	// Converter página e tamanho da página
+	page := 1
+	if pageStr != "" {
+		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+			page = p
+		}
+	}
+
+	pageSize := 10
+	if pageSizeStr != "" {
+		if ps, err := strconv.Atoi(pageSizeStr); err == nil && ps > 0 {
+			pageSize = ps
+		}
+	}
+
+	// Converter examID e topicID
+	var examID *int
+	if examIDStr != "" {
+		if id, err := strconv.Atoi(examIDStr); err == nil {
+			examID = &id
+		}
+	}
+
+	var topicID *int
+	if topicIDStr != "" {
+		if id, err := strconv.Atoi(topicIDStr); err == nil {
+			topicID = &id
+		}
+	}
+
+	// Log para debug
+	fmt.Printf("ListPaginatedHandler (questões): page=%d, pageSize=%d, examID=%v, topicID=%v\n", page, pageSize, examID, topicID)
+
+	questions, pagination, err := h.UC.ListQuestionsPaginated(r.Context(), page, pageSize, examID, topicID)
+	if err != nil {
+		fmt.Printf("Erro ao buscar questões paginadas: %v\n", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Log para debug
+	fmt.Printf("Questões encontradas: %d, Paginação: %+v\n", len(questions), pagination)
+
+	// Garantir que questions seja sempre um array
+	if questions == nil {
+		questions = []*domain.QuestionWithDetails{}
+	}
+
+	response := map[string]interface{}{
+		"data":       questions,
+		"pagination": pagination,
+	}
+
+	json.NewEncoder(w).Encode(response)
 }
 
 // CreateHandler cria uma nova questão.

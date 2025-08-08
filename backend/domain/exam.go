@@ -47,4 +47,5 @@ type TopicRepository interface {
 	FindByID(id int) (*Topic, error)
 	ListByExam(examID int) ([]*Topic, error)
 	ListAll() ([]*Topic, error)
+	ListPaginated(page, pageSize int, examID *int) ([]*Topic, *Pagination, error)
 }

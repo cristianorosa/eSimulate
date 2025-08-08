@@ -1,19 +1,15 @@
-<div class="questions-container">
+<div class="main-container">
   <!-- Header -->
-  <div class="header">
-    <div class="header-card">
-      <div class="header-content">
-        <div class="header-title">
-          <h1>Gerenciar Questões</h1>
-          <p>Gerencie as questões dos exames</p>
-        </div>
-        <div class="header-actions">
-          <button mat-raised-button color="primary" (click)="openDialog()">
-            <mat-icon>add</mat-icon>
-            Nova Questão
-          </button>
-        </div>
-      </div>
+  <div class="header-content">
+    <div class="header-title">
+      <h1>Gerenciar Questões</h1>
+      <p>Gerencie as questões dos exames</p>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="openDialog()">
+        <mat-icon>add</mat-icon>
+        Nova Questão
+      </button>
     </div>
   </div>
 
@@ -21,8 +17,53 @@
   <div class="content">
     <div class="content-card">
       <div class="card-content">
+        <!-- Filtros -->
+        <div class="filters-section">
+          <h3>Filtros</h3>
+          <div class="filters-content">
+            <mat-form-field appearance="outline" id="filter-exam">
+              <mat-label>Filtrar por Exame</mat-label>
+              <mat-select
+                [(ngModel)]="selectedExamId"
+                (selectionChange)="onExamFilterChange()"
+              >
+                <mat-option [value]="undefined">Todos os Exames</mat-option>
+                @for (exam of exams; track exam.id) {
+                <mat-option [value]="exam.id">
+                  {{ exam.title }}
+                </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" id="filter-topic">
+              <mat-label>Filtrar por Tópico</mat-label>
+              <mat-select
+                [(ngModel)]="selectedTopicId"
+                (selectionChange)="onTopicFilterChange()"
+                [disabled]="topics.length === 0"
+              >
+                <mat-option [value]="undefined">Todos os Tópicos</mat-option>
+                @for (topic of topics; track topic.id) {
+                <mat-option [value]="topic.id">
+                  {{ topic.name }}
+                </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <div class="filters-actions">
+              <button mat-stroked-button (click)="clearFilters()">
+                <mat-icon>clear</mat-icon>
+                Limpar
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- Loading -->
-        <div *ngIf="loading" class="loading-container">
+        @if (loading) {
+        <div class="loading-container">
           <div class="loading-card">
             <div class="loading-content">
               <mat-spinner diameter="40"></mat-spinner>
@@ -30,9 +71,11 @@
             </div>
           </div>
         </div>
+        }
 
         <!-- Empty State -->
-        <div *ngIf="!loading && questions.length === 0" class="empty-state">
+        @if (!loading && questions.length === 0) {
+        <div class="empty-state">
           <div class="empty-card">
             <div class="empty-content">
               <mat-icon class="empty-icon">quiz</mat-icon>
@@ -44,121 +87,134 @@
             </div>
           </div>
         </div>
+        }
 
         <!-- Table -->
-        <div *ngIf="!loading && questions.length > 0" class="table-container">
-          <table mat-table [dataSource]="questions" class="questions-table">
-            <!-- ID Column -->
-            <ng-container matColumnDef="id">
-              <th mat-header-cell *matHeaderCellDef>ID</th>
-              <td mat-cell *matCellDef="let question">{{ question.id }}</td>
-            </ng-container>
+        @if (!loading && questions.length > 0) {
+        <table mat-table [dataSource]="questions" class="table">
+          <!-- ID Column -->
+          <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef>ID</th>
+            <td mat-cell *matCellDef="let question">{{ question.id }}</td>
+          </ng-container>
 
-            <!-- Statement Column -->
-            <ng-container matColumnDef="statement">
-              <th mat-header-cell *matHeaderCellDef>Enunciado</th>
-              <td mat-cell *matCellDef="let question">
-                <div class="statement-cell">
-                  <div class="statement-text">
-                    {{ question.statement | slice : 0 : 80
-                    }}{{ question.statement.length > 80 ? "..." : "" }}
-                  </div>
+          <!-- Statement Column -->
+          <ng-container matColumnDef="statement">
+            <th mat-header-cell *matHeaderCellDef>Enunciado</th>
+            <td mat-cell *matCellDef="let question">
+              <div class="statement-cell">
+                <div class="statement-text">
+                  {{ question.statement | slice : 0 : 80
+                  }}{{ question.statement.length > 80 ? "..." : "" }}
                 </div>
-              </td>
-            </ng-container>
+              </div>
+            </td>
+          </ng-container>
 
-            <!-- Exam Name Column -->
-            <ng-container matColumnDef="exam_name">
-              <th mat-header-cell *matHeaderCellDef>Exame</th>
-              <td mat-cell *matCellDef="let question">
-                {{ question.exam_name }}
-              </td>
-            </ng-container>
+          <!-- Exam Name Column -->
+          <ng-container matColumnDef="exam_name">
+            <th mat-header-cell *matHeaderCellDef>Exame</th>
+            <td mat-cell *matCellDef="let question">
+              {{ question.exam_name }}
+            </td>
+          </ng-container>
 
-            <!-- Topic Name Column -->
-            <ng-container matColumnDef="topic_name">
-              <th mat-header-cell *matHeaderCellDef>Tópico</th>
-              <td mat-cell *matCellDef="let question">
-                {{ question.topic_name }}
-              </td>
-            </ng-container>
+          <!-- Topic Name Column -->
+          <ng-container matColumnDef="topic_name">
+            <th mat-header-cell *matHeaderCellDef>Tópico</th>
+            <td mat-cell *matCellDef="let question">
+              {{ question.topic_name }}
+            </td>
+          </ng-container>
 
-            <!-- Question Type Column -->
-            <ng-container matColumnDef="question_type">
-              <th mat-header-cell *matHeaderCellDef>Tipo</th>
-              <td mat-cell *matCellDef="let question">
-                <mat-chip
-                  [color]="
-                    question.question_type === 'objective'
-                      ? 'primary'
-                      : 'accent'
-                  "
-                  selected
-                >
-                  {{ getQuestionTypeLabel(question.question_type) }}
-                </mat-chip>
-              </td>
-            </ng-container>
+          <!-- Question Type Column -->
+          <ng-container matColumnDef="question_type">
+            <th mat-header-cell *matHeaderCellDef>Tipo</th>
+            <td mat-cell *matCellDef="let question">
+              <mat-chip
+                [color]="
+                  question.question_type === 'objective' ? 'primary' : 'accent'
+                "
+                selected
+              >
+                {{ getQuestionTypeLabel(question.question_type) }}
+              </mat-chip>
+            </td>
+          </ng-container>
 
-            <!-- Difficulty Level Column -->
-            <ng-container matColumnDef="difficulty_level">
-              <th mat-header-cell *matHeaderCellDef>Dificuldade</th>
-              <td mat-cell *matCellDef="let question">
-                <mat-chip
-                  [color]="getDifficultyColor(question.difficulty_level || 1)"
-                  selected
-                >
-                  {{ getDifficultyLabel(question.difficulty_level || 1) }}
-                </mat-chip>
-              </td>
-            </ng-container>
+          <!-- Difficulty Level Column -->
+          <ng-container matColumnDef="difficulty_level">
+            <th mat-header-cell *matHeaderCellDef>Dificuldade</th>
+            <td mat-cell *matCellDef="let question">
+              <mat-chip
+                [color]="getDifficultyColor(question.difficulty_level || 1)"
+                selected
+              >
+                {{ getDifficultyLabel(question.difficulty_level || 1) }}
+              </mat-chip>
+            </td>
+          </ng-container>
 
-            <!-- Is Active Column -->
-            <ng-container matColumnDef="is_active">
-              <th mat-header-cell *matHeaderCellDef>Status</th>
-              <td mat-cell *matCellDef="let question">
-                <mat-chip
-                  [color]="question.is_active ? 'success' : 'warn'"
-                  selected
-                >
-                  {{ question.is_active ? "Ativa" : "Inativa" }}
-                </mat-chip>
-              </td>
-            </ng-container>
+          <!-- Is Active Column -->
+          <ng-container matColumnDef="is_active">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let question">
+              <mat-chip
+                [class]="
+                  question.is_active ? 'status-active' : 'status-inactive'
+                "
+                selected
+              >
+                {{ question.is_active ? "Ativa" : "Inativa" }}
+              </mat-chip>
+            </td>
+          </ng-container>
 
-            <!-- Actions Column -->
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef>Ações</th>
-              <td mat-cell *matCellDef="let question">
-                <button
-                  mat-icon-button
-                  color="primary"
-                  (click)="openDialog(question)"
-                  matTooltip="Editar"
-                >
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button
-                  mat-icon-button
-                  color="warn"
-                  (click)="deleteQuestion(question)"
-                  matTooltip="Excluir"
-                >
-                  <mat-icon>delete</mat-icon>
-                </button>
-              </td>
-            </ng-container>
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Ações</th>
+            <td mat-cell *matCellDef="let question">
+              <button
+                mat-icon-button
+                color="primary"
+                (click)="openDialog(question)"
+                matTooltip="Editar"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                color="warn"
+                (click)="deleteQuestion(question)"
+                matTooltip="Excluir"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
 
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-          </table>
-        </div>
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+
+        @if (pagination) {
+        <mat-paginator
+          [length]="pagination.total_items"
+          [pageSize]="pagination.page_size"
+          [pageIndex]="pagination.page - 1"
+          [pageSizeOptions]="[5, 10, 25, 50]"
+          (page)="onPageChange($event)"
+          showFirstLastButtons
+        >
+        </mat-paginator>
+        } }
       </div>
     </div>
   </div>
 
   <!-- Dialog -->
-  <div *ngIf="showDialog" class="dialog-overlay">
+  @if (showDialog) {
+  <div class="dialog-overlay">
     <div class="dialog-content" (click)="$event.stopPropagation()">
       <mat-card class="dialog-card">
         <mat-card-header>
@@ -167,11 +223,7 @@
           </mat-card-title>
         </mat-card-header>
         <mat-card-content>
-          <form
-            [formGroup]="questionForm"
-            (ngSubmit)="onSubmit()"
-            class="question-form"
-          >
+          <form [formGroup]="questionForm" (ngSubmit)="onSubmit()">
             <!-- Primeira linha: Exame e Tópico -->
             <div class="form-row">
               <mat-form-field appearance="outline" class="form-field">
@@ -180,15 +232,15 @@
                   formControlName="exam_id"
                   (selectionChange)="onExamChange()"
                 >
-                  <mat-option *ngFor="let exam of exams" [value]="exam.id">
+                  @for (exam of exams; track exam.id) {
+                  <mat-option [value]="exam.id">
                     {{ exam.title }}
                   </mat-option>
+                  }
                 </mat-select>
-                <mat-error
-                  *ngIf="questionForm.get('exam_id')?.hasError('required')"
-                >
-                  Exame é obrigatório
-                </mat-error>
+                @if (questionForm.get('exam_id')?.hasError('required')) {
+                <mat-error> Exame é obrigatório </mat-error>
+                }
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="form-field">
@@ -197,15 +249,15 @@
                   formControlName="topic_id"
                   [disabled]="topics.length === 0"
                 >
-                  <mat-option *ngFor="let topic of topics" [value]="topic.id">
+                  @for (topic of topics; track topic.id) {
+                  <mat-option [value]="topic.id">
                     {{ topic.name }}
                   </mat-option>
+                  }
                 </mat-select>
-                <mat-error
-                  *ngIf="questionForm.get('topic_id')?.hasError('required')"
-                >
-                  Tópico é obrigatório
-                </mat-error>
+                @if (questionForm.get('topic_id')?.hasError('required')) {
+                <mat-error> Tópico é obrigatório </mat-error>
+                }
               </mat-form-field>
             </div>
 
@@ -213,7 +265,7 @@
             <div class="form-row">
               <mat-form-field
                 appearance="outline"
-                class="form-field question-type"
+                class="form-field full-with-2-cols"
               >
                 <mat-label>Tipo de Questão</mat-label>
                 <mat-select formControlName="question_type">
@@ -224,19 +276,12 @@
                     >Múltipla Escolha (Várias respostas corretas)</mat-option
                   >
                 </mat-select>
-                <mat-error
-                  *ngIf="
-                    questionForm.get('question_type')?.hasError('required')
-                  "
-                >
-                  Tipo de questão é obrigatório
-                </mat-error>
+                @if (questionForm.get('question_type')?.hasError('required')) {
+                <mat-error> Tipo de questão é obrigatório </mat-error>
+                }
               </mat-form-field>
 
-              <mat-form-field
-                appearance="outline"
-                class="form-field small-field"
-              >
+              <mat-form-field appearance="outline" class="form-field">
                 <mat-label>Dificuldade</mat-label>
                 <mat-select formControlName="difficulty_level">
                   <mat-option [value]="1">Fácil</mat-option>
@@ -245,19 +290,13 @@
                   <mat-option [value]="4">Muito Difícil</mat-option>
                   <mat-option [value]="5">Expert</mat-option>
                 </mat-select>
-                <mat-error
-                  *ngIf="
-                    questionForm.get('difficulty_level')?.hasError('required')
-                  "
-                >
-                  Dificuldade é obrigatória
-                </mat-error>
+                @if (questionForm.get('difficulty_level')?.hasError('required'))
+                {
+                <mat-error> Dificuldade é obrigatória </mat-error>
+                }
               </mat-form-field>
 
-              <mat-form-field
-                appearance="outline"
-                class="form-field small-field"
-              >
+              <mat-form-field appearance="outline" class="form-field">
                 <mat-label>Status</mat-label>
                 <mat-select formControlName="is_active">
                   <mat-option [value]="true">Ativa</mat-option>
@@ -267,7 +306,7 @@
             </div>
 
             <!-- Enunciado (largura total) -->
-            <mat-form-field appearance="outline" class="full-width">
+            <mat-form-field appearance="outline">
               <mat-label>Enunciado</mat-label>
               <textarea
                 matInput
@@ -275,21 +314,18 @@
                 rows="3"
                 placeholder="Digite o enunciado da questão (ex: Considere o código abaixo:)"
               ></textarea>
-              <mat-error
-                *ngIf="questionForm.get('statement')?.hasError('required')"
-              >
-                Enunciado é obrigatório
-              </mat-error>
-              <mat-error
-                *ngIf="questionForm.get('statement')?.hasError('minlength')"
-              >
+              @if (questionForm.get('statement')?.hasError('required')) {
+              <mat-error> Enunciado é obrigatório </mat-error>
+              } @if (questionForm.get('statement')?.hasError('minlength')) {
+              <mat-error>
                 Enunciado deve ter pelo menos 10 caracteres
               </mat-error>
+              }
             </mat-form-field>
 
             <!-- Tipo do Problema (largura total) -->
             <div class="form-row">
-              <mat-form-field appearance="outline" class="form-field">
+              <mat-form-field appearance="outline">
                 <mat-label>Tipo do Problema</mat-label>
                 <mat-select formControlName="content_type">
                   <mat-option value="text">Texto Simples</mat-option>
@@ -297,16 +333,14 @@
                     >Código (com syntax highlighting)</mat-option
                   >
                 </mat-select>
-                <mat-error
-                  *ngIf="questionForm.get('content_type')?.hasError('required')"
-                >
-                  Tipo do problema é obrigatório
-                </mat-error>
+                @if (questionForm.get('content_type')?.hasError('required')) {
+                <mat-error> Tipo do problema é obrigatório </mat-error>
+                }
               </mat-form-field>
             </div>
 
             <!-- Problema (largura total) -->
-            <mat-form-field appearance="outline" class="full-width">
+            <mat-form-field appearance="outline">
               <mat-label>Problema</mat-label>
               <textarea
                 matInput
@@ -314,20 +348,17 @@
                 rows="6"
                 placeholder="Digite o problema (texto ou código)"
               ></textarea>
-              <mat-error
-                *ngIf="questionForm.get('problem')?.hasError('required')"
-              >
-                Problema é obrigatório
-              </mat-error>
-              <mat-error
-                *ngIf="questionForm.get('problem')?.hasError('minlength')"
-              >
+              @if (questionForm.get('problem')?.hasError('required')) {
+              <mat-error> Problema é obrigatório </mat-error>
+              } @if (questionForm.get('problem')?.hasError('minlength')) {
+              <mat-error>
                 Problema deve ter pelo menos 10 caracteres
               </mat-error>
+              }
             </mat-form-field>
 
             <!-- Explicação (largura total) -->
-            <mat-form-field appearance="outline" class="full-width">
+            <mat-form-field appearance="outline">
               <mat-label>Explicação</mat-label>
               <textarea
                 matInput
@@ -335,16 +366,13 @@
                 rows="3"
                 placeholder="Digite a explicação da resposta correta"
               ></textarea>
-              <mat-error
-                *ngIf="questionForm.get('explanation')?.hasError('required')"
-              >
-                Explicação é obrigatória
-              </mat-error>
-              <mat-error
-                *ngIf="questionForm.get('explanation')?.hasError('minlength')"
-              >
+              @if (questionForm.get('explanation')?.hasError('required')) {
+              <mat-error> Explicação é obrigatória </mat-error>
+              } @if (questionForm.get('explanation')?.hasError('minlength')) {
+              <mat-error>
                 Explicação deve ter pelo menos 10 caracteres
               </mat-error>
+              }
             </mat-form-field>
 
             <!-- Options Section -->
@@ -363,18 +391,15 @@
               </div>
 
               <div class="options-list" formArrayName="options">
-                <div
-                  *ngFor="let option of optionsArray.controls; let i = index"
-                  [formGroupName]="i"
-                  class="option-item"
-                >
+                @for (option of optionsArray.controls; track $index) {
+                <div [formGroupName]="$index" class="option-item">
                   <div class="option-header">
-                    <span class="option-number">Opção {{ i + 1 }}</span>
+                    <span class="option-number">Opção {{ $index + 1 }}</span>
                     <button
                       type="button"
                       mat-icon-button
                       color="warn"
-                      (click)="removeOption(i)"
+                      (click)="removeOption($index)"
                     >
                       <mat-icon>delete</mat-icon>
                     </button>
@@ -391,14 +416,13 @@
                       rows="2"
                       placeholder="Digite o texto da opção"
                     ></textarea>
-                    <mat-error *ngIf="option.get('text')?.hasError('required')">
-                      Texto é obrigatório
-                    </mat-error>
-                    <mat-error
-                      *ngIf="option.get('text')?.hasError('minlength')"
-                    >
+                    @if (option.get('text')?.hasError('required')) {
+                    <mat-error> Texto é obrigatório </mat-error>
+                    } @if (option.get('text')?.hasError('minlength')) {
+                    <mat-error>
                       Texto deve ter pelo menos 3 caracteres
                     </mat-error>
+                    }
                   </mat-form-field>
 
                   <div class="option-actions">
@@ -414,11 +438,14 @@
                     </span>
                   </div>
                 </div>
+                }
               </div>
 
-              <div *ngIf="optionsArray.length === 0" class="no-options">
+              @if (optionsArray.length === 0) {
+              <div class="no-options">
                 <p>Nenhuma opção adicionada. Adicione pelo menos 2 opções.</p>
               </div>
+              }
             </div>
 
             <div class="dialog-actions">
@@ -452,4 +479,5 @@
       </mat-card>
     </div>
   </div>
+  }
 </div>

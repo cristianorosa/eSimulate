@@ -2,6 +2,7 @@ package infra
 
 import (
 	"database/sql"
+	"strconv"
 
 	"github.com/cristianorosa/eSimulate/backend/domain"
 )
@@ -273,72 +274,126 @@ func (r *QuestionRepositoryPG) ListAll() ([]*domain.Question, error) {
 	return questions, nil
 }
 
-// ListAllWithDetails lista todas as questões com informações do exame e tópico
+// ListAllWithDetails lista todas as questões com detalhes de exame e tópico
 func (r *QuestionRepositoryPG) ListAllWithDetails() ([]*domain.QuestionWithDetails, error) {
 	query := `
-		SELECT 
-			q.id, q.topic_id, q.statement, q.problem, q.content_type, q.explanation, 
-			q.question_type, q.difficulty_level, q.created_by, q.is_active, q.created_at, q.updated_at,
-			t.name as topic_name, t.exam_id,
-			e.title as exam_title
+		SELECT q.id, q.topic_id, q.statement, q.problem, q.content_type, q.explanation, q.question_type, q.difficulty_level, q.created_by, q.is_active, q.created_at, q.updated_at,
+		       t.name as topic_name, t.exam_id, e.title as exam_title
 		FROM questions q
 		JOIN topics t ON q.topic_id = t.id
 		JOIN exams e ON t.exam_id = e.id
-		WHERE q.is_active = true
 		ORDER BY q.created_at DESC`
 
 	rows, err := r.DB.Query(query)
 	if err != nil {
-		return []*domain.QuestionWithDetails{}, err
+		return nil, err
 	}
 	defer rows.Close()
 
 	var questions []*domain.QuestionWithDetails
 	for rows.Next() {
-		q := &domain.Question{}
-		var topicName, examTitle string
-		var examID int
-		
+		// Inicializar corretamente a estrutura QuestionWithDetails
+		q := &domain.QuestionWithDetails{
+			Question: &domain.Question{},
+		}
+
 		err := rows.Scan(
-			&q.ID,
-			&q.TopicID,
-			&q.Statement,
-			&q.Problem,
-			&q.ContentType,
-			&q.Explanation,
-			&q.QuestionType,
-			&q.DifficultyLevel,
-			&q.CreatedBy,
-			&q.IsActive,
-			&q.CreatedAt,
-			&q.UpdatedAt,
-			&topicName,
-			&examID,
-			&examTitle,
+			&q.Question.ID, &q.Question.TopicID, &q.Question.Statement, &q.Question.Problem, &q.Question.ContentType, &q.Question.Explanation, &q.Question.QuestionType, &q.Question.DifficultyLevel, &q.Question.CreatedBy, &q.Question.IsActive, &q.Question.CreatedAt, &q.Question.UpdatedAt,
+			&q.TopicName, &q.ExamID, &q.ExamTitle,
 		)
 		if err != nil {
-			return []*domain.QuestionWithDetails{}, err
+			return nil, err
 		}
-		
-		// Criar QuestionWithDetails
-		questionWithDetails := &domain.QuestionWithDetails{
-			Question:   q,
-			ExamID:     examID,
-			ExamTitle:  examTitle,
-			TopicName:  topicName,
-		}
-		
-		questions = append(questions, questionWithDetails)
+		questions = append(questions, q)
 	}
 
 	if err = rows.Err(); err != nil {
-		return []*domain.QuestionWithDetails{}, err
-	}
-
-	// Garantir que sempre retorne um array, mesmo que vazio
-	if questions == nil {
-		questions = []*domain.QuestionWithDetails{}
+		return nil, err
 	}
 
 	return questions, nil
+}
+
+// ListPaginated lista questões com paginação e filtros opcionais
+func (r *QuestionRepositoryPG) ListPaginated(page, pageSize int, examID, topicID *int) ([]*domain.QuestionWithDetails, *domain.Pagination, error) {
+	// Construir query base
+	baseQuery := `
+		SELECT q.id, q.topic_id, q.statement, q.problem, q.content_type, q.explanation, q.question_type, q.difficulty_level, q.created_by, q.is_active, q.created_at, q.updated_at,
+		       t.name as topic_name, t.exam_id, e.title as exam_title
+		FROM questions q
+		JOIN topics t ON q.topic_id = t.id
+		JOIN exams e ON t.exam_id = e.id`
+
+	// Adicionar filtros
+	whereClause := ""
+	args := []interface{}{}
+	argIndex := 1
+
+	if examID != nil {
+		whereClause = " WHERE t.exam_id = $" + strconv.Itoa(argIndex)
+		args = append(args, *examID)
+		argIndex++
+	}
+
+	if topicID != nil {
+		if whereClause == "" {
+			whereClause = " WHERE q.topic_id = $" + strconv.Itoa(argIndex)
+		} else {
+			whereClause += " AND q.topic_id = $" + strconv.Itoa(argIndex)
+		}
+		args = append(args, *topicID)
+		argIndex++
+	}
+
+	// Query para contar total de registros
+	countQuery := "SELECT COUNT(*) FROM questions q JOIN topics t ON q.topic_id = t.id JOIN exams e ON t.exam_id = e.id" + whereClause
+	var totalItems int
+	err := r.DB.QueryRow(countQuery, args...).Scan(&totalItems)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Calcular paginação
+	offset := (page - 1) * pageSize
+	totalPages := (totalItems + pageSize - 1) / pageSize
+
+	// Query principal com paginação
+	query := baseQuery + whereClause + " ORDER BY q.created_at DESC LIMIT $" + strconv.Itoa(argIndex) + " OFFSET $" + strconv.Itoa(argIndex+1)
+	args = append(args, pageSize, offset)
+
+	rows, err := r.DB.Query(query, args...)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer rows.Close()
+
+	var questions []*domain.QuestionWithDetails
+	for rows.Next() {
+		// Inicializar corretamente a estrutura QuestionWithDetails
+		q := &domain.QuestionWithDetails{
+			Question: &domain.Question{},
+		}
+
+		err := rows.Scan(
+			&q.Question.ID, &q.Question.TopicID, &q.Question.Statement, &q.Question.Problem, &q.Question.ContentType, &q.Question.Explanation, &q.Question.QuestionType, &q.Question.DifficultyLevel, &q.Question.CreatedBy, &q.Question.IsActive, &q.Question.CreatedAt, &q.Question.UpdatedAt,
+			&q.TopicName, &q.ExamID, &q.ExamTitle,
+		)
+		if err != nil {
+			return nil, nil, err
+		}
+		questions = append(questions, q)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, nil, err
+	}
+
+	pagination := &domain.Pagination{
+		Page:       page,
+		PageSize:   pageSize,
+		TotalItems: totalItems,
+		TotalPages: totalPages,
+	}
+
+	return questions, pagination, nil
 }

@@ -1,181 +1,257 @@
-<div class="topics-container">
-  <!-- Header Card -->
-  <mat-card class="header-card">
-    <div class="header-content">
-      <div class="header-title">
-        <h2>Tópicos</h2>
-        <p>Gerencie os tópicos das provas</p>
-      </div>
-      <div class="header-actions">
-        <button mat-raised-button color="primary" (click)="openDialog()">
-          <mat-icon>add</mat-icon>
-          Novo Tópico
-        </button>
-      </div>
+<div class="main-container">
+  <!-- Header -->
+  <div class="header-content">
+    <div class="header-title">
+      <h1>Tópicos</h1>
+      <p>Gerencie os tópicos das provas</p>
     </div>
-  </mat-card>
-
-  <!-- Content Card -->
-  <mat-card class="content-card">
-    <div class="content">
-      <!-- Loading Spinner -->
-      <div *ngIf="loading" class="loading-container">
-        <mat-spinner diameter="50"></mat-spinner>
-        <p>Carregando tópicos...</p>
-      </div>
-
-      <!-- Empty State -->
-      <div *ngIf="!loading && topics.length === 0" class="empty-state">
-        <mat-icon>topic</mat-icon>
-        <h3>Nenhum tópico encontrado</h3>
-        <p>Clique em "Novo Tópico" para começar</p>
-      </div>
-
-      <!-- Topics Table -->
-      <div *ngIf="!loading && topics.length > 0" class="table-container">
-        <table mat-table [dataSource]="topics" class="mat-elevation-z8">
-          
-          <!-- ID Column -->
-          <ng-container matColumnDef="id">
-            <th mat-header-cell *matHeaderCellDef>ID</th>
-            <td mat-cell *matCellDef="let topic">{{topic.id}}</td>
-          </ng-container>
-
-          <!-- Name Column -->
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef>Nome</th>
-            <td mat-cell *matCellDef="let topic">{{topic.name}}</td>
-          </ng-container>
-
-          <!-- Exam Name Column -->
-          <ng-container matColumnDef="exam_name">
-            <th mat-header-cell *matHeaderCellDef>Exame</th>
-            <td mat-cell *matCellDef="let topic">{{topic.exam_name}}</td>
-          </ng-container>
-
-          <!-- Questions Count Column -->
-          <ng-container matColumnDef="questions_count">
-            <th mat-header-cell *matHeaderCellDef>Qtd. Questões</th>
-            <td mat-cell *matCellDef="let topic">{{topic.questions_count || 0}}</td>
-          </ng-container>
-
-          <!-- Created At Column -->
-          <ng-container matColumnDef="created_at">
-            <th mat-header-cell *matHeaderCellDef>Criado em</th>
-            <td mat-cell *matCellDef="let topic">{{ topic.created_at | date:'dd/MM/yyyy' }}</td>
-          </ng-container>
-
-          <!-- Actions Column -->
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef>Ações</th>
-            <td mat-cell *matCellDef="let topic">
-              <button mat-icon-button color="primary" 
-                      matTooltip="Editar tópico"
-                      (click)="openDialog(topic)">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button mat-icon-button color="warn" 
-                      matTooltip="Excluir tópico"
-                      (click)="deleteTopic(topic)">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        </table>
-      </div>
-    </div>
-  </mat-card>
-</div>
-
-<!-- Dialog for Create/Edit Topic -->
-<div *ngIf="showDialog" class="dialog-overlay">
-  <mat-card class="dialog-card">
-    <div class="dialog-header">
-      <h3>{{editingTopic ? 'Editar' : 'Novo'}} Tópico</h3>
-      <button mat-icon-button (click)="closeDialog()">
-        <mat-icon>close</mat-icon>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="openDialog()">
+        <mat-icon>add</mat-icon>
+        Novo Tópico
       </button>
     </div>
+  </div>
 
-    <div class="dialog-content">
-      <form [formGroup]="topicForm" (ngSubmit)="onSubmit()">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Nome do Tópico</mat-label>
-          <input matInput formControlName="name" 
-                 placeholder="Ex: Direito Constitucional">
-          <mat-error *ngIf="topicForm.get('name')?.hasError('required')">
-            Nome é obrigatório
-          </mat-error>
-          <mat-error *ngIf="topicForm.get('name')?.hasError('minlength')">
-            Nome deve ter pelo menos 3 caracteres
-          </mat-error>
-        </mat-form-field>
+  <!-- Content Card -->
+  <div class="content">
+    <div class="content-card">
+      <div class="card-content">
+        <!-- Filtros -->
+        <div class="filters-section">
+          <h3>Filtros</h3>
+          <div class="filters-content">
+            <mat-form-field appearance="outline" id="filter-topic">
+              <mat-label>Filtrar por Exame</mat-label>
+              <mat-select
+                [(ngModel)]="selectedExamId"
+                (selectionChange)="onExamFilterChange()"
+              >
+                <mat-option [value]="undefined">Todos os Exames</mat-option>
+                @for (exam of exams; track exam.id) {
+                <mat-option [value]="exam.id">
+                  {{ exam.title }}
+                </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Exame</mat-label>
-          <mat-select formControlName="exam_id">
-            <mat-option *ngFor="let exam of exams" [value]="exam.id">
-              {{exam.title}}
-            </mat-option>
-          </mat-select>
-          <mat-error *ngIf="topicForm.get('exam_id')?.hasError('required')">
-            Exame é obrigatório
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Peso (%)</mat-label>
-          <input matInput type="number" formControlName="weight_percentage" 
-                 placeholder="0">
-          <mat-error *ngIf="topicForm.get('weight_percentage')?.hasError('required')">
-            Peso é obrigatório
-          </mat-error>
-          <mat-error *ngIf="topicForm.get('weight_percentage')?.hasError('min')">
-            Peso deve ser maior ou igual a 0
-          </mat-error>
-          <mat-error *ngIf="topicForm.get('weight_percentage')?.hasError('max')">
-            Peso deve ser menor ou igual a 100
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Ordem</mat-label>
-          <input matInput type="number" formControlName="order_index" 
-                 placeholder="0">
-          <mat-error *ngIf="topicForm.get('order_index')?.hasError('required')">
-            Ordem é obrigatória
-          </mat-error>
-          <mat-error *ngIf="topicForm.get('order_index')?.hasError('min')">
-            Ordem deve ser maior ou igual a 0
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Quantidade de Questões</mat-label>
-          <input matInput type="number" formControlName="questions_count" 
-                 placeholder="0">
-          <mat-error *ngIf="topicForm.get('questions_count')?.hasError('required')">
-            Quantidade de questões é obrigatória
-          </mat-error>
-          <mat-error *ngIf="topicForm.get('questions_count')?.hasError('min')">
-            Quantidade deve ser maior ou igual a 0
-          </mat-error>
-        </mat-form-field>
-
-        <div class="dialog-actions">
-          <button mat-stroked-button type="button" (click)="closeDialog()">
-            Cancelar
-          </button>
-          <button mat-raised-button color="primary" type="submit" 
-                  [disabled]="!topicForm.valid || saving">
-            <mat-spinner diameter="20" *ngIf="saving"></mat-spinner>
-            <span *ngIf="!saving">{{editingTopic ? 'Atualizar' : 'Criar'}}</span>
-          </button>
+            <div class="filters-actions">
+              <button mat-stroked-button (click)="clearFilters()">
+                <mat-icon>clear</mat-icon>
+                Limpar
+              </button>
+            </div>
+          </div>
         </div>
-      </form>
+
+        <!-- Loading Spinner -->
+        @if (loading) {
+        <div class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Carregando tópicos...</p>
+        </div>
+        }
+
+        <!-- Empty State -->
+        @if (!loading && topics.length === 0) {
+        <div class="empty-state">
+          <mat-icon>topic</mat-icon>
+          <h3>Nenhum tópico encontrado</h3>
+          <p>Clique em "Novo Tópico" para começar</p>
+        </div>
+        }
+
+        <!-- Topics Table -->
+        @if (!loading && topics.length > 0) {
+        <div class="table-container">
+          <table mat-table [dataSource]="topics" class="table">
+            <!-- ID Column -->
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef>ID</th>
+              <td mat-cell *matCellDef="let topic">{{ topic.id }}</td>
+            </ng-container>
+
+            <!-- Name Column -->
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Nome</th>
+              <td mat-cell *matCellDef="let topic">{{ topic.name }}</td>
+            </ng-container>
+
+            <!-- Exam Name Column -->
+            <ng-container matColumnDef="exam_name">
+              <th mat-header-cell *matHeaderCellDef>Exame</th>
+              <td mat-cell *matCellDef="let topic">{{ topic.exam_name }}</td>
+            </ng-container>
+
+            <!-- Questions Count Column -->
+            <ng-container matColumnDef="questions_count">
+              <th mat-header-cell *matHeaderCellDef>Qtd. Questões</th>
+              <td mat-cell *matCellDef="let topic">
+                {{ topic.questions_count || 0 }}
+              </td>
+            </ng-container>
+
+            <!-- Created At Column -->
+            <ng-container matColumnDef="created_at">
+              <th mat-header-cell *matHeaderCellDef>Criado em</th>
+              <td mat-cell *matCellDef="let topic">
+                {{ topic.created_at | date : "dd/MM/yyyy" }}
+              </td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Ações</th>
+              <td mat-cell *matCellDef="let topic">
+                <button
+                  mat-icon-button
+                  color="primary"
+                  matTooltip="Editar tópico"
+                  (click)="openDialog(topic)"
+                >
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  color="warn"
+                  matTooltip="Excluir tópico"
+                  (click)="deleteTopic(topic)"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          </table>
+
+          @if (pagination) {
+          <mat-paginator
+            [length]="pagination.total_items"
+            [pageSize]="pagination.page_size"
+            [pageIndex]="pagination.page - 1"
+            [pageSizeOptions]="[5, 10, 25, 50]"
+            (page)="onPageChange($event)"
+            showFirstLastButtons
+          >
+          </mat-paginator>
+          }
+        </div>
+        }
+      </div>
     </div>
-  </mat-card>
-</div> 
+  </div>
+
+  <!-- Dialog for Create/Edit Topic -->
+  @if (showDialog) {
+  <div class="dialog-overlay">
+    <div class="dialog-content" (click)="$event.stopPropagation()">
+      <mat-card class="dialog-card">
+        <mat-card-header>
+          <mat-card-title>
+            {{ editingTopic ? "Editar" : "Nova" }} Tópico
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <form [formGroup]="topicForm" (ngSubmit)="onSubmit()">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Nome do Tópico</mat-label>
+              <input
+                matInput
+                formControlName="name"
+                placeholder="Ex: Direito Constitucional"
+              />
+              @if (topicForm.get('name')?.hasError('required')) {
+              <mat-error> Nome é obrigatório </mat-error>
+              } @if (topicForm.get('name')?.hasError('minlength')) {
+              <mat-error> Nome deve ter pelo menos 3 caracteres </mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Exame</mat-label>
+              <mat-select formControlName="exam_id">
+                @for (exam of exams; track exam.id) {
+                <mat-option [value]="exam.id">
+                  {{ exam.title }}
+                </mat-option>
+                }
+              </mat-select>
+              @if (topicForm.get('exam_id')?.hasError('required')) {
+              <mat-error> Exame é obrigatório </mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Peso (%)</mat-label>
+              <input
+                matInput
+                type="number"
+                formControlName="weight_percentage"
+                placeholder="0"
+              />
+              @if (topicForm.get('weight_percentage')?.hasError('required')) {
+              <mat-error> Peso é obrigatório </mat-error>
+              } @if (topicForm.get('weight_percentage')?.hasError('min')) {
+              <mat-error> Peso deve ser maior ou igual a 0 </mat-error>
+              } @if (topicForm.get('weight_percentage')?.hasError('max')) {
+              <mat-error> Peso deve ser menor ou igual a 100 </mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Ordem</mat-label>
+              <input
+                matInput
+                type="number"
+                formControlName="order_index"
+                placeholder="0"
+              />
+              @if (topicForm.get('order_index')?.hasError('required')) {
+              <mat-error> Ordem é obrigatória </mat-error>
+              } @if (topicForm.get('order_index')?.hasError('min')) {
+              <mat-error> Ordem deve ser maior ou igual a 0 </mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Quantidade de Questões</mat-label>
+              <input
+                matInput
+                type="number"
+                formControlName="questions_count"
+                placeholder="0"
+              />
+              @if (topicForm.get('questions_count')?.hasError('required')) {
+              <mat-error> Quantidade de questões é obrigatória </mat-error>
+              } @if (topicForm.get('questions_count')?.hasError('min')) {
+              <mat-error> Quantidade deve ser maior ou igual a 0 </mat-error>
+              }
+            </mat-form-field>
+
+            <div class="dialog-actions">
+              <button mat-stroked-button type="button" (click)="closeDialog()">
+                Cancelar
+              </button>
+              <button
+                mat-raised-button
+                color="primary"
+                type="submit"
+                [disabled]="!topicForm.valid || saving"
+              >
+                @if (saving) {
+                <mat-spinner diameter="20"></mat-spinner>
+                } @else {
+                <span>{{ editingTopic ? "Atualizar" : "Criar" }}</span>
+                }
+              </button>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+  }
+</div>

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -21,6 +22,7 @@ import { AdminService, Area, PaginatedResponse } from '../../core/admin.service'
   standalone: true,
   imports: [
     CommonModule,
+    ReactiveFormsModule,
     FormsModule,
     MatCardModule,
     MatButtonModule,
@@ -43,17 +45,24 @@ export class AreasComponent implements OnInit {
   saving = false;
   showDialog = false;
   editingArea: Area | null = null;
-  formArea: Area = { name: '', description: '' };
+  areaForm: FormGroup;
   displayedColumns = ['id', 'name', 'description', 'created_at', 'actions'];
   pagination: any = null;
   currentPage = 1;
   currentPageSize = 10;
+  searchTerm: string = '';
 
   constructor(
     private adminService: AdminService,
     private snackBar: MatSnackBar,
-    private router: Router
-  ) {}
+    private router: Router,
+    private fb: FormBuilder
+  ) {
+    this.areaForm = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(3)]],
+      description: ['', [Validators.maxLength(500)]]
+    });
+  }
 
   ngOnInit() {
     console.log('AreasComponent: Inicializando...');
@@ -62,10 +71,21 @@ export class AreasComponent implements OnInit {
 
   loadAreas() {
     this.loading = true;
+    console.log('Carregando áreas com filtros:', { page: this.currentPage, pageSize: this.currentPageSize, search: this.searchTerm });
+    
     this.adminService.getAreasPaginated(this.currentPage, this.currentPageSize).subscribe({
       next: (response: PaginatedResponse<Area>) => {
         console.log('Areas carregadas:', response);
-        this.areas = response.data;
+        // Filtrar por termo de busca no frontend
+        let filteredAreas = response.data || [];
+        if (this.searchTerm.trim()) {
+          const searchLower = this.searchTerm.toLowerCase();
+          filteredAreas = filteredAreas.filter(area => 
+            area.name.toLowerCase().includes(searchLower) ||
+            (area.description && area.description.toLowerCase().includes(searchLower))
+          );
+        }
+        this.areas = filteredAreas;
         this.pagination = response.pagination;
         this.loading = false;
       },
@@ -73,6 +93,7 @@ export class AreasComponent implements OnInit {
         console.error('Erro ao carregar áreas:', error);
         this.snackBar.open('Erro ao carregar áreas', 'Fechar', { duration: 3000 });
         this.loading = false;
+        this.areas = []; // Garantir array vazio em caso de erro
       }
     });
   }
@@ -83,34 +104,50 @@ export class AreasComponent implements OnInit {
     this.loadAreas();
   }
 
+  onSearchChange() {
+    this.currentPage = 1; // Reset para primeira página
+    this.loadAreas();
+  }
+
+  clearFilters() {
+    this.searchTerm = '';
+    this.currentPage = 1;
+    this.loadAreas();
+  }
+
   openCreateDialog() {
     this.editingArea = null;
-    this.formArea = { name: '', description: '' };
+    this.areaForm.reset();
     this.showDialog = true;
   }
 
   editArea(area: Area) {
     this.editingArea = area;
-    this.formArea = { ...area };
+    this.areaForm.patchValue({
+      name: area.name,
+      description: area.description || ''
+    });
     this.showDialog = true;
   }
 
   closeDialog() {
     this.showDialog = false;
     this.editingArea = null;
-    this.formArea = { name: '', description: '' };
+    this.areaForm.reset();
   }
 
   saveArea() {
-    if (!this.formArea.name.trim()) {
-      this.snackBar.open('Nome da área é obrigatório', 'Fechar', { duration: 3000 });
+    if (this.areaForm.invalid) {
+      this.snackBar.open('Por favor, preencha todos os campos obrigatórios', 'Fechar', { duration: 3000 });
       return;
     }
 
     this.saving = true;
+    const formData = this.areaForm.value;
+    
     const operation = this.editingArea
-      ? this.adminService.updateArea(this.editingArea.id!, this.formArea)
-      : this.adminService.createArea(this.formArea);
+      ? this.adminService.updateArea(this.editingArea.id!, formData)
+      : this.adminService.createArea(formData);
 
     operation.subscribe({
       next: () => {

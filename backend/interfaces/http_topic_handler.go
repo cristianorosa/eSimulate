@@ -3,6 +3,7 @@ package interfaces
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -23,7 +24,7 @@ func (h *TopicHandler) ListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	examIDStr := r.URL.Query().Get("exam_id")
-	
+
 	// Se exam_id não foi fornecido, retornar todos os tópicos
 	if examIDStr == "" {
 		topics, err := h.UC.ListAllTopics(context.Background())
@@ -182,4 +183,63 @@ func (h *TopicHandler) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Tópico excluído com sucesso"})
+}
+
+// ListPaginatedHandler lista tópicos com paginação
+func (h *TopicHandler) ListPaginatedHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Extrair parâmetros de query
+	pageStr := r.URL.Query().Get("page")
+	pageSizeStr := r.URL.Query().Get("page_size")
+	examIDStr := r.URL.Query().Get("exam_id")
+
+	// Converter parâmetros
+	page := 1
+	if pageStr != "" {
+		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+			page = p
+		}
+	}
+
+	pageSize := 10
+	if pageSizeStr != "" {
+		if ps, err := strconv.Atoi(pageSizeStr); err == nil && ps > 0 {
+			pageSize = ps
+		}
+	}
+
+	var examID *int
+	if examIDStr != "" {
+		if id, err := strconv.Atoi(examIDStr); err == nil {
+			examID = &id
+		}
+	}
+
+	// Log para debug
+	fmt.Printf("ListPaginatedHandler: page=%d, pageSize=%d, examID=%v\n", page, pageSize, examID)
+
+	// Buscar tópicos paginados
+	topics, pagination, err := h.UC.ListTopicsPaginated(context.Background(), page, pageSize, examID)
+	if err != nil {
+		fmt.Printf("Erro ao buscar tópicos paginados: %v\n", err)
+		http.Error(w, "Erro ao buscar tópicos: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Log para debug
+	fmt.Printf("Tópicos encontrados: %d, Paginação: %+v\n", len(topics), pagination)
+
+	// Criar resposta paginada
+	response := map[string]interface{}{
+		"data":       topics,
+		"pagination": pagination,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
 }

@@ -5,11 +5,11 @@
         <mat-icon class="avatar-icon">account_circle</mat-icon>
       </div>
       <div class="profile-info">
-        <h1>{{ user?.name || 'Usuário' }}</h1>
+        <h1>{{ user?.name || "Usuário" }}</h1>
         <p>{{ user?.email }}</p>
         <button mat-stroked-button (click)="toggleEditMode()" class="edit-btn">
           <mat-icon>edit</mat-icon>
-          {{ editMode ? 'Cancelar' : 'Editar Perfil' }}
+          {{ editMode ? "Cancelar" : "Editar Perfil" }}
         </button>
       </div>
     </mat-card>
@@ -24,7 +24,9 @@
             <div class="stat-item">
               <mat-icon class="stat-icon">assignment</mat-icon>
               <div class="stat-content">
-                <div class="stat-value">{{ getStats().simuladosRealizados }}</div>
+                <div class="stat-value">
+                  {{ getStats().simuladosRealizados }}
+                </div>
                 <div class="stat-label">Simulados Realizados</div>
               </div>
             </div>
@@ -59,56 +61,75 @@
         <mat-card-title>Informações Pessoais</mat-card-title>
         <mat-card-content>
           <form (ngSubmit)="updateProfile()" #profileForm="ngForm">
-            <div class="form-row">
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Nome</mat-label>
-                <input matInput [(ngModel)]="name" name="name" [disabled]="!editMode" required>
-              </mat-form-field>
-            </div>
-            
-            <div class="form-row">
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Email</mat-label>
-                <input matInput type="email" [(ngModel)]="email" name="email" [disabled]="!editMode" required>
-              </mat-form-field>
-            </div>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Nome</mat-label>
+              <input
+                matInput
+                [(ngModel)]="name"
+                name="name"
+                [disabled]="!editMode"
+                required
+              />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Email</mat-label>
+              <input
+                matInput
+                type="email"
+                [(ngModel)]="email"
+                name="email"
+                [disabled]="!editMode"
+                required
+              />
+            </mat-form-field>
 
             @if (editMode) {
-              <mat-divider class="password-divider"></mat-divider>
-              
-              <div class="form-row">
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>Senha Atual</mat-label>
-                  <input matInput type="password" [(ngModel)]="currentPassword" name="currentPassword">
-                </mat-form-field>
-              </div>
-              
-              <div class="form-row">
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>Nova Senha</mat-label>
-                  <input matInput type="password" [(ngModel)]="newPassword" name="newPassword">
-                </mat-form-field>
-              </div>
-              
-              <div class="form-row">
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>Confirmar Nova Senha</mat-label>
-                  <input matInput type="password" [(ngModel)]="confirmPassword" name="confirmPassword">
-                </mat-form-field>
-              </div>
-            }
+            <mat-divider class="password-divider"></mat-divider>
 
-            @if (editMode) {
-              <div class="form-actions">
-                <button mat-raised-button color="primary" type="submit" [disabled]="loading">
-                  <mat-icon>save</mat-icon>
-                  {{ loading ? 'Salvando...' : 'Salvar Alterações' }}
-                </button>
-              </div>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Senha Atual</mat-label>
+              <input
+                matInput
+                type="password"
+                [(ngModel)]="currentPassword"
+                name="currentPassword"
+              />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Nova Senha</mat-label>
+              <input
+                matInput
+                type="password"
+                [(ngModel)]="newPassword"
+                name="newPassword"
+              />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Confirmar Nova Senha</mat-label>
+              <input
+                matInput
+                type="password"
+                [(ngModel)]="confirmPassword"
+                name="confirmPassword"
+              />
+            </mat-form-field>
+            } @if (editMode) {
+            <button
+              mat-raised-button
+              color="primary"
+              type="submit"
+              [disabled]="loading"
+            >
+              <mat-icon>save</mat-icon>
+              {{ loading ? "Salvando..." : "Salvar Alterações" }}
+            </button>
             }
           </form>
         </mat-card-content>
       </mat-card>
     </div>
   </div>
-</div> 
+</div>

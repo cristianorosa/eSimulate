@@ -1,23 +1,25 @@
-<div class="historico-container">
-  <div class="header">
-    <mat-card class="header-card">
-      <div class="header-content">
-        <div class="header-title">
-          <h1>Histórico de Simulados</h1>
-          <p>Acompanhe seu progresso e desempenho nos simulados</p>
-        </div>
-        <div class="header-actions">
-          <mat-form-field appearance="outline" class="filter-field">
-            <mat-label>Período</mat-label>
-            <mat-select [(ngModel)]="selectedPeriod">
-              @for (period of periods; track period.value) {
-                <mat-option [value]="period.value">{{ period.label }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
-        </div>
-      </div>
-    </mat-card>
+<div class="main-container">
+  <!-- <div class="main-header">
+    <div class="header-card">
+      
+    </div>
+  </div> -->
+
+  <div class="header-content">
+    <div class="header-title">
+      <h1>Histórico de Simulados</h1>
+      <p>Acompanhe seu progresso e desempenho nos simulados</p>
+    </div>
+    <div class="header-actions">
+      <mat-form-field appearance="outline">
+        <mat-label>Período</mat-label>
+        <mat-select [(ngModel)]="selectedPeriod">
+          @for (period of periods; track period.value) {
+          <mat-option [value]="period.value">{{ period.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
   </div>
 
   <div class="history-stats">
@@ -62,61 +64,71 @@
       <mat-card-title>Simulados Realizados</mat-card-title>
       <mat-card-content>
         @if (loading) {
-          <div class="loading-container">
-            <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-            <p>Carregando histórico...</p>
-          </div>
+        <div class="loading-container">
+          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+          <p>Carregando histórico...</p>
+        </div>
+        } @else { @if (!getFilteredHistory() || getFilteredHistory().length ===
+        0) {
+        <div class="empty-state">
+          <mat-icon class="empty-icon">history</mat-icon>
+          <h3>Nenhum simulado realizado ainda</h3>
+          <p>
+            Comece fazendo seu primeiro simulado para ver seu histórico aqui.
+          </p>
+        </div>
         } @else {
-          @if (!getFilteredHistory() || getFilteredHistory().length === 0) {
-            <div class="empty-state">
-              <mat-icon class="empty-icon">history</mat-icon>
-              <h3>Nenhum simulado realizado ainda</h3>
-              <p>Comece fazendo seu primeiro simulado para ver seu histórico aqui.</p>
-            </div>
-          } @else {
-            <div class="history-list">
-              @for (item of getFilteredHistory(); track item.id) {
-                <div class="history-item">
-                  <div class="item-main">
-                    <div class="item-info">
-                      <h3>{{ item.quiz_title }}</h3>
-                      <p class="item-date">{{ formatDate(item.completed_at) }}</p>
-                      <div class="item-details">
-                        <span class="detail-item">
-                          <mat-icon>schedule</mat-icon>
-                          {{ item.time_spent }}
-                        </span>
-                        <span class="detail-item">
-                          <mat-icon>help</mat-icon>
-                          {{ item.correct_answers }}/{{ item.total_questions }} questões
-                        </span>
-                      </div>
-                    </div>
-                    <div class="item-score">
-                      <div class="score-circle" [ngClass]="getScoreColor(item.score)">
-                        <span class="score-value">{{ item.score }}%</span>
-                      </div>
-                      <span class="score-label" [ngClass]="getScoreColor(item.score)">
-                        {{ getScoreLabel(item.score) }}
-                      </span>
-                    </div>
-                  </div>
-                  <div class="item-actions">
-                    <button mat-stroked-button color="primary" (click)="viewDetails(item)">
-                      <mat-icon>visibility</mat-icon>
-                      Ver Detalhes
-                    </button>
-                    <button mat-raised-button color="accent" (click)="retakeQuiz(item)">
-                      <mat-icon>refresh</mat-icon>
-                      Refazer
-                    </button>
-                  </div>
+        <div class="history-list">
+          @for (item of getFilteredHistory(); track item.id) {
+          <div class="history-item">
+            <div class="item-main">
+              <div class="item-info">
+                <h3>{{ item.quiz_title }}</h3>
+                <p class="item-date">{{ formatDate(item.completed_at) }}</p>
+                <div class="item-details">
+                  <span class="detail-item">
+                    <mat-icon>schedule</mat-icon>
+                    {{ item.time_spent }}
+                  </span>
+                  <span class="detail-item">
+                    <mat-icon>help</mat-icon>
+                    {{ item.correct_answers }}/{{ item.total_questions }}
+                    questões
+                  </span>
                 </div>
-              }
+              </div>
+              <div class="item-score">
+                <div class="score-circle" [ngClass]="getScoreColor(item.score)">
+                  <span class="score-value">{{ item.score }}%</span>
+                </div>
+                <span class="score-label" [ngClass]="getScoreColor(item.score)">
+                  {{ getScoreLabel(item.score) }}
+                </span>
+              </div>
             </div>
+            <div class="item-actions">
+              <button
+                mat-stroked-button
+                color="primary"
+                (click)="viewDetails(item)"
+              >
+                <mat-icon>visibility</mat-icon>
+                Ver Detalhes
+              </button>
+              <button
+                mat-raised-button
+                color="accent"
+                (click)="retakeQuiz(item)"
+              >
+                <mat-icon>refresh</mat-icon>
+                Refazer
+              </button>
+            </div>
+          </div>
           }
-        }
+        </div>
+        } }
       </mat-card-content>
     </mat-card>
   </div>
-</div> 
+</div>
