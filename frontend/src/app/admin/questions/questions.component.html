@@ -6,6 +6,17 @@
       <p>Gerencie as questões dos exames</p>
     </div>
     <div class="header-actions">
+      <input
+        #fileInput
+        type="file"
+        accept=".json"
+        style="display: none"
+        (change)="onFileSelected($event)"
+      />
+      <button mat-stroked-button color="primary" (click)="importQuestions()" [disabled]="importing">
+        <mat-icon>{{ importing ? 'hourglass_empty' : 'upload' }}</mat-icon>
+        {{ importing ? 'Importando...' : 'Importar Questões' }}
+      </button>
       <button mat-raised-button color="primary" (click)="openDialog()">
         <mat-icon>add</mat-icon>
         Nova Questão

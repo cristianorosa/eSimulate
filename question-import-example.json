@@ -1,0 +1,135 @@
+{
+  "exam": {
+    "title": "Exame de Programação Java",
+    "description": "Avaliação de conhecimentos em Java",
+    "max_time": 120,
+    "passing_score": 70,
+    "is_active": true
+  },
+  "area": {
+    "name": "Tecnologia da Informação",
+    "description": "Área relacionada a TI e programação"
+  },
+  "topics": [
+    {
+      "name": "Fundamentos de Java",
+      "questions_count": 5,
+      "questions": [
+        {
+          "statement": "Qual é a diferença entre int e Integer em Java?",
+          "problem": "Considere o seguinte código:\n\nint a = 10;\nInteger b = 10;\n\nQual das afirmações abaixo está correta?",
+          "content_type": "text",
+          "question_type": "objetiva",
+          "difficulty": "medio",
+          "is_active": true,
+          "options": [
+            {
+              "text": "int é uma classe wrapper e Integer é um tipo primitivo",
+              "is_correct": false
+            },
+            {
+              "text": "int é um tipo primitivo e Integer é uma classe wrapper",
+              "is_correct": true
+            },
+            {
+              "text": "Ambos são tipos primitivos",
+              "is_correct": false
+            },
+            {
+              "text": "Ambos são classes wrapper",
+              "is_correct": false
+            }
+          ]
+        },
+        {
+          "statement": "O que é o garbage collector em Java?",
+          "problem": "O garbage collector é responsável por:",
+          "content_type": "text",
+          "question_type": "objetiva",
+          "difficulty": "facil",
+          "is_active": true,
+          "options": [
+            {
+              "text": "Compilar o código Java",
+              "is_correct": false
+            },
+            {
+              "text": "Gerenciar a memória automaticamente",
+              "is_correct": true
+            },
+            {
+              "text": "Executar threads em paralelo",
+              "is_correct": false
+            },
+            {
+              "text": "Criar objetos na memória",
+              "is_correct": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Programação Orientada a Objetos",
+      "questions_count": 3,
+      "questions": [
+        {
+          "statement": "O que é herança em POO?",
+          "problem": "Herança permite que uma classe:",
+          "content_type": "text",
+          "question_type": "objetiva",
+          "difficulty": "medio",
+          "is_active": true,
+          "options": [
+            {
+              "text": "Tenha múltiplas implementações",
+              "is_correct": false
+            },
+            {
+              "text": "Herde atributos e métodos de outra classe",
+              "is_correct": true
+            },
+            {
+              "text": "Seja instanciada múltiplas vezes",
+              "is_correct": false
+            },
+            {
+              "text": "Tenha apenas métodos privados",
+              "is_correct": false
+            }
+          ]
+        },
+        {
+          "statement": "Quais são os pilares da POO?",
+          "problem": "Selecione todos os pilares da Programação Orientada a Objetos:",
+          "content_type": "text",
+          "question_type": "multipla_escolha",
+          "difficulty": "medio",
+          "is_active": true,
+          "options": [
+            {
+              "text": "Encapsulamento",
+              "is_correct": true
+            },
+            {
+              "text": "Herança",
+              "is_correct": true
+            },
+            {
+              "text": "Polimorfismo",
+              "is_correct": true
+            },
+            {
+              "text": "Abstração",
+              "is_correct": true
+            },
+            {
+              "text": "Recursão",
+              "is_correct": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+} 

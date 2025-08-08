@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ViewChild, ElementRef } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatTableModule } from "@angular/material/table";
 import { MatButtonModule } from "@angular/material/button";
@@ -80,6 +80,10 @@ export class QuestionsComponent implements OnInit {
   currentPageSize = 10;
   selectedExamId: number | undefined = undefined;
   selectedTopicId: number | undefined = undefined;
+
+  // Para importação de questões
+  @ViewChild('fileInput') fileInput!: ElementRef;
+  importing = false;
 
   constructor(
     private adminService: AdminService,
@@ -422,5 +426,196 @@ export class QuestionsComponent implements OnInit {
   private getExamIdFromTopic(topicId: number): number {
     const topic = this.topicsCache.find((t) => t.id === topicId);
     return topic ? topic.exam_id : 0;
+  }
+
+  // Métodos para importação de questões
+  importQuestions() {
+    this.fileInput.nativeElement.click();
+  }
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
+      this.snackBar.open('Por favor, selecione um arquivo JSON válido', 'Fechar', { duration: 3000 });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      try {
+        const jsonData = JSON.parse(e.target.result);
+        this.processImportData(jsonData);
+      } catch (error) {
+        this.snackBar.open('Erro ao processar arquivo JSON', 'Fechar', { duration: 3000 });
+        console.error('Erro ao processar JSON:', error);
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  private async processImportData(data: any) {
+    this.importing = true;
+    
+    try {
+      // Validar estrutura do JSON
+      if (!data.exam || !data.area || !data.topics) {
+        throw new Error('Estrutura JSON inválida. Deve conter exam, area e topics.');
+      }
+
+      // 1. Criar ou buscar área
+      const area = await this.createOrGetArea(data.area);
+      
+      // 2. Criar ou buscar exame
+      const exam = await this.createOrGetExam(data.exam, area.id);
+      
+      // 3. Processar tópicos e questões
+      let totalQuestions = 0;
+      for (const topicData of data.topics) {
+        const topic = await this.createOrGetTopic(topicData, exam.id);
+        
+        if (topicData.questions && Array.isArray(topicData.questions)) {
+          for (const questionData of topicData.questions) {
+            await this.createQuestion(questionData, topic.id);
+            totalQuestions++;
+          }
+        }
+      }
+
+      this.snackBar.open(
+        `Importação concluída! ${totalQuestions} questões importadas com sucesso.`, 
+        'Fechar', 
+        { duration: 5000 }
+      );
+      
+      // Recarregar dados
+      this.loadQuestions();
+      this.loadExams();
+      this.loadAllTopics();
+      
+    } catch (error) {
+      console.error('Erro na importação:', error);
+      this.snackBar.open(
+        `Erro na importação: ${error instanceof Error ? error.message : 'Erro desconhecido'}`, 
+        'Fechar', 
+        { duration: 5000 }
+      );
+    } finally {
+      this.importing = false;
+      // Limpar input
+      this.fileInput.nativeElement.value = '';
+    }
+  }
+
+  private async createOrGetArea(areaData: any): Promise<any> {
+    // Buscar área existente por nome
+    const existingAreas = await this.adminService.getAreas().toPromise();
+    const existingArea = existingAreas?.find(a => a.name.toLowerCase() === areaData.name.toLowerCase());
+    
+    if (existingArea) {
+      return existingArea;
+    }
+
+    // Criar nova área
+    const newArea = await this.adminService.createArea({
+      name: areaData.name,
+      description: areaData.description || ''
+    }).toPromise();
+    
+    return newArea;
+  }
+
+  private async createOrGetExam(examData: any, areaId: number): Promise<any> {
+    // Buscar exame existente por título
+    const existingExams = await this.adminService.getExams().toPromise();
+    const existingExam = existingExams?.find(e => e.title.toLowerCase() === examData.title.toLowerCase());
+    
+    if (existingExam) {
+      return existingExam;
+    }
+
+    // Criar novo exame
+    const newExam = await this.adminService.createExam({
+      title: examData.title,
+      description: examData.description || '',
+      max_time: examData.max_time || 120,
+      passing_score: examData.passing_score || 70,
+      area_id: areaId,
+      is_active: examData.is_active !== false
+    }).toPromise();
+    
+    return newExam;
+  }
+
+  private async createOrGetTopic(topicData: any, examId: number): Promise<any> {
+    // Buscar tópico existente por nome e exame
+    const existingTopics = await this.adminService.getTopics().toPromise();
+    const existingTopic = existingTopics?.find(t => 
+      t.name.toLowerCase() === topicData.name.toLowerCase() && 
+      t.exam_id === examId
+    );
+    
+    if (existingTopic) {
+      return existingTopic;
+    }
+
+    // Criar novo tópico
+    const newTopic = await this.adminService.createTopic({
+      name: topicData.name,
+      questions_count: topicData.questions_count || 0,
+      exam_id: examId
+    }).toPromise();
+    
+    return newTopic;
+  }
+
+  private async createQuestion(questionData: any, topicId: number): Promise<any> {
+    // Validar dados da questão
+    if (!questionData.statement || !questionData.problem || !questionData.options) {
+      throw new Error('Dados da questão incompletos');
+    }
+
+    // Validar opções
+    const correctOptions = questionData.options.filter((opt: any) => opt.is_correct);
+    if (correctOptions.length === 0) {
+      throw new Error('Questão deve ter pelo menos uma opção correta');
+    }
+
+    if (questionData.question_type === 'objetiva' && correctOptions.length > 1) {
+      throw new Error('Questão objetiva deve ter apenas uma opção correta');
+    }
+
+    // Criar questão
+    const question = await this.adminService.createQuestion({
+      topic_id: topicId,
+      statement: questionData.statement,
+      problem: questionData.problem,
+      content_type: questionData.content_type || 'text',
+      explanation: questionData.explanation || '',
+      question_type: questionData.question_type === 'objetiva' ? 'objective' : 'multiple_choice',
+      difficulty_level: this.getDifficultyLevel(questionData.difficulty),
+      is_active: questionData.is_active !== false
+    }).toPromise();
+
+    // Criar opções
+    for (const optionData of questionData.options) {
+      await this.adminService.createOption({
+        question_id: question.id,
+        text: optionData.text,
+        is_correct: optionData.is_correct
+      }).toPromise();
+    }
+
+    return question;
+  }
+
+  private getDifficultyLevel(difficulty: string): number {
+    switch (difficulty?.toLowerCase()) {
+      case 'facil': return 1;
+      case 'medio': return 3;
+      case 'dificil': return 5;
+      default: return 3;
+    }
   }
 }
