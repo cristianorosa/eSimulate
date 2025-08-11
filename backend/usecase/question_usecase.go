@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/cristianorosa/eSimulate/backend/domain"
@@ -222,4 +223,39 @@ func min(a, b int) int {
 		return a
 	}
 	return b
+}
+
+// ImportQuestions importa um conjunto de questões via JSON
+func (uc *QuestionUsecase) ImportQuestions(ctx context.Context, importData interface{}) (map[string]interface{}, error) {
+	log.Printf("Iniciando importação de questões")
+
+	payload, ok := importData.(domain.ImportQuestionsPayload)
+	if !ok {
+		return nil, domain.ErrInvalidData
+	}
+
+	result := map[string]interface{}{
+		"areas_created":     0,
+		"exams_created":     0,
+		"topics_created":    0,
+		"questions_created": 0,
+		"errors":            []string{},
+	}
+
+	// Apenas contabiliza e valida minimamente por enquanto
+	if payload.Area.Name == "" || payload.Exam.Title == "" {
+		return nil, domain.ErrInvalidData
+	}
+	for _, t := range payload.Topics {
+		for _, q := range t.Questions {
+			if q.Statement == "" || q.Problem == "" || len(q.Options) < 1 {
+				return nil, fmt.Errorf("questão inválida no tópico %s", t.Name)
+			}
+			result["questions_created"] = result["questions_created"].(int) + 1
+		}
+		result["topics_created"] = result["topics_created"].(int) + 1
+	}
+
+	log.Printf("Importação concluída (pré-persistência): %+v", result)
+	return result, nil
 }

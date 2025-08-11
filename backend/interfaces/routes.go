@@ -29,6 +29,7 @@ func SetupRoutes(mux *http.ServeMux, handlers *Handlers) {
 	mux.HandleFunc("/questions/update", AuthMiddleware(handlers.Question.UpdateHandler))
 	mux.HandleFunc("/questions/delete", AuthMiddleware(handlers.Question.DeleteHandler))
 	mux.HandleFunc("/questions/detail", handlers.Question.DetailHandler)
+	mux.HandleFunc("/questions/import", AuthMiddleware(handlers.Question.ImportHandler))
 	mux.HandleFunc("/questions", handlers.Question.ListHandler)
 
 	// Simulados

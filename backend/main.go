@@ -82,7 +82,7 @@ func main() {
 	handlers := &interfaces.Handlers{
 		User:        &interfaces.UserHandler{UC: userUC},
 		Theme:       &interfaces.ThemeHandler{UC: themeUC},
-		Question:    &interfaces.QuestionHandler{UC: questionUC},
+		Question:    &interfaces.QuestionHandler{UC: questionUC, AreaUC: areaUC, ExamUC: examUC, TopicUC: topicUC},
 		Quiz:        &interfaces.QuizHandler{UC: quizUC},
 		History:     &interfaces.HistoryHandler{UC: userQuizUC},
 		Performance: &interfaces.PerformanceHandler{UC: performanceUC},

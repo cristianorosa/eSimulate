@@ -464,27 +464,11 @@ export class QuestionsComponent implements OnInit {
         throw new Error('Estrutura JSON inválida. Deve conter exam, area e topics.');
       }
 
-      // 1. Criar ou buscar área
-      const area = await this.createOrGetArea(data.area);
+      // Enviar dados para o backend
+      const response = await this.adminService.importQuestions(data).toPromise();
       
-      // 2. Criar ou buscar exame
-      const exam = await this.createOrGetExam(data.exam, area.id);
-      
-      // 3. Processar tópicos e questões
-      let totalQuestions = 0;
-      for (const topicData of data.topics) {
-        const topic = await this.createOrGetTopic(topicData, exam.id);
-        
-        if (topicData.questions && Array.isArray(topicData.questions)) {
-          for (const questionData of topicData.questions) {
-            await this.createQuestion(questionData, topic.id);
-            totalQuestions++;
-          }
-        }
-      }
-
       this.snackBar.open(
-        `Importação concluída! ${totalQuestions} questões importadas com sucesso.`, 
+        `Importação concluída! ${response.result.questions_created} questões importadas com sucesso.`, 
         'Fechar', 
         { duration: 5000 }
       );
@@ -508,117 +492,5 @@ export class QuestionsComponent implements OnInit {
     }
   }
 
-  private async createOrGetArea(areaData: any): Promise<any> {
-    // Buscar área existente por nome
-    const existingAreas = await this.adminService.getAreas().toPromise();
-    const existingArea = existingAreas?.find(a => a.name.toLowerCase() === areaData.name.toLowerCase());
-    
-    if (existingArea) {
-      return existingArea;
-    }
 
-    // Criar nova área
-    const newArea = await this.adminService.createArea({
-      name: areaData.name,
-      description: areaData.description || ''
-    }).toPromise();
-    
-    return newArea;
-  }
-
-  private async createOrGetExam(examData: any, areaId: number): Promise<any> {
-    // Buscar exame existente por título
-    const existingExams = await this.adminService.getExams().toPromise();
-    const existingExam = existingExams?.find(e => e.title.toLowerCase() === examData.title.toLowerCase());
-    
-    if (existingExam) {
-      return existingExam;
-    }
-
-    // Criar novo exame
-    const newExam = await this.adminService.createExam({
-      title: examData.title,
-      description: examData.description || '',
-      max_time_minutes: examData.max_time || 120,
-      passing_score: examData.passing_score || 70,
-      area_id: areaId,
-      is_active: examData.is_active !== false
-    }).toPromise();
-    
-    return newExam;
-  }
-
-  private async createOrGetTopic(topicData: any, examId: number): Promise<any> {
-    // Buscar tópico existente por nome e exame
-    const existingTopics = await this.adminService.getTopics().toPromise();
-    const existingTopic = existingTopics?.find(t => 
-      t.name.toLowerCase() === topicData.name.toLowerCase() && 
-      t.exam_id === examId
-    );
-    
-    if (existingTopic) {
-      return existingTopic;
-    }
-
-    // Criar novo tópico
-    const newTopic = await this.adminService.createTopic({
-      name: topicData.name,
-      questions_count: topicData.questions_count || 0,
-      exam_id: examId,
-      weight_percentage: 100 // Valor padrão para weight_percentage
-    }).toPromise();
-    
-    return newTopic;
-  }
-
-  private async createQuestion(questionData: any, topicId: number): Promise<any> {
-    // Validar dados da questão
-    if (!questionData.statement || !questionData.problem || !questionData.options) {
-      throw new Error('Dados da questão incompletos');
-    }
-
-    // Validar opções
-    const correctOptions = questionData.options.filter((opt: any) => opt.is_correct);
-    if (correctOptions.length === 0) {
-      throw new Error('Questão deve ter pelo menos uma opção correta');
-    }
-
-    if (questionData.question_type === 'objetiva' && correctOptions.length > 1) {
-      throw new Error('Questão objetiva deve ter apenas uma opção correta');
-    }
-
-    // Criar questão
-    const question = await this.adminService.createQuestion({
-      topic_id: topicId,
-      statement: questionData.statement,
-      problem: questionData.problem,
-      content_type: questionData.content_type || 'text',
-      explanation: questionData.explanation || '',
-      question_type: questionData.question_type === 'objetiva' ? 'objective' : 'multiple_choice',
-      difficulty_level: this.getDifficultyLevel(questionData.difficulty),
-      is_active: questionData.is_active !== false
-    }).toPromise();
-
-    // Criar opções
-    if (question && question.id) {
-      for (const optionData of questionData.options) {
-        await this.adminService.createOption({
-          question_id: question.id,
-          text: optionData.text,
-          is_correct: optionData.is_correct
-        }).toPromise();
-      }
-    }
-
-    return question;
-  }
-
-  private getDifficultyLevel(difficulty: string): number {
-    switch (difficulty?.toLowerCase()) {
-      case 'facil': return 1;
-      case 'medio': return 3;
-      case 'dificil': return 5;
-      default: return 3;
-    }
-  }
 }

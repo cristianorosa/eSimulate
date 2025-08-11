@@ -230,4 +230,9 @@ export class AdminService {
   deleteOption(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/options/delete?id=${id}`);
   }
+
+  // Importação de questões
+  importQuestions(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/questions/import`, data);
+  }
 } 
