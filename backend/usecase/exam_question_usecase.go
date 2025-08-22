@@ -461,6 +461,6 @@ func (uc *ExamQuestionUsecase) validateExamQuestionAssociation(examID, questionI
 	}
 
 	// Topic is not associated with exam, reject
-	return fmt.Errorf("question %d belongs to topic %d which is not associated with exam %d", 
+	return fmt.Errorf("question %d belongs to topic %d which is not associated with exam %d",
 		questionID, question.TopicID, examID)
 }

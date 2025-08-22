@@ -25,13 +25,13 @@ func (r *QuestionTagRepositoryPG) CreateTag(tag *domain.QuestionTag) error {
 		INSERT INTO question_tags (name, created_at)
 		VALUES ($1, $2)
 		RETURNING id`
-	
+
 	now := time.Now()
 	err := r.DB.QueryRow(query, tag.Name, now).Scan(&tag.ID)
 	if err != nil {
 		return fmt.Errorf("failed to create question tag: %w", err)
 	}
-	
+
 	tag.CreatedAt = now
 	return nil
 }
@@ -39,21 +39,21 @@ func (r *QuestionTagRepositoryPG) CreateTag(tag *domain.QuestionTag) error {
 // UpdateTag updates an existing question tag
 func (r *QuestionTagRepositoryPG) UpdateTag(tag *domain.QuestionTag) error {
 	query := `UPDATE question_tags SET name = $1 WHERE id = $2`
-	
+
 	result, err := r.DB.Exec(query, tag.Name, tag.ID)
 	if err != nil {
 		return fmt.Errorf("failed to update question tag: %w", err)
 	}
-	
+
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return fmt.Errorf("failed to get rows affected: %w", err)
 	}
-	
+
 	if rowsAffected == 0 {
 		return fmt.Errorf("question tag not found")
 	}
-	
+
 	return nil
 }
 
@@ -81,22 +81,22 @@ func (r *QuestionTagRepositoryPG) DeleteTag(id int) error {
 // FindTagByID finds a question tag by ID
 func (r *QuestionTagRepositoryPG) FindTagByID(id int) (*domain.QuestionTag, error) {
 	query := `SELECT id, name, created_at FROM question_tags WHERE id = $1`
-	
+
 	tag := &domain.QuestionTag{}
-	
+
 	err := r.DB.QueryRow(query, id).Scan(
 		&tag.ID,
 		&tag.Name,
 		&tag.CreatedAt,
 	)
-	
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("question tag not found")
 		}
 		return nil, fmt.Errorf("failed to find question tag: %w", err)
 	}
-	
+
 	return tag, nil
 }
 
