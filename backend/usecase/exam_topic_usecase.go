@@ -188,7 +188,7 @@ func (uc *ExamTopicUsecase) CalculateQuestionsByDifficulty(examTopic *domain.Exa
 // GetExamStats retorna estatísticas completas de um exame
 func (uc *ExamTopicUsecase) GetExamStats(examID int) (*domain.ExamTopicStats, error) {
 	// Validar se o exame existe
-	exam, err := uc.ExamRepo.FindByID(examID)
+	_, err := uc.ExamRepo.FindByID(examID)
 	if err != nil {
 		return nil, fmt.Errorf("exam not found: %w", err)
 	}

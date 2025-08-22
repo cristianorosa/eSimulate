@@ -6,11 +6,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cristianorosa/eSimulate/backend/domain"
 	"github.com/cristianorosa/eSimulate/backend/usecase"
 )
 
-// QuestionTagHandler gerencia as requisições HTTP para tags de questões
+// QuestionTagHandler lida com requisições HTTP relacionadas a tags de questões
 type QuestionTagHandler struct {
 	QuestionTagUC *usecase.QuestionTagUsecase
 }
@@ -65,7 +64,7 @@ func (h *QuestionTagHandler) UpdateTagHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	tagID, err := strconv.Atoi(pathParts[2])
+	tagID, err := strconv.Atoi(pathParts[len(pathParts)-1])
 	if err != nil {
 		http.Error(w, "Invalid tag ID", http.StatusBadRequest)
 		return
@@ -100,7 +99,7 @@ func (h *QuestionTagHandler) UpdateTagHandler(w http.ResponseWriter, r *http.Req
 	})
 }
 
-// DeleteTagHandler remove uma tag
+// DeleteTagHandler deleta uma tag
 // DELETE /tags/{id}
 func (h *QuestionTagHandler) DeleteTagHandler(w http.ResponseWriter, r *http.Request) {
 	// Extrair ID da URL
@@ -110,7 +109,7 @@ func (h *QuestionTagHandler) DeleteTagHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	tagID, err := strconv.Atoi(pathParts[2])
+	tagID, err := strconv.Atoi(pathParts[len(pathParts)-1])
 	if err != nil {
 		http.Error(w, "Invalid tag ID", http.StatusBadRequest)
 		return
@@ -124,12 +123,12 @@ func (h *QuestionTagHandler) DeleteTagHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
+	json.NewEncoder(w).Encode(map[string]interface{}{
 		"message": "Tag deleted successfully",
 	})
 }
 
-// GetTagHandler retorna uma tag por ID
+// GetTagHandler busca uma tag por ID
 // GET /tags/{id}
 func (h *QuestionTagHandler) GetTagHandler(w http.ResponseWriter, r *http.Request) {
 	// Extrair ID da URL
@@ -139,14 +138,14 @@ func (h *QuestionTagHandler) GetTagHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	tagID, err := strconv.Atoi(pathParts[2])
+	tagID, err := strconv.Atoi(pathParts[len(pathParts)-1])
 	if err != nil {
 		http.Error(w, "Invalid tag ID", http.StatusBadRequest)
 		return
 	}
 
-	// Obter tag
-	tag, err := h.QuestionTagUC.GetTag(tagID)
+	// Buscar tag
+	tag, err := h.QuestionTagUC.GetTagByID(tagID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -154,46 +153,104 @@ func (h *QuestionTagHandler) GetTagHandler(w http.ResponseWriter, r *http.Reques
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"data": tag,
+		"message": "Tag retrieved successfully",
+		"data":    tag,
 	})
 }
 
-// ListTagsHandler retorna todas as tags
-// GET /tags?with_stats=true
+// ListTagsHandler lista todas as tags
+// GET /tags
 func (h *QuestionTagHandler) ListTagsHandler(w http.ResponseWriter, r *http.Request) {
-	withStats := r.URL.Query().Get("with_stats") == "true"
+	// Parâmetros de paginação
+	pageStr := r.URL.Query().Get("page")
+	pageSizeStr := r.URL.Query().Get("pageSize")
 
-	if withStats {
-		// Retornar tags com estatísticas
-		tags, err := h.QuestionTagUC.ListTagsWithStats()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+	page := 1
+	pageSize := 10
+
+	if pageStr != "" {
+		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+			page = p
 		}
-
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"data":  tags,
-			"count": len(tags),
-		})
-	} else {
-		// Retornar tags simples
-		tags, err := h.QuestionTagUC.ListAllTags()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"data":  tags,
-			"count": len(tags),
-		})
 	}
+
+	if pageSizeStr != "" {
+		if ps, err := strconv.Atoi(pageSizeStr); err == nil && ps > 0 && ps <= 100 {
+			pageSize = ps
+		}
+	}
+
+	// Listar tags
+	tags, err := h.QuestionTagUC.ListTags(page, pageSize)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message": "Tags retrieved successfully",
+		"data":    tags,
+	})
 }
 
-// AssociateQuestionTagHandler associa uma questão com uma tag
-// POST /questions/{questionId}/tags/{tagId}
+// ListTagsWithStatsHandler lista tags com estatísticas
+// GET /tags/stats
+func (h *QuestionTagHandler) ListTagsWithStatsHandler(w http.ResponseWriter, r *http.Request) {
+	tags, err := h.QuestionTagUC.ListTagsWithStats()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message": "Tags with stats retrieved successfully",
+		"data":    tags,
+	})
+}
+
+// SearchTagsHandler busca tags por nome
+// GET /tags/search/{term}
+func (h *QuestionTagHandler) SearchTagsHandler(w http.ResponseWriter, r *http.Request) {
+	// Extrair termo da URL
+	pathParts := strings.Split(r.URL.Path, "/")
+	if len(pathParts) < 4 {
+		http.Error(w, "Invalid URL format", http.StatusBadRequest)
+		return
+	}
+
+	searchTerm := pathParts[len(pathParts)-1]
+	if searchTerm == "" {
+		http.Error(w, "Search term is required", http.StatusBadRequest)
+		return
+	}
+
+	// Parâmetro de limite
+	limitStr := r.URL.Query().Get("limit")
+	limit := 20
+	if limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 && l <= 50 {
+			limit = l
+		}
+	}
+
+	// Buscar tags
+	tags, err := h.QuestionTagUC.SearchTags(searchTerm, limit)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message": "Tags search completed successfully",
+		"data":    tags,
+	})
+}
+
+// AssociateQuestionTagHandler associa uma tag a uma questão
+// POST /questions/{question_id}/tags/{tag_id}
 func (h *QuestionTagHandler) AssociateQuestionTagHandler(w http.ResponseWriter, r *http.Request) {
 	// Extrair IDs da URL
 	pathParts := strings.Split(r.URL.Path, "/")
@@ -214,7 +271,7 @@ func (h *QuestionTagHandler) AssociateQuestionTagHandler(w http.ResponseWriter, 
 		return
 	}
 
-	// Associar questão com tag
+	// Associar
 	err = h.QuestionTagUC.AssociateQuestionTag(questionID, tagID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -222,14 +279,13 @@ func (h *QuestionTagHandler) AssociateQuestionTagHandler(w http.ResponseWriter, 
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{
-		"message": "Question associated with tag successfully",
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message": "Question tag associated successfully",
 	})
 }
 
-// DisassociateQuestionTagHandler remove a associação entre uma questão e uma tag
-// DELETE /questions/{questionId}/tags/{tagId}
+// DisassociateQuestionTagHandler remove associação entre questão e tag
+// DELETE /questions/{question_id}/tags/{tag_id}
 func (h *QuestionTagHandler) DisassociateQuestionTagHandler(w http.ResponseWriter, r *http.Request) {
 	// Extrair IDs da URL
 	pathParts := strings.Split(r.URL.Path, "/")
@@ -250,7 +306,7 @@ func (h *QuestionTagHandler) DisassociateQuestionTagHandler(w http.ResponseWrite
 		return
 	}
 
-	// Desassociar questão da tag
+	// Desassociar
 	err = h.QuestionTagUC.DisassociateQuestionTag(questionID, tagID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -258,15 +314,15 @@ func (h *QuestionTagHandler) DisassociateQuestionTagHandler(w http.ResponseWrite
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
-		"message": "Question disassociated from tag successfully",
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message": "Question tag disassociated successfully",
 	})
 }
 
-// GetQuestionTagsHandler retorna todas as tags de uma questão
-// GET /questions/{questionId}/tags
+// GetQuestionTagsHandler lista todas as tags de uma questão
+// GET /questions/{question_id}/tags
 func (h *QuestionTagHandler) GetQuestionTagsHandler(w http.ResponseWriter, r *http.Request) {
-	// Extrair question ID da URL
+	// Extrair ID da URL
 	pathParts := strings.Split(r.URL.Path, "/")
 	if len(pathParts) < 4 {
 		http.Error(w, "Invalid URL format", http.StatusBadRequest)
@@ -279,54 +335,24 @@ func (h *QuestionTagHandler) GetQuestionTagsHandler(w http.ResponseWriter, r *ht
 		return
 	}
 
-	// Obter tags da questão
+	// Buscar tags da questão
 	tags, err := h.QuestionTagUC.GetQuestionTags(questionID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"data":  tags,
-		"count": len(tags),
-	})
-}
-
-// GetTagQuestionsHandler retorna todas as questões de uma tag
-// GET /tags/{tagId}/questions
-func (h *QuestionTagHandler) GetTagQuestionsHandler(w http.ResponseWriter, r *http.Request) {
-	// Extrair tag ID da URL
-	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 4 {
-		http.Error(w, "Invalid URL format", http.StatusBadRequest)
-		return
-	}
-
-	tagID, err := strconv.Atoi(pathParts[2])
-	if err != nil {
-		http.Error(w, "Invalid tag ID", http.StatusBadRequest)
-		return
-	}
-
-	// Obter questões da tag
-	questions, err := h.QuestionTagUC.GetTagQuestions(tagID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"data":  questions,
-		"count": len(questions),
+		"message": "Question tags retrieved successfully",
+		"data":    tags,
 	})
 }
 
 // UpdateQuestionTagsHandler atualiza todas as tags de uma questão
-// PUT /questions/{questionId}/tags
+// PUT /questions/{question_id}/tags
 func (h *QuestionTagHandler) UpdateQuestionTagsHandler(w http.ResponseWriter, r *http.Request) {
-	// Extrair question ID da URL
+	// Extrair ID da URL
 	pathParts := strings.Split(r.URL.Path, "/")
 	if len(pathParts) < 4 {
 		http.Error(w, "Invalid URL format", http.StatusBadRequest)
@@ -339,7 +365,6 @@ func (h *QuestionTagHandler) UpdateQuestionTagsHandler(w http.ResponseWriter, r 
 		return
 	}
 
-	// Decodificar body da requisição
 	var requestBody struct {
 		TagIDs []int `json:"tag_ids"`
 	}
@@ -360,16 +385,15 @@ func (h *QuestionTagHandler) UpdateQuestionTagsHandler(w http.ResponseWriter, r 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"message": "Question tags updated successfully",
-		"count":   len(requestBody.TagIDs),
 	})
 }
 
-// BulkAssociateQuestionTagsHandler associa uma questão com múltiplas tags
-// POST /questions/{questionId}/tags/bulk
+// BulkAssociateQuestionTagsHandler associa múltiplas tags a uma questão
+// POST /questions/{question_id}/tags/bulk
 func (h *QuestionTagHandler) BulkAssociateQuestionTagsHandler(w http.ResponseWriter, r *http.Request) {
-	// Extrair question ID da URL
+	// Extrair ID da URL
 	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 4 {
+	if len(pathParts) < 5 {
 		http.Error(w, "Invalid URL format", http.StatusBadRequest)
 		return
 	}
@@ -380,7 +404,6 @@ func (h *QuestionTagHandler) BulkAssociateQuestionTagsHandler(w http.ResponseWri
 		return
 	}
 
-	// Decodificar body da requisição
 	var requestBody struct {
 		TagIDs []int `json:"tag_ids"`
 	}
@@ -396,7 +419,7 @@ func (h *QuestionTagHandler) BulkAssociateQuestionTagsHandler(w http.ResponseWri
 		return
 	}
 
-	// Associar questão com tags
+	// Associar tags em lote
 	err = h.QuestionTagUC.BulkAssociateQuestionTags(questionID, requestBody.TagIDs)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -404,77 +427,15 @@ func (h *QuestionTagHandler) BulkAssociateQuestionTagsHandler(w http.ResponseWri
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"message": "Question associated with tags successfully",
-		"count":   len(requestBody.TagIDs),
+		"message": "Question tags bulk associated successfully",
 	})
 }
 
-// SearchTagsHandler busca tags por nome
-// GET /tags/search?q={query}&limit={limit}
-func (h *QuestionTagHandler) SearchTagsHandler(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query().Get("q")
-	if query == "" {
-		http.Error(w, "Query parameter 'q' is required", http.StatusBadRequest)
-		return
-	}
-
-	limitStr := r.URL.Query().Get("limit")
-	limit := 20 // padrão
-	if limitStr != "" {
-		var err error
-		limit, err = strconv.Atoi(limitStr)
-		if err != nil || limit <= 0 {
-			limit = 20
-		}
-	}
-
-	// Buscar tags
-	tags, err := h.QuestionTagUC.SearchTags(query, limit)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"data":  tags,
-		"count": len(tags),
-		"query": query,
-	})
-}
-
-// FilterQuestionsByTagsHandler filtra questões baseado em critérios de tags
-// POST /questions/filter-by-tags
-func (h *QuestionTagHandler) FilterQuestionsByTagsHandler(w http.ResponseWriter, r *http.Request) {
-	var filters domain.QuestionTagFilters
-
-	err := json.NewDecoder(r.Body).Decode(&filters)
-	if err != nil {
-		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
-		return
-	}
-
-	// Filtrar questões
-	questions, err := h.QuestionTagUC.FilterQuestionsByTags(&filters)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"data":    questions,
-		"count":   len(questions),
-		"filters": filters,
-	})
-}
-
-// GetTagUsageStatsHandler retorna estatísticas de uso de uma tag
-// GET /tags/{tagId}/stats
-func (h *QuestionTagHandler) GetTagUsageStatsHandler(w http.ResponseWriter, r *http.Request) {
-	// Extrair tag ID da URL
+// GetTagStatsHandler retorna estatísticas de uma tag
+// GET /tags/{id}/stats
+func (h *QuestionTagHandler) GetTagStatsHandler(w http.ResponseWriter, r *http.Request) {
+	// Extrair ID da URL
 	pathParts := strings.Split(r.URL.Path, "/")
 	if len(pathParts) < 4 {
 		http.Error(w, "Invalid URL format", http.StatusBadRequest)
@@ -487,158 +448,16 @@ func (h *QuestionTagHandler) GetTagUsageStatsHandler(w http.ResponseWriter, r *h
 		return
 	}
 
-	// Obter estatísticas
-	stats, err := h.QuestionTagUC.GetTagUsageStats(tagID)
+	// Buscar estatísticas
+	stats, err := h.QuestionTagUC.GetTagStats(tagID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"data": stats,
-	})
-}
-
-// GetQuestionTagStatsHandler retorna estatísticas de tags de uma questão
-// GET /questions/{questionId}/tags/stats
-func (h *QuestionTagHandler) GetQuestionTagStatsHandler(w http.ResponseWriter, r *http.Request) {
-	// Extrair question ID da URL
-	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 4 {
-		http.Error(w, "Invalid URL format", http.StatusBadRequest)
-		return
-	}
-
-	questionID, err := strconv.Atoi(pathParts[2])
-	if err != nil {
-		http.Error(w, "Invalid question ID", http.StatusBadRequest)
-		return
-	}
-
-	// Obter estatísticas
-	stats, err := h.QuestionTagUC.GetQuestionTagStats(questionID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"data": stats,
-	})
-}
-
-// GetMostUsedTagsHandler retorna as tags mais utilizadas
-// GET /tags/most-used?limit={limit}
-func (h *QuestionTagHandler) GetMostUsedTagsHandler(w http.ResponseWriter, r *http.Request) {
-	limitStr := r.URL.Query().Get("limit")
-	limit := 10 // padrão
-	if limitStr != "" {
-		var err error
-		limit, err = strconv.Atoi(limitStr)
-		if err != nil || limit <= 0 {
-			limit = 10
-		}
-	}
-
-	// Obter tags mais usadas
-	tags, err := h.QuestionTagUC.GetMostUsedTags(limit)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"data":  tags,
-		"count": len(tags),
-	})
-}
-
-// SuggestTagsHandler sugere tags para uma questão
-// GET /questions/{questionId}/tags/suggestions
-func (h *QuestionTagHandler) SuggestTagsHandler(w http.ResponseWriter, r *http.Request) {
-	// Extrair question ID da URL
-	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 4 {
-		http.Error(w, "Invalid URL format", http.StatusBadRequest)
-		return
-	}
-
-	questionID, err := strconv.Atoi(pathParts[2])
-	if err != nil {
-		http.Error(w, "Invalid question ID", http.StatusBadRequest)
-		return
-	}
-
-	// Obter sugestões
-	suggestions, err := h.QuestionTagUC.SuggestTagsForQuestion(questionID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"data":  suggestions,
-		"count": len(suggestions),
-	})
-}
-
-// FindSimilarQuestionsHandler encontra questões similares baseado nas tags
-// GET /questions/{questionId}/similar?limit={limit}
-func (h *QuestionTagHandler) FindSimilarQuestionsHandler(w http.ResponseWriter, r *http.Request) {
-	// Extrair question ID da URL
-	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 4 {
-		http.Error(w, "Invalid URL format", http.StatusBadRequest)
-		return
-	}
-
-	questionID, err := strconv.Atoi(pathParts[2])
-	if err != nil {
-		http.Error(w, "Invalid question ID", http.StatusBadRequest)
-		return
-	}
-
-	limitStr := r.URL.Query().Get("limit")
-	limit := 10 // padrão
-	if limitStr != "" {
-		var err error
-		limit, err = strconv.Atoi(limitStr)
-		if err != nil || limit <= 0 {
-			limit = 10
-		}
-	}
-
-	// Encontrar questões similares
-	questions, err := h.QuestionTagUC.FindSimilarQuestionsByTags(questionID, limit)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"data":  questions,
-		"count": len(questions),
-	})
-}
-
-// CleanupUnusedTagsHandler remove tags não utilizadas
-// DELETE /tags/cleanup
-func (h *QuestionTagHandler) CleanupUnusedTagsHandler(w http.ResponseWriter, r *http.Request) {
-	// Limpar tags não utilizadas
-	deletedCount, err := h.QuestionTagUC.CleanupUnusedTags()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"message":       "Unused tags cleaned up successfully",
-		"deleted_count": deletedCount,
+		"message": "Tag stats retrieved successfully",
+		"data":    stats,
 	})
 }

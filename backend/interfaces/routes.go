@@ -86,16 +86,33 @@ func SetupRoutes(mux *http.ServeMux, handlers *Handlers) {
 	// === N:N RELATIONSHIPS ENDPOINTS ===
 
 	// Exam-Question Relationships
-	mux.HandleFunc("/exams/", handleExamQuestionRoutes(handlers.ExamQuestion))
-	mux.HandleFunc("/questions/", handleQuestionExamRoutes(handlers.ExamQuestion))
+	mux.HandleFunc("/api/exams/", func(w http.ResponseWriter, r *http.Request) {
+		// Route to exam-question handler if path matches exam-question patterns
+		if strings.Contains(r.URL.Path, "/questions") {
+			handleExamQuestionRoutes(handlers.ExamQuestion)(w, r)
+		} else if strings.Contains(r.URL.Path, "/topics") {
+			handleExamTopicRoutes(handlers.ExamTopic)(w, r)
+		}
+	})
+
+	// Question-related N:N relationships
+	mux.HandleFunc("/api/questions/", func(w http.ResponseWriter, r *http.Request) {
+		// Route to question-tag handler if path matches tag patterns
+		if strings.Contains(r.URL.Path, "/tags") {
+			handleQuestionTagRoutes(handlers.QuestionTag)(w, r)
+		}
+		// Note: question-exam relationships are handled via /api/exams/ above
+	})
 
 	// Question Tags Management
-	mux.HandleFunc("/tags/", handleTagRoutes(handlers.QuestionTag))
-	mux.HandleFunc("/questions/", handleQuestionTagRoutes(handlers.QuestionTag))
+	mux.HandleFunc("/api/tags/", handleTagRoutes(handlers.QuestionTag))
 
-	// Exam-Topic Relationships
-	mux.HandleFunc("/exams/", handleExamTopicRoutes(handlers.ExamTopic))
-	mux.HandleFunc("/topics/", handleTopicExamRoutes(handlers.ExamTopic))
+	// Topic-Exam Relationships
+	mux.HandleFunc("/api/topics/", func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.URL.Path, "/exams") {
+			handleTopicExamRoutes(handlers.ExamTopic)(w, r)
+		}
+	})
 }
 
 // Handlers agrupa todos os handlers da aplicação
@@ -172,14 +189,10 @@ func handleTagRoutes(handler *QuestionTagHandler) http.HandlerFunc {
 		switch {
 		case matchRoute(path, "/tags/search") && method == "GET":
 			handler.SearchTagsHandler(w, r)
-		case matchRoute(path, "/tags/most-used") && method == "GET":
-			handler.GetMostUsedTagsHandler(w, r)
-		case matchRoute(path, "/tags/cleanup") && method == "DELETE":
-			AuthMiddleware(handler.CleanupUnusedTagsHandler)(w, r)
-		case matchRoute(path, "/tags/*/questions") && method == "GET":
-			handler.GetTagQuestionsHandler(w, r)
+		case matchRoute(path, "/tags/stats") && method == "GET":
+			handler.ListTagsWithStatsHandler(w, r)
 		case matchRoute(path, "/tags/*/stats") && method == "GET":
-			handler.GetTagUsageStatsHandler(w, r)
+			handler.GetTagStatsHandler(w, r)
 		case matchRoute(path, "/tags/*") && method == "GET":
 			handler.GetTagHandler(w, r)
 		case matchRoute(path, "/tags/*") && method == "PUT":
@@ -201,14 +214,8 @@ func handleQuestionTagRoutes(handler *QuestionTagHandler) http.HandlerFunc {
 		method := r.Method
 
 		switch {
-		case matchRoute(path, "/questions/filter-by-tags") && method == "POST":
-			handler.FilterQuestionsByTagsHandler(w, r)
 		case matchRoute(path, "/questions/*/tags/bulk") && method == "POST":
 			AuthMiddleware(handler.BulkAssociateQuestionTagsHandler)(w, r)
-		case matchRoute(path, "/questions/*/tags/stats") && method == "GET":
-			handler.GetQuestionTagStatsHandler(w, r)
-		case matchRoute(path, "/questions/*/tags/suggestions") && method == "GET":
-			handler.SuggestTagsHandler(w, r)
 		case matchRoute(path, "/questions/*/tags/*/*") && method == "POST":
 			AuthMiddleware(handler.AssociateQuestionTagHandler)(w, r)
 		case matchRoute(path, "/questions/*/tags/*/*") && method == "DELETE":
@@ -217,8 +224,7 @@ func handleQuestionTagRoutes(handler *QuestionTagHandler) http.HandlerFunc {
 			handler.GetQuestionTagsHandler(w, r)
 		case matchRoute(path, "/questions/*/tags") && method == "PUT":
 			AuthMiddleware(handler.UpdateQuestionTagsHandler)(w, r)
-		case matchRoute(path, "/questions/*/similar") && method == "GET":
-			handler.FindSimilarQuestionsHandler(w, r)
+
 		}
 	}
 }

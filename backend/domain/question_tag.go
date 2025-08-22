@@ -20,17 +20,9 @@ type QuestionTagAssociation struct {
 type QuestionTagWithStats struct {
 	*QuestionTag
 	QuestionCount int `json:"question_count" db:"question_count"`
-	UsageCount    int `json:"usage_count" db:"usage_count"`
 }
 
-// QuestionWithTags represents a question with its associated tags
-type QuestionWithTags struct {
-	QuestionID int            `json:"question_id"`
-	Tags       []*QuestionTag `json:"tags"`
-	TagNames   []string       `json:"tag_names"`
-}
-
-// QuestionTagRepository defines the interface for question tag operations
+// QuestionTagRepository define as operações de persistência para tags de questões
 type QuestionTagRepository interface {
 	// Tag Management
 	CreateTag(tag *QuestionTag) error
@@ -38,7 +30,7 @@ type QuestionTagRepository interface {
 	DeleteTag(id int) error
 	FindTagByID(id int) (*QuestionTag, error)
 	FindTagByName(name string) (*QuestionTag, error)
-	ListAllTags() ([]*QuestionTag, error)
+	ListTags(page, pageSize int) ([]*QuestionTag, error)
 	ListTagsWithStats() ([]*QuestionTagWithStats, error)
 
 	// Tag Association Management
@@ -46,9 +38,8 @@ type QuestionTagRepository interface {
 	DisassociateQuestionTag(questionID, tagID int) error
 
 	// Query Operations
-	ListTagsByQuestion(questionID int) ([]*QuestionTag, error)
-	ListQuestionsByTag(tagID int) ([]*Question, error)
-	ListQuestionsByTags(tagIDs []int) ([]*Question, error)
+	ListQuestionTags(questionID int) ([]*QuestionTag, error)
+	ListQuestionsByTag(tagID int) ([]int, error)
 
 	// Bulk Operations
 	BulkAssociateQuestionTags(questionID int, tagIDs []int) error
@@ -56,81 +47,12 @@ type QuestionTagRepository interface {
 	UpdateQuestionTags(questionID int, tagIDs []int) error
 
 	// Statistics and Analytics
-	GetTagUsageStats(tagID int) (*TagUsageStats, error)
-	GetQuestionTagStats(questionID int) (*QuestionTagStats, error)
-	GetMostUsedTags(limit int) ([]*QuestionTagWithStats, error)
-	GetLeastUsedTags(limit int) ([]*QuestionTagWithStats, error)
+	GetTagStats(tagID int) (*QuestionTagWithStats, error)
+	GetTagsByQuestions(questionIDs []int) (map[int][]*QuestionTag, error)
 
-	// Search and Filter
-	SearchTags(query string, limit int) ([]*QuestionTag, error)
-	FilterQuestionsByTags(filters *QuestionTagFilters) ([]*Question, error)
-}
-
-// QuestionTagFilters represents filters for querying questions by tags
-type QuestionTagFilters struct {
-	TagIDs          []int    `json:"tag_ids,omitempty"`
-	TagNames        []string `json:"tag_names,omitempty"`
-	ExamID          *int     `json:"exam_id,omitempty"`
-	TopicID         *int     `json:"topic_id,omitempty"`
-	DifficultyLevel *int     `json:"difficulty_level,omitempty"`
-	MatchAll        bool     `json:"match_all"` // true = AND logic, false = OR logic
-	Limit           int      `json:"limit"`
-	Offset          int      `json:"offset"`
-}
-
-// TagUsageStats represents usage statistics for a specific tag
-type TagUsageStats struct {
-	TagID                 int                `json:"tag_id"`
-	TagName               string             `json:"tag_name"`
-	TotalQuestions        int                `json:"total_questions"`
-	QuestionsByTopic      map[int]int        `json:"questions_by_topic"`
-	QuestionsByDifficulty map[int]int        `json:"questions_by_difficulty"`
-	QuestionsByExam       map[int]int        `json:"questions_by_exam"`
-	MostUsedWith          []*TagCooccurrence `json:"most_used_with"`
-}
-
-// QuestionTagStats represents tag statistics for a specific question
-type QuestionTagStats struct {
-	QuestionID       int      `json:"question_id"`
-	TotalTags        int      `json:"total_tags"`
-	TagNames         []string `json:"tag_names"`
-	TagCategories    []string `json:"tag_categories"`
-	SimilarQuestions []int    `json:"similar_questions"`
-}
-
-// TagCooccurrence represents how often two tags appear together
-type TagCooccurrence struct {
-	TagID       int     `json:"tag_id"`
-	TagName     string  `json:"tag_name"`
-	Occurrences int     `json:"occurrences"`
-	Percentage  float64 `json:"percentage"`
-}
-
-// TagSuggestion represents a tag suggestion for a question
-type TagSuggestion struct {
-	TagID      int     `json:"tag_id"`
-	TagName    string  `json:"tag_name"`
-	Confidence float64 `json:"confidence"`
-	Reason     string  `json:"reason"`
-}
-
-// QuestionTagService defines business logic for question tags
-type QuestionTagService interface {
-	// Suggest tags for a question based on content, topic, difficulty, etc.
-	SuggestTagsForQuestion(questionID int) ([]*TagSuggestion, error)
-
-	// Find similar questions based on tag overlap
-	FindSimilarQuestionsByTags(questionID int, limit int) ([]*Question, error)
-
-	// Validate tag associations (business rules)
-	ValidateTagAssociation(questionID, tagID int) error
-
-	// Auto-tag questions based on content analysis
-	AutoTagQuestion(questionID int) error
-
-	// Clean up unused tags
+	// Search and Utilities
+	SearchTags(searchTerm string, limit int) ([]*QuestionTag, error)
 	CleanupUnusedTags() (int, error)
-
-	// Merge duplicate tags
-	MergeTags(sourceTagID, targetTagID int) error
+	CountTags() (int, error)
+	CountTagsByQuestion(questionID int) (int, error)
 }

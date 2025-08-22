@@ -32,13 +32,13 @@ func NewExamQuestionUsecase(
 // AssociateQuestionWithExam associa uma questão a um exame
 func (uc *ExamQuestionUsecase) AssociateQuestionWithExam(examID, questionID int) error {
 	// Validar se o exame existe
-	exam, err := uc.ExamRepo.FindByID(examID)
+	_, err := uc.ExamRepo.FindByID(examID)
 	if err != nil {
 		return fmt.Errorf("exam not found: %w", err)
 	}
 
 	// Validar se a questão existe
-	question, err := uc.QuestionRepo.FindByID(questionID)
+	_, err = uc.QuestionRepo.FindByID(questionID)
 	if err != nil {
 		return fmt.Errorf("question not found: %w", err)
 	}
