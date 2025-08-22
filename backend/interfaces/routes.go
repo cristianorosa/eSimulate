@@ -84,10 +84,10 @@ func SetupRoutes(mux *http.ServeMux, handlers *Handlers) {
 	mux.HandleFunc("/user-exams/list", AuthMiddleware(handlers.UserExam.ListByUser))
 
 	// === N:N RELATIONSHIPS ENDPOINTS ===
+	// Using specific paths to avoid conflicts with basic CRUD operations
 
-	// Exam-Question Relationships
-	mux.HandleFunc("/api/exams/", func(w http.ResponseWriter, r *http.Request) {
-		// Route to exam-question handler if path matches exam-question patterns
+	// Exam-Question Relationships - specific paths only
+	mux.HandleFunc("/exams/", func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.URL.Path, "/questions") {
 			handleExamQuestionRoutes(handlers.ExamQuestion)(w, r)
 		} else if strings.Contains(r.URL.Path, "/topics") {
@@ -95,20 +95,19 @@ func SetupRoutes(mux *http.ServeMux, handlers *Handlers) {
 		}
 	})
 
-	// Question-related N:N relationships
-	mux.HandleFunc("/api/questions/", func(w http.ResponseWriter, r *http.Request) {
-		// Route to question-tag handler if path matches tag patterns
+	// Question Tags Management - specific paths only
+	mux.HandleFunc("/tags/", handleTagRoutes(handlers.QuestionTag))
+
+	// Question-Tag relationships - only specific tag paths to avoid CRUD conflicts
+	mux.HandleFunc("/questions/", func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.URL.Path, "/tags") {
 			handleQuestionTagRoutes(handlers.QuestionTag)(w, r)
 		}
-		// Note: question-exam relationships are handled via /api/exams/ above
+		// Don't handle other /questions/ paths - let them fall through to basic CRUD
 	})
 
-	// Question Tags Management
-	mux.HandleFunc("/api/tags/", handleTagRoutes(handlers.QuestionTag))
-
-	// Topic-Exam Relationships
-	mux.HandleFunc("/api/topics/", func(w http.ResponseWriter, r *http.Request) {
+	// Topic-Exam Relationships - specific paths only
+	mux.HandleFunc("/topics/", func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.URL.Path, "/exams") {
 			handleTopicExamRoutes(handlers.ExamTopic)(w, r)
 		}

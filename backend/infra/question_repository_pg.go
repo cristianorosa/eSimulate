@@ -132,7 +132,8 @@ func (r *QuestionRepositoryPG) ListByExam(examID int) ([]*domain.Question, error
 		SELECT q.id, q.topic_id, q.statement, q.problem, q.content_type, q.explanation, q.question_type, q.difficulty_level, q.created_by, q.is_active, q.created_at, q.updated_at
 		FROM questions q
 		JOIN topics t ON q.topic_id = t.id
-		WHERE t.exam_id = $1 AND q.is_active = true
+		JOIN exam_topics et ON t.id = et.topic_id
+		WHERE et.exam_id = $1 AND q.is_active = true
 		ORDER BY q.created_at DESC`
 
 	rows, err := r.DB.Query(query, examID)
@@ -278,10 +279,9 @@ func (r *QuestionRepositoryPG) ListAll() ([]*domain.Question, error) {
 func (r *QuestionRepositoryPG) ListAllWithDetails() ([]*domain.QuestionWithDetails, error) {
 	query := `
 		SELECT q.id, q.topic_id, q.statement, q.problem, q.content_type, q.explanation, q.question_type, q.difficulty_level, q.created_by, q.is_active, q.created_at, q.updated_at,
-		       t.name as topic_name, t.exam_id, e.title as exam_title
+		       t.name as topic_name
 		FROM questions q
 		JOIN topics t ON q.topic_id = t.id
-		JOIN exams e ON t.exam_id = e.id
 		ORDER BY q.created_at DESC`
 
 	rows, err := r.DB.Query(query)
@@ -299,7 +299,7 @@ func (r *QuestionRepositoryPG) ListAllWithDetails() ([]*domain.QuestionWithDetai
 
 		err := rows.Scan(
 			&q.Question.ID, &q.Question.TopicID, &q.Question.Statement, &q.Question.Problem, &q.Question.ContentType, &q.Question.Explanation, &q.Question.QuestionType, &q.Question.DifficultyLevel, &q.Question.CreatedBy, &q.Question.IsActive, &q.Question.CreatedAt, &q.Question.UpdatedAt,
-			&q.TopicName, &q.ExamID, &q.ExamTitle,
+			&q.TopicName,
 		)
 		if err != nil {
 			return nil, err
@@ -319,10 +319,9 @@ func (r *QuestionRepositoryPG) ListPaginated(page, pageSize int, examID, topicID
 	// Construir query base
 	baseQuery := `
 		SELECT q.id, q.topic_id, q.statement, q.problem, q.content_type, q.explanation, q.question_type, q.difficulty_level, q.created_by, q.is_active, q.created_at, q.updated_at,
-		       t.name as topic_name, t.exam_id, e.title as exam_title
+		       t.name as topic_name
 		FROM questions q
-		JOIN topics t ON q.topic_id = t.id
-		JOIN exams e ON t.exam_id = e.id`
+		JOIN topics t ON q.topic_id = t.id`
 
 	// Adicionar filtros
 	whereClause := ""
@@ -330,7 +329,9 @@ func (r *QuestionRepositoryPG) ListPaginated(page, pageSize int, examID, topicID
 	argIndex := 1
 
 	if examID != nil {
-		whereClause = " WHERE t.exam_id = $" + strconv.Itoa(argIndex)
+		// Para filtrar por exame, precisamos fazer JOIN com exam_topics
+		baseQuery += " JOIN exam_topics et ON t.id = et.topic_id"
+		whereClause = " WHERE et.exam_id = $" + strconv.Itoa(argIndex)
 		args = append(args, *examID)
 		argIndex++
 	}
@@ -346,7 +347,11 @@ func (r *QuestionRepositoryPG) ListPaginated(page, pageSize int, examID, topicID
 	}
 
 	// Query para contar total de registros
-	countQuery := "SELECT COUNT(*) FROM questions q JOIN topics t ON q.topic_id = t.id JOIN exams e ON t.exam_id = e.id" + whereClause
+	countBaseQuery := "SELECT COUNT(*) FROM questions q JOIN topics t ON q.topic_id = t.id"
+	if examID != nil {
+		countBaseQuery += " JOIN exam_topics et ON t.id = et.topic_id"
+	}
+	countQuery := countBaseQuery + whereClause
 	var totalItems int
 	err := r.DB.QueryRow(countQuery, args...).Scan(&totalItems)
 	if err != nil {
@@ -376,7 +381,7 @@ func (r *QuestionRepositoryPG) ListPaginated(page, pageSize int, examID, topicID
 
 		err := rows.Scan(
 			&q.Question.ID, &q.Question.TopicID, &q.Question.Statement, &q.Question.Problem, &q.Question.ContentType, &q.Question.Explanation, &q.Question.QuestionType, &q.Question.DifficultyLevel, &q.Question.CreatedBy, &q.Question.IsActive, &q.Question.CreatedAt, &q.Question.UpdatedAt,
-			&q.TopicName, &q.ExamID, &q.ExamTitle,
+			&q.TopicName,
 		)
 		if err != nil {
 			return nil, nil, err
