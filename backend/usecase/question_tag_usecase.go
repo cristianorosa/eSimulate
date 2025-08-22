@@ -25,7 +25,7 @@ func NewQuestionTagUsecase(
 }
 
 // CreateTag cria uma nova tag
-func (uc *QuestionTagUsecase) CreateTag(name, description string) (*domain.QuestionTag, error) {
+func (uc *QuestionTagUsecase) CreateTag(name string) (*domain.QuestionTag, error) {
 	// Validar nome da tag
 	name = strings.TrimSpace(name)
 	if len(name) < 2 {
@@ -42,11 +42,6 @@ func (uc *QuestionTagUsecase) CreateTag(name, description string) (*domain.Quest
 	tag := &domain.QuestionTag{
 		Name: name,
 	}
-	
-	if description != "" {
-		desc := strings.TrimSpace(description)
-		tag.Description = &desc
-	}
 
 	err = uc.QuestionTagRepo.CreateTag(tag)
 	if err != nil {
@@ -57,7 +52,7 @@ func (uc *QuestionTagUsecase) CreateTag(name, description string) (*domain.Quest
 }
 
 // UpdateTag atualiza uma tag existente
-func (uc *QuestionTagUsecase) UpdateTag(id int, name, description string) (*domain.QuestionTag, error) {
+func (uc *QuestionTagUsecase) UpdateTag(id int, name string) (*domain.QuestionTag, error) {
 	// Buscar a tag existente
 	tag, err := uc.QuestionTagRepo.FindTagByID(id)
 	if err != nil {
@@ -76,14 +71,8 @@ func (uc *QuestionTagUsecase) UpdateTag(id int, name, description string) (*doma
 		return nil, fmt.Errorf("tag with name '%s' already exists", name)
 	}
 
-	// Atualizar os campos
+	// Atualizar o campo
 	tag.Name = name
-	if description != "" {
-		desc := strings.TrimSpace(description)
-		tag.Description = &desc
-	} else {
-		tag.Description = nil
-	}
 
 	err = uc.QuestionTagRepo.UpdateTag(tag)
 	if err != nil {

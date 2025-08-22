@@ -26,8 +26,7 @@ func NewQuestionTagHandler(questionTagUC *usecase.QuestionTagUsecase) *QuestionT
 // POST /tags
 func (h *QuestionTagHandler) CreateTagHandler(w http.ResponseWriter, r *http.Request) {
 	var requestBody struct {
-		Name        string `json:"name"`
-		Description string `json:"description,omitempty"`
+		Name string `json:"name"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&requestBody)
@@ -42,7 +41,7 @@ func (h *QuestionTagHandler) CreateTagHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	// Criar tag
-	tag, err := h.QuestionTagUC.CreateTag(requestBody.Name, requestBody.Description)
+	tag, err := h.QuestionTagUC.CreateTag(requestBody.Name)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -73,8 +72,7 @@ func (h *QuestionTagHandler) UpdateTagHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	var requestBody struct {
-		Name        string `json:"name"`
-		Description string `json:"description,omitempty"`
+		Name string `json:"name"`
 	}
 
 	err = json.NewDecoder(r.Body).Decode(&requestBody)
@@ -89,7 +87,7 @@ func (h *QuestionTagHandler) UpdateTagHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	// Atualizar tag
-	tag, err := h.QuestionTagUC.UpdateTag(tagID, requestBody.Name, requestBody.Description)
+	tag, err := h.QuestionTagUC.UpdateTag(tagID, requestBody.Name)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

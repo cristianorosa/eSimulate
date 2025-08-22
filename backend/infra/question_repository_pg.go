@@ -409,7 +409,7 @@ func (r *QuestionRepositoryPG) FindByIDWithExams(id int) (*domain.Question, erro
 	// Initialize empty exams slice
 	question.ExamIDs = []int{}
 	question.Exams = []*domain.Exam{}
-	
+
 	return question, nil
 }
 
@@ -459,25 +459,25 @@ func (r *QuestionRepositoryPG) GetQuestionStats(questionID int) (*domain.Questio
 // GetTopicQuestionCount returns the number of questions in a topic
 func (r *QuestionRepositoryPG) GetTopicQuestionCount(topicID int) (int, error) {
 	query := `SELECT COUNT(*) FROM questions WHERE topic_id = $1 AND is_active = true`
-	
+
 	var count int
 	err := r.DB.QueryRow(query, topicID).Scan(&count)
 	if err != nil {
 		return 0, err
 	}
-	
+
 	return count, nil
 }
 
 // GetExamQuestionCount returns the number of questions in an exam
 func (r *QuestionRepositoryPG) GetExamQuestionCount(examID int) (int, error) {
 	query := `SELECT COUNT(*) FROM exam_questions WHERE exam_id = $1`
-	
+
 	var count int
 	err := r.DB.QueryRow(query, examID).Scan(&count)
 	if err != nil {
 		return 0, err
 	}
-	
+
 	return count, nil
 }

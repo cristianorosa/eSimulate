@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cristianorosa/eSimulate/backend/domain"
 	"github.com/cristianorosa/eSimulate/backend/usecase"
 )
 

@@ -280,7 +280,7 @@ func (r *ExamRepositoryPG) FindByIDWithTopics(id int) (*domain.Exam, error) {
 
 	// Initialize empty topics slice (would be populated by ExamTopicRepository in real implementation)
 	exam.Topics = []*domain.ExamTopic{}
-	
+
 	return exam, nil
 }
 
@@ -296,7 +296,7 @@ func (r *ExamRepositoryPG) ListByAreaWithTopics(areaID int) ([]*domain.Exam, err
 	for _, exam := range exams {
 		exam.Topics = []*domain.ExamTopic{}
 	}
-	
+
 	return exams, nil
 }
 
@@ -311,7 +311,7 @@ func (r *ExamRepositoryPG) FindByIDWithQuestions(id int) (*domain.Exam, error) {
 	// Initialize empty questions slice
 	exam.Questions = []*domain.Question{}
 	exam.QuestionIDs = []int{}
-	
+
 	return exam, nil
 }
 
@@ -327,7 +327,7 @@ func (r *ExamRepositoryPG) FindByIDWithTopicsAndQuestions(id int) (*domain.Exam,
 	exam.Topics = []*domain.ExamTopic{}
 	exam.Questions = []*domain.Question{}
 	exam.QuestionIDs = []int{}
-	
+
 	return exam, nil
 }
 
@@ -344,7 +344,7 @@ func (r *ExamRepositoryPG) ListByAreaWithQuestions(areaID int) ([]*domain.Exam, 
 		exam.Questions = []*domain.Question{}
 		exam.QuestionIDs = []int{}
 	}
-	
+
 	return exams, nil
 }
 

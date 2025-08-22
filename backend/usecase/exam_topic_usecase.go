@@ -345,7 +345,7 @@ func (uc *ExamTopicUsecase) AutoDistributeWeights(examID int) error {
 	// Atualizar pesos
 	for i, topic := range topics {
 		topic.WeightPercentage = weightPerTopic
-		
+
 		// Adicionar o restante ao primeiro tópico para garantir total de 100%
 		if i == 0 {
 			topic.WeightPercentage += remainder
@@ -374,12 +374,12 @@ func (uc *ExamTopicUsecase) SuggestOptimalDistribution(examID int) (*domain.Exam
 
 	// Criar sugestões baseadas em boas práticas
 	suggestions := &domain.ExamTopicStats{
-		ExamID:              examID,
-		TotalTopics:         currentStats.TotalTopics,
-		TotalWeight:         100.0,
-		TotalQuestions:      currentStats.TotalQuestions,
-		CompletedTopics:     currentStats.CompletedTopics,
-		TopicDistribution:   []*domain.TopicDistribution{},
+		ExamID:            examID,
+		TotalTopics:       currentStats.TotalTopics,
+		TotalWeight:       100.0,
+		TotalQuestions:    currentStats.TotalQuestions,
+		CompletedTopics:   currentStats.CompletedTopics,
+		TopicDistribution: []*domain.TopicDistribution{},
 		DifficultyBreakdown: &domain.DifficultyBreakdown{
 			// Distribuição padrão sugerida: 40% fácil, 40% médio, 20% difícil
 			EasyPercentage:   40.0,

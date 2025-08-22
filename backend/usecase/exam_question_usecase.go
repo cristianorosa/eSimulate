@@ -50,7 +50,7 @@ func (uc *ExamQuestionUsecase) AssociateQuestionWithExam(examID, questionID int)
 	}
 
 	// Validar regras de negócio (hierarquia tópico-exame)
-	err = uc.ExamQuestionRepo.ValidateExamQuestionAssociation(examID, questionID)
+	err = uc.validateExamQuestionAssociation(examID, questionID)
 	if err != nil {
 		return fmt.Errorf("validation failed: %w", err)
 	}
@@ -209,7 +209,7 @@ func (uc *ExamQuestionUsecase) BulkAssociateQuestionsWithExam(examID int, questi
 		}
 
 		// Validar regras de negócio
-		err = uc.ExamQuestionRepo.ValidateExamQuestionAssociation(examID, questionID)
+		err = uc.validateExamQuestionAssociation(examID, questionID)
 		if err != nil {
 			return fmt.Errorf("validation failed for question %d: %w", questionID, err)
 		}
@@ -327,7 +327,7 @@ func (uc *ExamQuestionUsecase) GetExamQuestionStats(examID int) (*domain.ExamQue
 	// Contar questões por tópico e dificuldade
 	topicCounts := make(map[int]int)
 	topicNames := make(map[int]string)
-	
+
 	for _, q := range questions {
 		stats.QuestionsByTopic[q.TopicID]++
 		stats.QuestionsByDifficulty[q.DifficultyLevel]++
@@ -345,7 +345,7 @@ func (uc *ExamQuestionUsecase) GetExamQuestionStats(examID int) (*domain.ExamQue
 	for _, et := range examTopics {
 		actualCount := topicCounts[et.TopicID]
 		topicName := topicNames[et.TopicID]
-		
+
 		distribution := &domain.TopicDistribution{
 			TopicID:          et.TopicID,
 			TopicName:        topicName,
@@ -354,7 +354,7 @@ func (uc *ExamQuestionUsecase) GetExamQuestionStats(examID int) (*domain.ExamQue
 			ExpectedCount:    et.QuestionsCount,
 			IsComplete:       actualCount >= et.QuestionsCount,
 		}
-		
+
 		stats.TopicDistribution = append(stats.TopicDistribution, distribution)
 	}
 
@@ -404,7 +404,7 @@ func (uc *ExamQuestionUsecase) ValidateExamConfiguration(examID int) (bool, []st
 
 	for _, et := range examTopics {
 		if et.ActualQuestions < et.QuestionsCount {
-			errors = append(errors, fmt.Sprintf("Topic '%s' has only %d questions but needs %d", 
+			errors = append(errors, fmt.Sprintf("Topic '%s' has only %d questions but needs %d",
 				et.TopicName, et.ActualQuestions, et.QuestionsCount))
 		}
 	}
@@ -421,4 +421,46 @@ func (uc *ExamQuestionUsecase) ValidateExamConfiguration(examID int) (bool, []st
 	}
 
 	return len(errors) == 0, errors
+}
+
+// validateExamQuestionAssociation validates business rules for exam-question association
+func (uc *ExamQuestionUsecase) validateExamQuestionAssociation(examID, questionID int) error {
+	// Get the question to check its topic
+	question, err := uc.QuestionRepo.FindByID(questionID)
+	if err != nil {
+		return fmt.Errorf("question not found: %w", err)
+	}
+
+	// Check if question has a topic
+	if question.TopicID == 0 {
+		return fmt.Errorf("question %d does not have a topic assigned", questionID)
+	}
+
+	// Get exam topics
+	examTopics, err := uc.ExamTopicRepo.ListByExam(examID)
+	if err != nil {
+		return fmt.Errorf("failed to get exam topics: %w", err)
+	}
+
+	// If exam has no topics, reject the association
+	if len(examTopics) == 0 {
+		return fmt.Errorf("exam %d has no topics configured", examID)
+	}
+
+	// Check if exam has only one topic with 100% weight (exception case)
+	if len(examTopics) == 1 && examTopics[0].WeightPercentage == 100.0 {
+		// Allow any question for single topic with 100% weight
+		return nil
+	}
+
+	// Check if the question's topic is associated with the exam
+	for _, examTopic := range examTopics {
+		if examTopic.TopicID == question.TopicID {
+			return nil // Valid association
+		}
+	}
+
+	// Topic is not associated with exam, reject
+	return fmt.Errorf("question %d belongs to topic %d which is not associated with exam %d", 
+		questionID, question.TopicID, examID)
 }

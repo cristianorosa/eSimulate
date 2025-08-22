@@ -401,32 +401,9 @@ func (r *ExamQuestionRepositoryPG) ReorderQuestions(examID int, questionIDs []in
 }
 
 // ValidateExamQuestionAssociation validates if a question can be associated with an exam
+// This validation is now handled in the business logic layer (use cases)
 func (r *ExamQuestionRepositoryPG) ValidateExamQuestionAssociation(examID, questionID int) error {
-	// This validation is implemented as a database trigger
-	// We can perform a test insertion to validate the association
-	tx, err := r.DB.Begin()
-	if err != nil {
-		return fmt.Errorf("failed to begin validation transaction: %w", err)
-	}
-	defer tx.Rollback()
-
-	// Try to insert with a temporary high order_index
-	query := `
-		INSERT INTO exam_questions (exam_id, question_id, order_index, created_at, updated_at)
-		VALUES ($1, $2, 999999, $3, $4)`
-
-	now := time.Now()
-	_, err = tx.Exec(query, examID, questionID, now, now)
-	if err != nil {
-		return fmt.Errorf("validation failed: %w", err)
-	}
-
-	// Remove the test insertion
-	deleteQuery := `DELETE FROM exam_questions WHERE exam_id = $1 AND question_id = $2 AND order_index = 999999`
-	_, err = tx.Exec(deleteQuery, examID, questionID)
-	if err != nil {
-		return fmt.Errorf("failed to cleanup validation test: %w", err)
-	}
-
-	return tx.Commit()
+	// Validation moved to business logic - this is now a no-op
+	// The actual validation happens in ExamQuestionUsecase
+	return nil
 }

@@ -127,7 +127,6 @@ CREATE TABLE exam_questions (
 CREATE TABLE question_tags (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
-    description TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT question_tags_name_check CHECK (LENGTH(TRIM(name)) >= 2)
 );
@@ -270,75 +269,11 @@ INSERT INTO users (name, email, password_hash, role_id) VALUES
 INSERT INTO users (name, email, password_hash, role_id) VALUES 
 ('Usuário', 'user@esimulate.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1);
 
--- 16. Funções de Validação e Views
+-- 16. Views
 
--- Função: validate_exam_question_topic
--- Purpose: Ensures a question associated with an exam belongs to one of the exam's topics
--- Exception: If exam has only one topic with 100% weight, any question can be associated
-CREATE OR REPLACE FUNCTION validate_exam_question_topic()
-RETURNS TRIGGER AS $$
-DECLARE
-    question_topic_id INTEGER;
-    exam_topic_count INTEGER;
-    exam_single_topic_weight DECIMAL;
-    exam_has_topic BOOLEAN;
-BEGIN
-    -- Get the topic_id of the question
-    SELECT topic_id INTO question_topic_id
-    FROM questions
-    WHERE id = NEW.question_id;
-    
-    -- Check if question has a topic
-    IF question_topic_id IS NULL THEN
-        RAISE EXCEPTION 'Question % does not have a topic assigned', NEW.question_id;
-    END IF;
-    
-    -- Count how many topics the exam has
-    SELECT COUNT(*) INTO exam_topic_count
-    FROM exam_topics
-    WHERE exam_id = NEW.exam_id;
-    
-    -- If exam has no topics, reject the association
-    IF exam_topic_count = 0 THEN
-        RAISE EXCEPTION 'Exam % has no topics configured', NEW.exam_id;
-    END IF;
-    
-    -- Check if exam has only one topic with 100% weight (exception case)
-    IF exam_topic_count = 1 THEN
-        SELECT weight_percentage INTO exam_single_topic_weight
-        FROM exam_topics
-        WHERE exam_id = NEW.exam_id;
-        
-        -- If single topic has 100% weight, allow any question
-        IF exam_single_topic_weight = 100.0 THEN
-            RETURN NEW;
-        END IF;
-    END IF;
-    
-    -- Check if the question's topic is associated with the exam
-    SELECT EXISTS(
-        SELECT 1
-        FROM exam_topics et
-        WHERE et.exam_id = NEW.exam_id
-        AND et.topic_id = question_topic_id
-    ) INTO exam_has_topic;
-    
-    -- If topic is not associated with exam, reject
-    IF NOT exam_has_topic THEN
-        RAISE EXCEPTION 'Question % belongs to topic % which is not associated with exam %', 
-            NEW.question_id, question_topic_id, NEW.exam_id;
-    END IF;
-    
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Trigger: validate exam-question-topic relationship
-DROP TRIGGER IF EXISTS trigger_validate_exam_question_topic ON exam_questions;
-CREATE TRIGGER trigger_validate_exam_question_topic
-    BEFORE INSERT OR UPDATE ON exam_questions
-    FOR EACH ROW
-    EXECUTE FUNCTION validate_exam_question_topic();
+-- VALIDATION MOVED TO BUSINESS LOGIC
+-- Validation rules are now handled in the application layer (use cases)
+-- This provides better error handling and more flexible business rules
 
 -- View: v_exam_questions_with_topics
 -- Purpose: Provides easy access to exam-question relationships with topic information
@@ -365,15 +300,15 @@ JOIN topics t ON q.topic_id = t.id
 LEFT JOIN exam_topics et ON (et.exam_id = eq.exam_id AND et.topic_id = q.topic_id);
 
 -- 17. Dados iniciais para tags
-INSERT INTO question_tags (name, description) VALUES 
-    ('Básico', 'Questões de nível básico/fundamental'),
-    ('Intermediário', 'Questões de nível intermediário'),
-    ('Avançado', 'Questões de nível avançado'),
-    ('Prático', 'Questões com enfoque prático'),
-    ('Teórico', 'Questões com enfoque teórico'),
-    ('Conceitual', 'Questões conceituais'),
-    ('Aplicação', 'Questões de aplicação prática'),
-    ('Análise', 'Questões que requerem análise'),
-    ('Síntese', 'Questões que requerem síntese'),
-    ('Avaliação', 'Questões de avaliação crítica')
+INSERT INTO question_tags (name) VALUES 
+    ('Básico'),
+    ('Intermediário'),
+    ('Avançado'),
+    ('Prático'),
+    ('Teórico'),
+    ('Conceitual'),
+    ('Aplicação'),
+    ('Análise'),
+    ('Síntese'),
+    ('Avaliação')
 ON CONFLICT (name) DO NOTHING; 

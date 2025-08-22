@@ -4,10 +4,9 @@ import "time"
 
 // QuestionTag represents a tag that can be associated with questions
 type QuestionTag struct {
-	ID          int       `json:"id" db:"id"`
-	Name        string    `json:"name" db:"name"`
-	Description *string   `json:"description" db:"description"`
-	CreatedAt   time.Time `json:"created_at" db:"created_at"`
+	ID        int       `json:"id" db:"id"`
+	Name      string    `json:"name" db:"name"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
 }
 
 // QuestionTagAssociation represents the N:N relationship between questions and tags
