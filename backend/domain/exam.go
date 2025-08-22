@@ -15,7 +15,7 @@ type Exam struct {
 	CreatedBy      int       `json:"created_by"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at,omitempty"`
-	
+
 	// N:N Relationships
 	Topics      []*ExamTopic `json:"topics,omitempty"`       // Tópicos associados ao exame
 	Questions   []*Question  `json:"questions,omitempty"`    // Questões associadas ao exame
@@ -28,7 +28,7 @@ type Topic struct {
 	Name        string    `json:"name"`
 	Description *string   `json:"description,omitempty"`
 	CreatedAt   time.Time `json:"created_at"`
-	
+
 	// Campos legados para compatibilidade (deprecated)
 	ExamID           int     `json:"exam_id,omitempty"`           // Deprecated: usar ExamTopic
 	WeightPercentage float64 `json:"weight_percentage,omitempty"` // Deprecated: usar ExamTopic
@@ -46,14 +46,14 @@ type ExamRepository interface {
 	ListAll() ([]*Exam, error)
 	ListByArea(areaID int) ([]*Exam, error)
 	ListPaginated(page, pageSize int, areaID *int) ([]*Exam, *Pagination, error)
-	
+
 	// N:N Relationship operations
 	FindByIDWithTopics(id int) (*Exam, error)
 	ListByAreaWithTopics(areaID int) ([]*Exam, error)
 	FindByIDWithQuestions(id int) (*Exam, error)
 	FindByIDWithTopicsAndQuestions(id int) (*Exam, error)
 	ListByAreaWithQuestions(areaID int) ([]*Exam, error)
-	
+
 	// Statistics and maintenance
 	UpdateQuestionsCount(examID int) error
 }
@@ -67,10 +67,10 @@ type TopicRepository interface {
 	FindByID(id int) (*Topic, error)
 	ListAll() ([]*Topic, error)
 	ListPaginated(page, pageSize int, examID *int) ([]*Topic, *Pagination, error)
-	
+
 	// Query operations (legacy support)
 	ListByExam(examID int) ([]*Topic, error) // Deprecated: usar ExamTopicRepository
-	
+
 	// New N:N relationship operations
 	ListByExamWithDetails(examID int) ([]*ExamTopicWithDetails, error)
 }

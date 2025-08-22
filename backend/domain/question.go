@@ -33,13 +33,13 @@ type Question struct {
 	CreatedAt       time.Time           `json:"created_at"`
 	UpdatedAt       time.Time           `json:"updated_at,omitempty"`
 	Options         []*Option           `json:"options"`
-	
+
 	// N:N Relationships
-	ExamIDs   []int    `json:"exam_ids,omitempty"`   // IDs dos exames que contêm esta questão
-	Exams     []*Exam  `json:"exams,omitempty"`      // Exames que contêm esta questão
-	TagIDs    []int    `json:"tag_ids,omitempty"`    // IDs das tags associadas
-	Tags      []*QuestionTag `json:"tags,omitempty"` // Tags associadas à questão
-	TagNames  []string `json:"tag_names,omitempty"`  // Nomes das tags (para facilitar exibição)
+	ExamIDs  []int          `json:"exam_ids,omitempty"`  // IDs dos exames que contêm esta questão
+	Exams    []*Exam        `json:"exams,omitempty"`     // Exames que contêm esta questão
+	TagIDs   []int          `json:"tag_ids,omitempty"`   // IDs das tags associadas
+	Tags     []*QuestionTag `json:"tags,omitempty"`      // Tags associadas à questão
+	TagNames []string       `json:"tag_names,omitempty"` // Nomes das tags (para facilitar exibição)
 }
 
 // QuestionWithDetails representa uma questão com informações detalhadas do exame e tópico
@@ -50,7 +50,7 @@ type QuestionWithDetails struct {
 	TagCount     int      `json:"tag_count"`      // Número de tags associadas
 	TagNamesList []string `json:"tag_names_list"` // Lista de nomes das tags
 	TopicName    string   `json:"topic_name"`     // Nome do tópico
-	
+
 	// Campos legados para compatibilidade
 	ExamID    int    `json:"exam_id,omitempty"`    // Deprecated: usar ExamIDs
 	ExamTitle string `json:"exam_title,omitempty"` // Deprecated: usar ExamTitles
@@ -73,23 +73,23 @@ type QuestionRepository interface {
 	Update(question *Question) error
 	Delete(id int) error
 	FindByID(id int) (*Question, error)
-	
+
 	// Query operations
 	ListByExam(examID int) ([]*Question, error)
 	ListByTopic(topicID int) ([]*Question, error)
 	ListAll() ([]*Question, error)
 	ListAllWithDetails() ([]*QuestionWithDetails, error)
 	ListPaginated(page, pageSize int, examID, topicID *int) ([]*QuestionWithDetails, *Pagination, error)
-	
+
 	// N:N Relationship operations
 	FindByIDWithExams(id int) (*Question, error)
 	ListExamsByQuestion(questionID int) ([]*Exam, error)
 	ListByExamDirect(examID int) ([]*Question, error) // Direct relationship via exam_questions
 	ListByExamWithDetails(examID int) ([]*QuestionWithDetails, error)
-	
+
 	// Question availability and filtering
 	GetAvailableQuestionsForExam(examID int, topicID *int) ([]*Question, error)
-	
+
 	// Statistics and analytics
 	GetQuestionStats(questionID int) (*QuestionStats, error)
 	GetTopicQuestionCount(topicID int) (int, error)
