@@ -72,6 +72,16 @@ func main() {
 		PerformanceRepo: topicPerformanceRepo,
 	}
 
+	// === N:N RELATIONSHIPS REPOSITORIES ===
+	examQuestionRepo := infra.NewExamQuestionRepositoryPG(db)
+	questionTagRepo := infra.NewQuestionTagRepositoryPG(db)
+	examTopicRepo := infra.NewExamTopicRepositoryPG(db)
+
+	// === N:N RELATIONSHIPS USE CASES ===
+	examQuestionUC := usecase.NewExamQuestionUsecase(examQuestionRepo, examRepo, questionRepo, examTopicRepo)
+	questionTagUC := usecase.NewQuestionTagUsecase(questionTagRepo, questionRepo)
+	examTopicUC := usecase.NewExamTopicUsecase(examTopicRepo, examRepo, topicRepo)
+
 	// Cria usuários iniciais se não existirem
 	createInitialUsers(userUC)
 
@@ -80,16 +90,19 @@ func main() {
 	themeUC := &usecase.ThemeUsecase{Repo: themeRepo}
 
 	handlers := &interfaces.Handlers{
-		User:        &interfaces.UserHandler{UC: userUC},
-		Theme:       &interfaces.ThemeHandler{UC: themeUC},
-		Question:    &interfaces.QuestionHandler{UC: questionUC, AreaUC: areaUC, ExamUC: examUC, TopicUC: topicUC},
-		Quiz:        &interfaces.QuizHandler{UC: quizUC},
-		History:     &interfaces.HistoryHandler{UC: userQuizUC},
-		Performance: &interfaces.PerformanceHandler{UC: performanceUC},
-		Area:        &interfaces.AreaHandler{UC: areaUC},
-		Exam:        &interfaces.ExamHandler{UC: examUC},
-		Topic:       &interfaces.TopicHandler{UC: topicUC},
-		UserExam:    &interfaces.UserExamHandler{UC: userExamUC},
+		User:         &interfaces.UserHandler{UC: userUC},
+		Theme:        &interfaces.ThemeHandler{UC: themeUC},
+		Question:     &interfaces.QuestionHandler{UC: questionUC, AreaUC: areaUC, ExamUC: examUC, TopicUC: topicUC},
+		Quiz:         &interfaces.QuizHandler{UC: quizUC},
+		History:      &interfaces.HistoryHandler{UC: userQuizUC},
+		Performance:  &interfaces.PerformanceHandler{UC: performanceUC},
+		Area:         &interfaces.AreaHandler{UC: areaUC},
+		Exam:         &interfaces.ExamHandler{UC: examUC},
+		Topic:        &interfaces.TopicHandler{UC: topicUC},
+		UserExam:     &interfaces.UserExamHandler{UC: userExamUC},
+		ExamQuestion: interfaces.NewExamQuestionHandler(examQuestionUC),
+		QuestionTag:  interfaces.NewQuestionTagHandler(questionTagUC),
+		ExamTopic:    interfaces.NewExamTopicHandler(examTopicUC),
 	}
 	log.Printf("QuestionHandler inicializado: %+v", handlers.Question)
 

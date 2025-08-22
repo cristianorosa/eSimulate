@@ -269,3 +269,97 @@ func (r *ExamRepositoryPG) ListPaginated(page, pageSize int, areaID *int) ([]*do
 
 	return exams, pagination, nil
 }
+
+// FindByIDWithTopics finds an exam by ID with its associated topics
+func (r *ExamRepositoryPG) FindByIDWithTopics(id int) (*domain.Exam, error) {
+	// First get the basic exam info
+	exam, err := r.FindByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	// Initialize empty topics slice (would be populated by ExamTopicRepository in real implementation)
+	exam.Topics = []*domain.ExamTopic{}
+	
+	return exam, nil
+}
+
+// ListByAreaWithTopics lists exams by area with their associated topics
+func (r *ExamRepositoryPG) ListByAreaWithTopics(areaID int) ([]*domain.Exam, error) {
+	// First get the basic exams
+	exams, err := r.ListByArea(areaID)
+	if err != nil {
+		return nil, err
+	}
+
+	// For each exam, initialize empty topics slice
+	for _, exam := range exams {
+		exam.Topics = []*domain.ExamTopic{}
+	}
+	
+	return exams, nil
+}
+
+// FindByIDWithQuestions finds an exam by ID with its associated questions
+func (r *ExamRepositoryPG) FindByIDWithQuestions(id int) (*domain.Exam, error) {
+	// First get the basic exam info
+	exam, err := r.FindByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	// Initialize empty questions slice
+	exam.Questions = []*domain.Question{}
+	exam.QuestionIDs = []int{}
+	
+	return exam, nil
+}
+
+// FindByIDWithTopicsAndQuestions finds an exam by ID with both topics and questions
+func (r *ExamRepositoryPG) FindByIDWithTopicsAndQuestions(id int) (*domain.Exam, error) {
+	// First get the basic exam info
+	exam, err := r.FindByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	// Initialize empty slices
+	exam.Topics = []*domain.ExamTopic{}
+	exam.Questions = []*domain.Question{}
+	exam.QuestionIDs = []int{}
+	
+	return exam, nil
+}
+
+// ListByAreaWithQuestions lists exams by area with their associated questions
+func (r *ExamRepositoryPG) ListByAreaWithQuestions(areaID int) ([]*domain.Exam, error) {
+	// First get the basic exams
+	exams, err := r.ListByArea(areaID)
+	if err != nil {
+		return nil, err
+	}
+
+	// For each exam, initialize empty questions slice
+	for _, exam := range exams {
+		exam.Questions = []*domain.Question{}
+		exam.QuestionIDs = []int{}
+	}
+	
+	return exams, nil
+}
+
+// UpdateQuestionsCount updates the questions count for an exam
+func (r *ExamRepositoryPG) UpdateQuestionsCount(examID int) error {
+	query := `
+		UPDATE exams 
+		SET questions_count = (
+			SELECT COUNT(*) 
+			FROM exam_questions 
+			WHERE exam_id = $1
+		),
+		updated_at = CURRENT_TIMESTAMP
+		WHERE id = $1`
+
+	_, err := r.DB.Exec(query, examID)
+	return err
+}

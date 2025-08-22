@@ -3,6 +3,7 @@ package interfaces
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 )
 
 // SetupRoutes configura todas as rotas da aplicação
@@ -81,6 +82,20 @@ func SetupRoutes(mux *http.ServeMux, handlers *Handlers) {
 	mux.HandleFunc("/user-exams/finish", AuthMiddleware(handlers.UserExam.FinishExam))
 	mux.HandleFunc("/user-exams/detail", AuthMiddleware(handlers.UserExam.GetUserExam))
 	mux.HandleFunc("/user-exams/list", AuthMiddleware(handlers.UserExam.ListByUser))
+
+	// === N:N RELATIONSHIPS ENDPOINTS ===
+
+	// Exam-Question Relationships
+	mux.HandleFunc("/exams/", handleExamQuestionRoutes(handlers.ExamQuestion))
+	mux.HandleFunc("/questions/", handleQuestionExamRoutes(handlers.ExamQuestion))
+
+	// Question Tags Management
+	mux.HandleFunc("/tags/", handleTagRoutes(handlers.QuestionTag))
+	mux.HandleFunc("/questions/", handleQuestionTagRoutes(handlers.QuestionTag))
+
+	// Exam-Topic Relationships
+	mux.HandleFunc("/exams/", handleExamTopicRoutes(handlers.ExamTopic))
+	mux.HandleFunc("/topics/", handleTopicExamRoutes(handlers.ExamTopic))
 }
 
 // Handlers agrupa todos os handlers da aplicação
@@ -89,14 +104,185 @@ func SetupRoutes(mux *http.ServeMux, handlers *Handlers) {
 // Handlers agrupa todos os handlers da aplicação.
 // Facilita a injeção de dependências.
 type Handlers struct {
-	User        *UserHandler
-	Theme       *ThemeHandler
-	Question    *QuestionHandler
-	Quiz        *QuizHandler
-	History     *HistoryHandler
-	Performance *PerformanceHandler
-	Area        *AreaHandler
-	Exam        *ExamHandler
-	Topic       *TopicHandler
-	UserExam    *UserExamHandler
+	User         *UserHandler
+	Theme        *ThemeHandler
+	Question     *QuestionHandler
+	Quiz         *QuizHandler
+	History      *HistoryHandler
+	Performance  *PerformanceHandler
+	Area         *AreaHandler
+	Exam         *ExamHandler
+	Topic        *TopicHandler
+	UserExam     *UserExamHandler
+	ExamQuestion *ExamQuestionHandler
+	QuestionTag  *QuestionTagHandler
+	ExamTopic    *ExamTopicHandler
+}
+
+// === ROUTE HANDLERS FOR N:N RELATIONSHIPS ===
+
+// handleExamQuestionRoutes handles exam-question relationship routes
+func handleExamQuestionRoutes(handler *ExamQuestionHandler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		method := r.Method
+
+		switch {
+		case matchRoute(path, "/exams/*/questions/bulk") && method == "POST":
+			handler.BulkAssociateQuestionsHandler(w, r)
+		case matchRoute(path, "/exams/*/questions/bulk") && method == "DELETE":
+			handler.BulkDisassociateQuestionsHandler(w, r)
+		case matchRoute(path, "/exams/*/questions/reorder") && method == "PUT":
+			handler.ReorderExamQuestionsHandler(w, r)
+		case matchRoute(path, "/exams/*/questions/stats") && method == "GET":
+			handler.GetExamQuestionStatsHandler(w, r)
+		case matchRoute(path, "/exams/*/questions/available") && method == "GET":
+			handler.GetAvailableQuestionsHandler(w, r)
+		case matchRoute(path, "/exams/*/questions/*/*") && method == "POST":
+			handler.AssociateQuestionHandler(w, r)
+		case matchRoute(path, "/exams/*/questions/*/*") && method == "DELETE":
+			handler.DisassociateQuestionHandler(w, r)
+		case matchRoute(path, "/exams/*/questions") && method == "GET":
+			handler.GetExamQuestionsHandler(w, r)
+		case matchRoute(path, "/exams/*/validate") && method == "GET":
+			handler.ValidateExamConfigurationHandler(w, r)
+		}
+	}
+}
+
+// handleQuestionExamRoutes handles question-exam relationship routes
+func handleQuestionExamRoutes(handler *ExamQuestionHandler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		method := r.Method
+
+		switch {
+		case matchRoute(path, "/questions/*/exams") && method == "GET":
+			handler.GetQuestionExamsHandler(w, r)
+		}
+	}
+}
+
+// handleTagRoutes handles tag management routes
+func handleTagRoutes(handler *QuestionTagHandler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		method := r.Method
+
+		switch {
+		case matchRoute(path, "/tags/search") && method == "GET":
+			handler.SearchTagsHandler(w, r)
+		case matchRoute(path, "/tags/most-used") && method == "GET":
+			handler.GetMostUsedTagsHandler(w, r)
+		case matchRoute(path, "/tags/cleanup") && method == "DELETE":
+			AuthMiddleware(handler.CleanupUnusedTagsHandler)(w, r)
+		case matchRoute(path, "/tags/*/questions") && method == "GET":
+			handler.GetTagQuestionsHandler(w, r)
+		case matchRoute(path, "/tags/*/stats") && method == "GET":
+			handler.GetTagUsageStatsHandler(w, r)
+		case matchRoute(path, "/tags/*") && method == "GET":
+			handler.GetTagHandler(w, r)
+		case matchRoute(path, "/tags/*") && method == "PUT":
+			AuthMiddleware(handler.UpdateTagHandler)(w, r)
+		case matchRoute(path, "/tags/*") && method == "DELETE":
+			AuthMiddleware(handler.DeleteTagHandler)(w, r)
+		case matchRoute(path, "/tags") && method == "GET":
+			handler.ListTagsHandler(w, r)
+		case matchRoute(path, "/tags") && method == "POST":
+			AuthMiddleware(handler.CreateTagHandler)(w, r)
+		}
+	}
+}
+
+// handleQuestionTagRoutes handles question-tag relationship routes
+func handleQuestionTagRoutes(handler *QuestionTagHandler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		method := r.Method
+
+		switch {
+		case matchRoute(path, "/questions/filter-by-tags") && method == "POST":
+			handler.FilterQuestionsByTagsHandler(w, r)
+		case matchRoute(path, "/questions/*/tags/bulk") && method == "POST":
+			AuthMiddleware(handler.BulkAssociateQuestionTagsHandler)(w, r)
+		case matchRoute(path, "/questions/*/tags/stats") && method == "GET":
+			handler.GetQuestionTagStatsHandler(w, r)
+		case matchRoute(path, "/questions/*/tags/suggestions") && method == "GET":
+			handler.SuggestTagsHandler(w, r)
+		case matchRoute(path, "/questions/*/tags/*/*") && method == "POST":
+			AuthMiddleware(handler.AssociateQuestionTagHandler)(w, r)
+		case matchRoute(path, "/questions/*/tags/*/*") && method == "DELETE":
+			AuthMiddleware(handler.DisassociateQuestionTagHandler)(w, r)
+		case matchRoute(path, "/questions/*/tags") && method == "GET":
+			handler.GetQuestionTagsHandler(w, r)
+		case matchRoute(path, "/questions/*/tags") && method == "PUT":
+			AuthMiddleware(handler.UpdateQuestionTagsHandler)(w, r)
+		case matchRoute(path, "/questions/*/similar") && method == "GET":
+			handler.FindSimilarQuestionsHandler(w, r)
+		}
+	}
+}
+
+// handleExamTopicRoutes handles exam-topic relationship routes
+func handleExamTopicRoutes(handler *ExamTopicHandler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		method := r.Method
+
+		switch {
+		case matchRoute(path, "/exams/*/topics/bulk") && method == "PUT":
+			AuthMiddleware(handler.BulkUpdateExamTopicsHandler)(w, r)
+		case matchRoute(path, "/exams/*/topics/reorder") && method == "PUT":
+			AuthMiddleware(handler.ReorderTopicsHandler)(w, r)
+		case matchRoute(path, "/exams/*/topics/auto-distribute-weights") && method == "POST":
+			AuthMiddleware(handler.AutoDistributeWeightsHandler)(w, r)
+		case matchRoute(path, "/exams/*/topics/suggest-distribution") && method == "GET":
+			handler.SuggestOptimalDistributionHandler(w, r)
+		case matchRoute(path, "/exams/*/topics/validate") && method == "GET":
+			handler.ValidateExamConfigurationHandler(w, r)
+		case matchRoute(path, "/exams/*/topics/*/calculate-difficulty") && method == "POST":
+			handler.CalculateQuestionsByDifficultyHandler(w, r)
+		case matchRoute(path, "/exams/*/topics/*/*") && method == "PUT":
+			AuthMiddleware(handler.UpdateExamTopicHandler)(w, r)
+		case matchRoute(path, "/exams/*/topics/*/*") && method == "DELETE":
+			AuthMiddleware(handler.DisassociateTopicHandler)(w, r)
+		case matchRoute(path, "/exams/*/topics") && method == "GET":
+			handler.GetExamTopicsHandler(w, r)
+		case matchRoute(path, "/exams/*/topics") && method == "POST":
+			AuthMiddleware(handler.AssociateTopicHandler)(w, r)
+		case matchRoute(path, "/exams/*/stats") && method == "GET":
+			handler.GetExamStatsHandler(w, r)
+		}
+	}
+}
+
+// handleTopicExamRoutes handles topic-exam relationship routes
+func handleTopicExamRoutes(handler *ExamTopicHandler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		method := r.Method
+
+		switch {
+		case matchRoute(path, "/topics/*/exams") && method == "GET":
+			handler.GetTopicExamsHandler(w, r)
+		}
+	}
+}
+
+// matchRoute checks if a path matches a pattern with wildcards (*)
+func matchRoute(path, pattern string) bool {
+	pathParts := strings.Split(path, "/")
+	patternParts := strings.Split(pattern, "/")
+
+	if len(pathParts) != len(patternParts) {
+		return false
+	}
+
+	for i, part := range patternParts {
+		if part != "*" && part != pathParts[i] {
+			return false
+		}
+	}
+
+	return true
 }
