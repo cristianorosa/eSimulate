@@ -1,6 +1,6 @@
 -- Script de criação do banco de dados para o eSimulate v2 (PostgreSQL/ANSI SQL)
 -- Compatível com PostgreSQL, MySQL, MariaDB, SQL Server, Oracle, etc.
--- Versão: 2.0 - Inclui suporte a questões com enunciado/problema separados e tipos de questão
+-- Versão: 2.3 - Inclui relacionamento N:N questões-exames e sistema de tags
 
 -- 1. Tabela de Papéis (Roles)
 CREATE TABLE roles (
@@ -47,16 +47,38 @@ CREATE TABLE exams (
     CONSTRAINT fk_exams_user FOREIGN KEY (created_by) REFERENCES users(id)
 );
 
--- 5. Tópicos da Prova (antigamente "domains")
+-- 5. Tópicos (antigamente "domains") - Agora independentes de exames
 CREATE TABLE topics (
     id SERIAL PRIMARY KEY,
-    exam_id INTEGER NOT NULL,
     name VARCHAR(150) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 5.1. Relação N:N entre Exames e Tópicos
+CREATE TABLE exam_topics (
+    exam_id INTEGER NOT NULL,
+    topic_id INTEGER NOT NULL,
+    questions_count INTEGER NOT NULL DEFAULT 0,
     weight_percentage DECIMAL(5,2) NOT NULL,
-    order_index INTEGER DEFAULT 0,
-    questions_count INTEGER DEFAULT 0,
+    order_index INTEGER NOT NULL DEFAULT 1,
+    difficulty_easy_percentage DECIMAL(5,2) DEFAULT 33.33,
+    difficulty_medium_percentage DECIMAL(5,2) DEFAULT 33.33,
+    difficulty_hard_percentage DECIMAL(5,2) DEFAULT 33.34,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_topics_exam FOREIGN KEY (exam_id) REFERENCES exams(id)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (exam_id, topic_id),
+    CONSTRAINT fk_exam_topics_exam FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE CASCADE,
+    CONSTRAINT fk_exam_topics_topic FOREIGN KEY (topic_id) REFERENCES topics(id) ON DELETE CASCADE,
+    CONSTRAINT exam_topics_weight_check CHECK (weight_percentage >= 0 AND weight_percentage <= 100),
+    CONSTRAINT exam_topics_questions_check CHECK (questions_count >= 0),
+    CONSTRAINT exam_topics_order_check CHECK (order_index >= 1),
+    CONSTRAINT exam_topics_difficulty_check CHECK (
+        difficulty_easy_percentage >= 0 AND difficulty_easy_percentage <= 100 AND
+        difficulty_medium_percentage >= 0 AND difficulty_medium_percentage <= 100 AND
+        difficulty_hard_percentage >= 0 AND difficulty_hard_percentage <= 100 AND
+        (difficulty_easy_percentage + difficulty_medium_percentage + difficulty_hard_percentage) = 100
+    )
 );
 
 -- 6. Questões com suporte a enunciado/problema separados e tipos de questão
@@ -86,6 +108,38 @@ CREATE TABLE options (
     explanation TEXT,                           -- Explicação da opção (opcional)
     order_index INTEGER DEFAULT 0,              -- Ordem de exibição
     CONSTRAINT fk_options_question FOREIGN KEY (question_id) REFERENCES questions(id)
+);
+
+-- 7.1. Relação N:N entre Exames e Questões
+CREATE TABLE exam_questions (
+    exam_id INTEGER NOT NULL,
+    question_id INTEGER NOT NULL,
+    order_index INTEGER NOT NULL DEFAULT 1,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (exam_id, question_id),
+    CONSTRAINT fk_exam_questions_exam FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE CASCADE,
+    CONSTRAINT fk_exam_questions_question FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
+    CONSTRAINT exam_questions_order_index_check CHECK (order_index >= 1)
+);
+
+-- 7.2. Sistema de Tags para Questões
+CREATE TABLE question_tags (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT question_tags_name_check CHECK (LENGTH(TRIM(name)) >= 2)
+);
+
+-- 7.3. Relação N:N entre Questões e Tags
+CREATE TABLE question_tag_associations (
+    question_id INTEGER NOT NULL,
+    tag_id INTEGER NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (question_id, tag_id),
+    CONSTRAINT fk_question_tag_assoc_question FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
+    CONSTRAINT fk_question_tag_assoc_tag FOREIGN KEY (tag_id) REFERENCES question_tags(id) ON DELETE CASCADE
 );
 
 -- 8. Aplicação de Provas por Usuário
@@ -176,6 +230,17 @@ CREATE INDEX idx_user_exams_exam ON user_exams(exam_id);
 CREATE INDEX idx_user_answers_exam ON user_answers(user_exam_id);
 CREATE INDEX idx_topic_performance_exam ON topic_performance(user_exam_id);
 
+-- Índices para as novas tabelas N:N
+CREATE INDEX idx_exam_topics_exam ON exam_topics(exam_id);
+CREATE INDEX idx_exam_topics_topic ON exam_topics(topic_id);
+CREATE INDEX idx_exam_topics_weight ON exam_topics(exam_id, weight_percentage);
+CREATE INDEX idx_exam_questions_exam ON exam_questions(exam_id);
+CREATE INDEX idx_exam_questions_question ON exam_questions(question_id);
+CREATE INDEX idx_exam_questions_order ON exam_questions(exam_id, order_index);
+CREATE INDEX idx_question_tags_name ON question_tags(name);
+CREATE INDEX idx_question_tag_assoc_question ON question_tag_associations(question_id);
+CREATE INDEX idx_question_tag_assoc_tag ON question_tag_associations(tag_id);
+
 -- 15. Dados iniciais
 
 -- Inserir papéis (roles)
@@ -203,4 +268,112 @@ INSERT INTO users (name, email, password_hash, role_id) VALUES
 
 -- Inserir usuário padrão (senha: password)
 INSERT INTO users (name, email, password_hash, role_id) VALUES 
-('Usuário', 'user@esimulate.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1); 
+('Usuário', 'user@esimulate.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1);
+
+-- 16. Funções de Validação e Views
+
+-- Função: validate_exam_question_topic
+-- Purpose: Ensures a question associated with an exam belongs to one of the exam's topics
+-- Exception: If exam has only one topic with 100% weight, any question can be associated
+CREATE OR REPLACE FUNCTION validate_exam_question_topic()
+RETURNS TRIGGER AS $$
+DECLARE
+    question_topic_id INTEGER;
+    exam_topic_count INTEGER;
+    exam_single_topic_weight DECIMAL;
+    exam_has_topic BOOLEAN;
+BEGIN
+    -- Get the topic_id of the question
+    SELECT topic_id INTO question_topic_id
+    FROM questions
+    WHERE id = NEW.question_id;
+    
+    -- Check if question has a topic
+    IF question_topic_id IS NULL THEN
+        RAISE EXCEPTION 'Question % does not have a topic assigned', NEW.question_id;
+    END IF;
+    
+    -- Count how many topics the exam has
+    SELECT COUNT(*) INTO exam_topic_count
+    FROM exam_topics
+    WHERE exam_id = NEW.exam_id;
+    
+    -- If exam has no topics, reject the association
+    IF exam_topic_count = 0 THEN
+        RAISE EXCEPTION 'Exam % has no topics configured', NEW.exam_id;
+    END IF;
+    
+    -- Check if exam has only one topic with 100% weight (exception case)
+    IF exam_topic_count = 1 THEN
+        SELECT weight_percentage INTO exam_single_topic_weight
+        FROM exam_topics
+        WHERE exam_id = NEW.exam_id;
+        
+        -- If single topic has 100% weight, allow any question
+        IF exam_single_topic_weight = 100.0 THEN
+            RETURN NEW;
+        END IF;
+    END IF;
+    
+    -- Check if the question's topic is associated with the exam
+    SELECT EXISTS(
+        SELECT 1
+        FROM exam_topics et
+        WHERE et.exam_id = NEW.exam_id
+        AND et.topic_id = question_topic_id
+    ) INTO exam_has_topic;
+    
+    -- If topic is not associated with exam, reject
+    IF NOT exam_has_topic THEN
+        RAISE EXCEPTION 'Question % belongs to topic % which is not associated with exam %', 
+            NEW.question_id, question_topic_id, NEW.exam_id;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger: validate exam-question-topic relationship
+DROP TRIGGER IF EXISTS trigger_validate_exam_question_topic ON exam_questions;
+CREATE TRIGGER trigger_validate_exam_question_topic
+    BEFORE INSERT OR UPDATE ON exam_questions
+    FOR EACH ROW
+    EXECUTE FUNCTION validate_exam_question_topic();
+
+-- View: v_exam_questions_with_topics
+-- Purpose: Provides easy access to exam-question relationships with topic information
+CREATE OR REPLACE VIEW v_exam_questions_with_topics AS
+SELECT 
+    eq.exam_id,
+    eq.question_id,
+    eq.order_index,
+    eq.created_at as association_created_at,
+    e.title as exam_title,
+    e.description as exam_description,
+    q.statement as question_statement,
+    q.problem as question_problem,
+    q.difficulty_level,
+    q.topic_id,
+    t.name as topic_name,
+    t.description as topic_description,
+    et.weight_percentage as topic_weight_in_exam,
+    et.questions_count as topic_questions_count_in_exam
+FROM exam_questions eq
+JOIN exams e ON eq.exam_id = e.id
+JOIN questions q ON eq.question_id = q.id
+JOIN topics t ON q.topic_id = t.id
+LEFT JOIN exam_topics et ON (et.exam_id = eq.exam_id AND et.topic_id = q.topic_id);
+
+-- 17. Dados iniciais para tags
+INSERT INTO question_tags (name, description) VALUES 
+    ('Básico', 'Questões de nível básico/fundamental'),
+    ('Intermediário', 'Questões de nível intermediário'),
+    ('Avançado', 'Questões de nível avançado'),
+    ('Prático', 'Questões com enfoque prático'),
+    ('Teórico', 'Questões com enfoque teórico'),
+    ('Conceitual', 'Questões conceituais'),
+    ('Aplicação', 'Questões de aplicação prática'),
+    ('Análise', 'Questões que requerem análise'),
+    ('Síntese', 'Questões que requerem síntese'),
+    ('Avaliação', 'Questões de avaliação crítica')
+ON CONFLICT (name) DO NOTHING; 
