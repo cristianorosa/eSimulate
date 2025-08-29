@@ -13,9 +13,14 @@
         style="display: none"
         (change)="onFileSelected($event)"
       />
-      <button mat-stroked-button color="primary" (click)="importQuestions()" [disabled]="importing">
-        <mat-icon>{{ importing ? 'hourglass_empty' : 'upload' }}</mat-icon>
-        {{ importing ? 'Importando...' : 'Importar Questões' }}
+      <button
+        mat-stroked-button
+        color="primary"
+        (click)="importQuestions()"
+        [disabled]="importing"
+      >
+        <mat-icon>{{ importing ? "hourglass_empty" : "upload" }}</mat-icon>
+        {{ importing ? "Importando..." : "Importar Questões" }}
       </button>
       <button mat-raised-button color="primary" (click)="openDialog()">
         <mat-icon>add</mat-icon>
@@ -32,7 +37,7 @@
         <div class="filters-section">
           <h3>Filtros</h3>
           <div class="filters-content">
-            <mat-form-field appearance="outline" id="filter-exam">
+            <mat-form-field appearance="outline" id="filter-exam" density="-1">
               <mat-label>Filtrar por Exame</mat-label>
               <mat-select
                 [(ngModel)]="selectedExamId"
@@ -122,14 +127,6 @@
             </td>
           </ng-container>
 
-          <!-- Exam Name Column -->
-          <ng-container matColumnDef="exam_name">
-            <th mat-header-cell *matHeaderCellDef>Exame</th>
-            <td mat-cell *matCellDef="let question">
-              {{ question.exam_name }}
-            </td>
-          </ng-container>
-
           <!-- Topic Name Column -->
           <ng-container matColumnDef="topic_name">
             <th mat-header-cell *matHeaderCellDef>Tópico</th>
@@ -185,22 +182,24 @@
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef>Ações</th>
             <td mat-cell *matCellDef="let question">
-              <button
-                mat-icon-button
-                color="primary"
-                (click)="openDialog(question)"
-                matTooltip="Editar"
-              >
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button
-                mat-icon-button
-                color="warn"
-                (click)="deleteQuestion(question)"
-                matTooltip="Excluir"
-              >
-                <mat-icon>delete</mat-icon>
-              </button>
+              <div class="action-buttons">
+                <button
+                  mat-icon-button
+                  color="primary"
+                  (click)="openDialog(question)"
+                  matTooltip="Editar"
+                >
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  color="warn"
+                  (click)="deleteQuestion(question)"
+                  matTooltip="Excluir"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
             </td>
           </ng-container>
 
@@ -228,237 +227,452 @@
   <div class="dialog-overlay">
     <div class="dialog-content" (click)="$event.stopPropagation()">
       <mat-card class="dialog-card">
-        <mat-card-header>
-          <mat-card-title>
+        <!-- Header Fixo -->
+        <div class="dialog-fixed-header">
+          <h2 class="dialog-title">
             {{ editingQuestion ? "Editar" : "Nova" }} Questão
-          </mat-card-title>
-        </mat-card-header>
+          </h2>
+          <button
+            type="button"
+            mat-icon-button
+            class="dialog-close-btn"
+            (click)="closeDialog()"
+            matTooltip="Fechar"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
         <mat-card-content>
-          <form [formGroup]="questionForm" (ngSubmit)="onSubmit()">
-            <!-- Primeira linha: Exame e Tópico -->
-            <div class="form-row">
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Exame</mat-label>
-                <mat-select
-                  formControlName="exam_id"
-                  (selectionChange)="onExamChange()"
+          <div class="dialog-scrollable-content">
+            <form
+              id="questionForm"
+              [formGroup]="questionForm"
+              (ngSubmit)="onSubmit()"
+            >
+              <!-- Primeira linha: Tópico com Autocomplete -->
+              <div class="form-row">
+                <mat-form-field
+                  appearance="outline"
+                  class="form-field full-width"
                 >
-                  @for (exam of exams; track exam.id) {
-                  <mat-option [value]="exam.id">
-                    {{ exam.title }}
-                  </mat-option>
+                  <mat-label>Tópico</mat-label>
+                  <input
+                    matInput
+                    formControlName="topic_name"
+                    [matAutocomplete]="topicAuto"
+                    (input)="onTopicInput()"
+                    (blur)="onTopicInputBlur()"
+                    (focus)="onTopicInputFocus()"
+                    placeholder="Digite o nome do tópico (será criado se não existir)"
+                  />
+                  <mat-autocomplete
+                    #topicAuto="matAutocomplete"
+                    (optionSelected)="onTopicSelected($event.option.value)"
+                    (closed)="onTopicAutocompleteClosed()"
+                  >
+                    @for (topic of filteredTopics | async; track topic.id) {
+                    <mat-option [value]="topic">
+                      {{ topic.name }}
+                    </mat-option>
+                    }
+                  </mat-autocomplete>
+                  @if (questionForm.get('topic_name')?.hasError('required')) {
+                  <mat-error> Tópico é obrigatório </mat-error>
                   }
-                </mat-select>
-                @if (questionForm.get('exam_id')?.hasError('required')) {
-                <mat-error> Exame é obrigatório </mat-error>
-                }
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Tópico</mat-label>
-                <mat-select
-                  formControlName="topic_id"
-                  [disabled]="topics.length === 0"
-                >
-                  @for (topic of topics; track topic.id) {
-                  <mat-option [value]="topic.id">
-                    {{ topic.name }}
-                  </mat-option>
-                  }
-                </mat-select>
-                @if (questionForm.get('topic_id')?.hasError('required')) {
-                <mat-error> Tópico é obrigatório </mat-error>
-                }
-              </mat-form-field>
-            </div>
-
-            <!-- Segunda linha: Tipo de Questão, Dificuldade e Status -->
-            <div class="form-row">
-              <mat-form-field
-                appearance="outline"
-                class="form-field full-with-2-cols"
-              >
-                <mat-label>Tipo de Questão</mat-label>
-                <mat-select formControlName="question_type">
-                  <mat-option value="objective"
-                    >Objetiva (Uma resposta correta)</mat-option
-                  >
-                  <mat-option value="multiple_choice"
-                    >Múltipla Escolha (Várias respostas corretas)</mat-option
-                  >
-                </mat-select>
-                @if (questionForm.get('question_type')?.hasError('required')) {
-                <mat-error> Tipo de questão é obrigatório </mat-error>
-                }
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Dificuldade</mat-label>
-                <mat-select formControlName="difficulty_level">
-                  <mat-option [value]="1">Fácil</mat-option>
-                  <mat-option [value]="2">Médio</mat-option>
-                  <mat-option [value]="3">Difícil</mat-option>
-                  <mat-option [value]="4">Muito Difícil</mat-option>
-                  <mat-option [value]="5">Expert</mat-option>
-                </mat-select>
-                @if (questionForm.get('difficulty_level')?.hasError('required'))
-                {
-                <mat-error> Dificuldade é obrigatória </mat-error>
-                }
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Status</mat-label>
-                <mat-select formControlName="is_active">
-                  <mat-option [value]="true">Ativa</mat-option>
-                  <mat-option [value]="false">Inativa</mat-option>
-                </mat-select>
-              </mat-form-field>
-            </div>
-
-            <!-- Enunciado (largura total) -->
-            <mat-form-field appearance="outline">
-              <mat-label>Enunciado</mat-label>
-              <textarea
-                matInput
-                formControlName="statement"
-                rows="3"
-                placeholder="Digite o enunciado da questão (ex: Considere o código abaixo:)"
-              ></textarea>
-              @if (questionForm.get('statement')?.hasError('required')) {
-              <mat-error> Enunciado é obrigatório </mat-error>
-              } @if (questionForm.get('statement')?.hasError('minlength')) {
-              <mat-error>
-                Enunciado deve ter pelo menos 10 caracteres
-              </mat-error>
-              }
-            </mat-form-field>
-
-            <!-- Tipo do Problema (largura total) -->
-            <div class="form-row">
-              <mat-form-field appearance="outline">
-                <mat-label>Tipo do Problema</mat-label>
-                <mat-select formControlName="content_type">
-                  <mat-option value="text">Texto Simples</mat-option>
-                  <mat-option value="code"
-                    >Código (com syntax highlighting)</mat-option
-                  >
-                </mat-select>
-                @if (questionForm.get('content_type')?.hasError('required')) {
-                <mat-error> Tipo do problema é obrigatório </mat-error>
-                }
-              </mat-form-field>
-            </div>
-
-            <!-- Problema (largura total) -->
-            <mat-form-field appearance="outline">
-              <mat-label>Problema</mat-label>
-              <textarea
-                matInput
-                formControlName="problem"
-                rows="6"
-                placeholder="Digite o problema (texto ou código)"
-              ></textarea>
-              @if (questionForm.get('problem')?.hasError('required')) {
-              <mat-error> Problema é obrigatório </mat-error>
-              } @if (questionForm.get('problem')?.hasError('minlength')) {
-              <mat-error>
-                Problema deve ter pelo menos 10 caracteres
-              </mat-error>
-              }
-            </mat-form-field>
-
-            <!-- Explicação (largura total) -->
-            <mat-form-field appearance="outline">
-              <mat-label>Explicação</mat-label>
-              <textarea
-                matInput
-                formControlName="explanation"
-                rows="3"
-                placeholder="Digite a explicação da resposta correta"
-              ></textarea>
-              @if (questionForm.get('explanation')?.hasError('required')) {
-              <mat-error> Explicação é obrigatória </mat-error>
-              } @if (questionForm.get('explanation')?.hasError('minlength')) {
-              <mat-error>
-                Explicação deve ter pelo menos 10 caracteres
-              </mat-error>
-              }
-            </mat-form-field>
-
-            <!-- Options Section -->
-            <div class="options-section">
-              <div class="section-header">
-                <h3>Opções de Resposta</h3>
-                <button
-                  type="button"
-                  mat-raised-button
-                  color="accent"
-                  (click)="addOption()"
-                >
-                  <mat-icon>add</mat-icon>
-                  Adicionar Opção
-                </button>
+                  <mat-hint>
+                    @if (questionForm.get('topic_id')?.value) {
+                    <span class="topic-exists">✓ Tópico encontrado</span>
+                    } @else if (questionForm.get('topic_name')?.value) {
+                    <span class="topic-new">+ Novo tópico será criado</span>
+                    }
+                  </mat-hint>
+                </mat-form-field>
               </div>
 
-              <div class="options-list" formArrayName="options">
-                @for (option of optionsArray.controls; track $index) {
-                <div [formGroupName]="$index" class="option-item">
-                  <div class="option-header">
-                    <span class="option-number">Opção {{ $index + 1 }}</span>
-                    <button
-                      type="button"
-                      mat-icon-button
-                      color="warn"
-                      (click)="removeOption($index)"
+              <!-- Tags Section -->
+              <div class="form-row">
+                <div class="tag-input-container">
+                  <div>
+                    <mat-form-field
+                      appearance="outline"
+                      class="form-field field-add-tag"
                     >
-                      <mat-icon>delete</mat-icon>
-                    </button>
+                      <mat-label>Adicionar tags</mat-label>
+                      <input
+                        matInput
+                        [(ngModel)]="tagInput"
+                        [ngModelOptions]="{ standalone: true }"
+                        (keydown)="onTagInputKeydown($event)"
+                        (input)="onTagInputChange()"
+                        (focus)="onTagInputFocus()"
+                        (blur)="onTagInputBlur()"
+                        placeholder="Digite uma tag e pressione Enter"
+                      />
+                      <mat-hint>
+                        @if (loadingTags) {
+                        <span>Buscando tags...</span>
+                        } @else {
+                        <span>Pressione Enter para adicionar uma tag</span>
+                        }
+                      </mat-hint>
+                    </mat-form-field>
                   </div>
+                  <!-- Sugestões de tags como dropdown -->
+                  @if (showTagSuggestions && suggestedTags.length > 0) {
+                  <div class="tag-suggestions-dropdown">
+                    <div class="suggestions-list">
+                      @for (tagName of suggestedTags; track tagName) {
+                      <button
+                        type="button"
+                        class="suggestion-item"
+                        (mousedown)="selectSuggestedTag(tagName)"
+                      >
+                        {{ tagName }}
+                      </button>
+                      }
+                    </div>
+                  </div>
+                  }
+                </div>
 
-                  <mat-form-field
-                    appearance="outline"
-                    class="full-width options-form-field"
-                  >
-                    <mat-label>Texto da Opção</mat-label>
-                    <textarea
-                      matInput
-                      formControlName="text"
-                      rows="2"
-                      placeholder="Digite o texto da opção"
-                    ></textarea>
-                    @if (option.get('text')?.hasError('required')) {
-                    <mat-error> Texto é obrigatório </mat-error>
-                    } @if (option.get('text')?.hasError('minlength')) {
-                    <mat-error>
-                      Texto deve ter pelo menos 3 caracteres
-                    </mat-error>
+                @if (selectedTags.length > 0) {
+                <div class="selected-tags">
+                  <div class="tags-list">
+                    <span>Tags:</span>
+                    @for (tag of selectedTags; track tag.name) {
+                    <mat-chip removable (removed)="removeTag(tag)">
+                      {{ tag.name }}
+                      <mat-icon matChipRemove>cancel</mat-icon>
+                    </mat-chip>
                     }
-                  </mat-form-field>
-
-                  <div class="option-actions">
-                    <mat-checkbox formControlName="is_correct" color="primary">
-                      Alternativa Correta
-                    </mat-checkbox>
-                    <span class="option-hint">
-                      {{
-                        questionForm.get("question_type")?.value === "objective"
-                          ? "Apenas uma alternativa pode ser correta"
-                          : "Uma ou mais alternativas podem ser corretas"
-                      }}
-                    </span>
                   </div>
                 </div>
                 }
               </div>
 
-              @if (optionsArray.length === 0) {
-              <div class="no-options">
-                <p>Nenhuma opção adicionada. Adicione pelo menos 2 opções.</p>
+              <!-- Segunda linha: Tipo de Questão, Dificuldade e Status -->
+              <div class="form-row">
+                <mat-form-field
+                  appearance="outline"
+                  class="form-field full-with-2-cols"
+                >
+                  <mat-label>Tipo de Questão</mat-label>
+                  <mat-select formControlName="question_type">
+                    <mat-option value="objective"
+                      >Objetiva (Uma resposta correta)</mat-option
+                    >
+                    <mat-option value="multiple_choice"
+                      >Múltipla Escolha (Várias respostas corretas)</mat-option
+                    >
+                  </mat-select>
+                  @if (questionForm.get('question_type')?.hasError('required'))
+                  {
+                  <mat-error> Tipo de questão é obrigatório </mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="form-field">
+                  <mat-label>Dificuldade</mat-label>
+                  <mat-select formControlName="difficulty_level">
+                    <mat-option [value]="1">Fácil</mat-option>
+                    <mat-option [value]="2">Médio</mat-option>
+                    <mat-option [value]="3">Difícil</mat-option>
+                    <mat-option [value]="4">Muito Difícil</mat-option>
+                    <mat-option [value]="5">Expert</mat-option>
+                  </mat-select>
+                  @if
+                  (questionForm.get('difficulty_level')?.hasError('required')) {
+                  <mat-error> Dificuldade é obrigatória </mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="form-field">
+                  <mat-label>Status</mat-label>
+                  <mat-select formControlName="is_active">
+                    <mat-option [value]="true">Ativa</mat-option>
+                    <mat-option [value]="false">Inativa</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+
+              <!-- Enunciado (largura total) -->
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Enunciado</mat-label>
+                  <textarea
+                    matInput
+                    formControlName="statement"
+                    rows="3"
+                    placeholder="Digite o enunciado da questão (ex: Considere o código abaixo:)"
+                  ></textarea>
+                  @if (questionForm.get('statement')?.hasError('required')) {
+                  <mat-error> Enunciado é obrigatório </mat-error>
+                  } @if (questionForm.get('statement')?.hasError('minlength')) {
+                  <mat-error>
+                    Enunciado deve ter pelo menos 10 caracteres
+                  </mat-error>
+                  }
+                </mat-form-field>
+              </div>
+
+              <!-- Tipo do Problema (largura total) -->
+              <div class="form-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>Tipo do Problema</mat-label>
+                  <mat-select formControlName="content_type">
+                    <mat-option value="text">Texto Simples</mat-option>
+                    <mat-option value="code"
+                      >Código (com syntax highlighting)</mat-option
+                    >
+                  </mat-select>
+                  @if (questionForm.get('content_type')?.hasError('required')) {
+                  <mat-error> Tipo do problema é obrigatório </mat-error>
+                  }
+                </mat-form-field>
+              </div>
+
+              <!-- Problema (largura total) -->
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Problema</mat-label>
+                  <textarea
+                    matInput
+                    formControlName="problem"
+                    rows="6"
+                    placeholder="Digite o problema (texto ou código)"
+                  ></textarea>
+                  @if (questionForm.get('problem')?.hasError('required')) {
+                  <mat-error> Problema é obrigatório </mat-error>
+                  } @if (questionForm.get('problem')?.hasError('minlength')) {
+                  <mat-error>
+                    Problema deve ter pelo menos 10 caracteres
+                  </mat-error>
+                  }
+                </mat-form-field>
+              </div>
+
+              <!-- Explicação (largura total) -->
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Explicação</mat-label>
+                  <textarea
+                    matInput
+                    formControlName="explanation"
+                    rows="3"
+                    placeholder="Digite a explicação da resposta correta"
+                  ></textarea>
+                  @if (questionForm.get('explanation')?.hasError('required')) {
+                  <mat-error> Explicação é obrigatória </mat-error>
+                  } @if (questionForm.get('explanation')?.hasError('minlength'))
+                  {
+                  <mat-error>
+                    Explicação deve ter pelo menos 10 caracteres
+                  </mat-error>
+                  }
+                </mat-form-field>
+              </div>
+
+              <!-- Options Grid Section -->
+              <div class="options-section">
+                <div class="section-header">
+                  <h3>Opções de Resposta</h3>
+                  <button
+                    type="button"
+                    mat-raised-button
+                    color="accent"
+                    (click)="openAddOptionDialog()"
+                  >
+                    <mat-icon>add</mat-icon>
+                    Adicionar Opção
+                  </button>
+                </div>
+
+                @if (optionsData.length > 0) {
+                <div class="options-grid-container">
+                  <table
+                    mat-table
+                    [dataSource]="optionsData"
+                    class="options-grid"
+                  >
+                    <!-- Coluna de Texto -->
+                    <ng-container matColumnDef="text">
+                      <th mat-header-cell *matHeaderCellDef>Texto da Opção</th>
+                      <td
+                        mat-cell
+                        *matCellDef="let option; let i = index"
+                        class="text-column"
+                      >
+                        <div class="option-content">
+                          <div class="option-text-wrapper">
+                            @if (option.is_correct) {
+                            <mat-icon class="correct-indicator"
+                              >check_circle</mat-icon
+                            >
+                            }
+                            <span
+                              class="option-text"
+                              [class.correct-option]="option.is_correct"
+                            >
+                              {{ option.text }}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                    </ng-container>
+
+                    <!-- Coluna de Ações -->
+                    <ng-container matColumnDef="actions">
+                      <th
+                        mat-header-cell
+                        *matHeaderCellDef
+                        class="actions-column"
+                      >
+                        Ações
+                      </th>
+                      <td
+                        mat-cell
+                        *matCellDef="let option; let i = index"
+                        class="actions-column"
+                      >
+                        <div class="action-buttons">
+                          <button
+                            type="button"
+                            mat-icon-button
+                            size="small"
+                            (click)="
+                              toggleCorrectOption(option, i);
+                              $event.stopPropagation()
+                            "
+                            [matTooltip]="
+                              option.is_correct
+                                ? 'Desmarcar como correta'
+                                : 'Marcar como correta'
+                            "
+                            class="toggle-correct-btn"
+                          >
+                            <mat-icon>{{
+                              option.is_correct ? "toggle_on" : "toggle_off"
+                            }}</mat-icon>
+                          </button>
+                          <button
+                            type="button"
+                            mat-icon-button
+                            (click)="
+                              openEditOptionDialog(option, i);
+                              $event.stopPropagation()
+                            "
+                            matTooltip="Editar opção"
+                          >
+                            <mat-icon>edit</mat-icon>
+                          </button>
+                          <button
+                            type="button"
+                            mat-icon-button
+                            color="warn"
+                            (click)="removeOption(i); $event.stopPropagation()"
+                            matTooltip="Remover opção"
+                          >
+                            <mat-icon>delete</mat-icon>
+                          </button>
+                        </div>
+                      </td>
+                    </ng-container>
+
+                    <tr
+                      mat-header-row
+                      *matHeaderRowDef="optionsDisplayedColumns"
+                    ></tr>
+                    <tr
+                      mat-row
+                      *matRowDef="let row; columns: optionsDisplayedColumns"
+                    ></tr>
+                  </table>
+                </div>
+                } @else {
+                <div class="no-options">
+                  <mat-icon class="no-options-icon">list_alt</mat-icon>
+                  <p>Nenhuma opção adicionada.</p>
+                  <p class="hint">Adicione pelo menos 2 opções de resposta.</p>
+                </div>
+                }
+
+                <!-- Informações sobre tipo de questão -->
+                <div class="question-type-info">
+                  @if (questionForm.get('question_type')?.value === 'objective')
+                  {
+                  <mat-icon class="info-icon">info</mat-icon>
+                  <span
+                    >Questões objetivas: apenas uma opção pode ser marcada como
+                    correta</span
+                  >
+                  } @else {
+                  <mat-icon class="info-icon">info</mat-icon>
+                  <span
+                    >Questões de múltipla escolha: uma ou mais opções podem ser
+                    corretas</span
+                  >
+                  }
+                </div>
+              </div>
+
+              <!-- Dialog para Adicionar/Editar Opção -->
+              @if (showOptionDialog) {
+              <div class="dialog-overlay" (click)="closeOptionDialog()">
+                <div class="option-dialog" (click)="$event.stopPropagation()">
+                  <div class="dialog-header">
+                    <h3>{{ optionDialogTitle }}</h3>
+                    <button
+                      type="button"
+                      mat-icon-button
+                      (click)="closeOptionDialog()"
+                    >
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  </div>
+
+                  <div class="dialog-content">
+                    <div class="form-row text-option-field">
+                      <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Texto da Opção</mat-label>
+                        <textarea
+                          matInput
+                          [(ngModel)]="optionText"
+                          placeholder="Digite o texto da opção"
+                          rows="3"
+                          [ngModelOptions]="{ standalone: true }"
+                        ></textarea>
+                      </mat-form-field>
+                    </div>
+                  </div>
+
+                  <div class="dialog-actions">
+                    <button
+                      type="button"
+                      mat-stroked-button
+                      (click)="closeOptionDialog()"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      mat-raised-button
+                      color="primary"
+                      (click)="saveOptionFromDialog()"
+                      [disabled]="!optionText.trim()"
+                    >
+                      <mat-icon>save</mat-icon>
+                      Salvar
+                    </button>
+                  </div>
+                </div>
               </div>
               }
-            </div>
+            </form>
+          </div>
 
+          <!-- Footer Fixo -->
+          <div class="dialog-fixed-footer">
             <div class="dialog-actions">
               <button mat-stroked-button type="button" (click)="closeDialog()">
                 Cancelar
@@ -467,8 +681,12 @@
                 mat-raised-button
                 color="primary"
                 type="submit"
+                form="questionForm"
                 [disabled]="
-                  questionForm.invalid || optionsArray.length < 2 || saving
+                  questionForm.invalid ||
+                  optionsData.length < 2 ||
+                  saving ||
+                  showOptionDialog
                 "
               >
                 @if (saving) {
@@ -485,7 +703,7 @@
                 }}
               </button>
             </div>
-          </form>
+          </div>
         </mat-card-content>
       </mat-card>
     </div>

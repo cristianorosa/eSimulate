@@ -54,6 +54,76 @@ func (h *QuestionTagHandler) CreateTagHandler(w http.ResponseWriter, r *http.Req
 	})
 }
 
+// FindOrCreateTagHandler busca uma tag por nome ou cria uma nova se não existir
+// POST /tags/find-or-create
+func (h *QuestionTagHandler) FindOrCreateTagHandler(w http.ResponseWriter, r *http.Request) {
+	var requestBody struct {
+		Name string `json:"name"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&requestBody)
+	if err != nil {
+		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+		return
+	}
+
+	if requestBody.Name == "" {
+		http.Error(w, "Tag name is required", http.StatusBadRequest)
+		return
+	}
+
+	// Buscar ou criar tag
+	tag, err := h.QuestionTagUC.FindOrCreateTag(requestBody.Name)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message": "Tag found or created successfully",
+		"data":    tag,
+	})
+}
+
+// SearchTagsHandler busca tags por padrão de nome (para autocomplete)
+// GET /tags/search?q=pattern&limit=20
+func (h *QuestionTagHandler) SearchTagsHandler(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("q")
+	if query == "" {
+		http.Error(w, "Query parameter 'q' is required", http.StatusBadRequest)
+		return
+	}
+
+	limitStr := r.URL.Query().Get("limit")
+	limit := 20 // Default limit
+
+	if limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 && l <= 50 {
+			limit = l
+		}
+	}
+
+	// Buscar tags
+	tags, err := h.QuestionTagUC.SearchTagsByName(query, limit)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Retornar apenas os nomes para otimizar o payload
+	var tagNames []string
+	for _, tag := range tags {
+		tagNames = append(tagNames, tag.Name)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message": "Tags found successfully",
+		"data":    tagNames,
+	})
+}
+
 // UpdateTagHandler atualiza uma tag existente
 // PUT /tags/{id}
 func (h *QuestionTagHandler) UpdateTagHandler(w http.ResponseWriter, r *http.Request) {
@@ -210,44 +280,7 @@ func (h *QuestionTagHandler) ListTagsWithStatsHandler(w http.ResponseWriter, r *
 	})
 }
 
-// SearchTagsHandler busca tags por nome
-// GET /tags/search/{term}
-func (h *QuestionTagHandler) SearchTagsHandler(w http.ResponseWriter, r *http.Request) {
-	// Extrair termo da URL
-	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 4 {
-		http.Error(w, "Invalid URL format", http.StatusBadRequest)
-		return
-	}
 
-	searchTerm := pathParts[len(pathParts)-1]
-	if searchTerm == "" {
-		http.Error(w, "Search term is required", http.StatusBadRequest)
-		return
-	}
-
-	// Parâmetro de limite
-	limitStr := r.URL.Query().Get("limit")
-	limit := 20
-	if limitStr != "" {
-		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 && l <= 50 {
-			limit = l
-		}
-	}
-
-	// Buscar tags
-	tags, err := h.QuestionTagUC.SearchTags(searchTerm, limit)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"message": "Tags search completed successfully",
-		"data":    tags,
-	})
-}
 
 // AssociateQuestionTagHandler associa uma tag a uma questão
 // POST /questions/{question_id}/tags/{tag_id}

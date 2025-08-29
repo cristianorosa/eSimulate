@@ -30,6 +30,7 @@ type QuestionTagRepository interface {
 	DeleteTag(id int) error
 	FindTagByID(id int) (*QuestionTag, error)
 	FindTagByName(name string) (*QuestionTag, error)
+	SearchTagsByName(pattern string, limit int) ([]*QuestionTag, error)
 	ListTags(page, pageSize int) ([]*QuestionTag, error)
 	ListTagsWithStats() ([]*QuestionTagWithStats, error)
 

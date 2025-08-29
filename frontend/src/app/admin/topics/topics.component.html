@@ -102,24 +102,28 @@
 
             <!-- Actions Column -->
             <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef>Ações</th>
-              <td mat-cell *matCellDef="let topic">
-                <button
-                  mat-icon-button
-                  color="primary"
-                  matTooltip="Editar tópico"
-                  (click)="openDialog(topic)"
-                >
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button
-                  mat-icon-button
-                  color="warn"
-                  matTooltip="Excluir tópico"
-                  (click)="deleteTopic(topic)"
-                >
-                  <mat-icon>delete</mat-icon>
-                </button>
+              <th mat-header-cell *matHeaderCellDef class="actions-column">
+                Ações
+              </th>
+              <td mat-cell *matCellDef="let topic" class="actions-column">
+                <div class="action-buttons">
+                  <button
+                    mat-icon-button
+                    color="primary"
+                    matTooltip="Editar tópico"
+                    (click)="openDialog(topic)"
+                  >
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    color="warn"
+                    matTooltip="Excluir tópico"
+                    (click)="deleteTopic(topic)"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
               </td>
             </ng-container>
 
@@ -149,88 +153,121 @@
   <div class="dialog-overlay">
     <div class="dialog-content" (click)="$event.stopPropagation()">
       <mat-card class="dialog-card">
-        <mat-card-header>
-          <mat-card-title>
+        <!-- Header Fixo --><!-- Header Fixo -->
+        <div class="dialog-fixed-header">
+          <h2 class="dialog-title">
             {{ editingTopic ? "Editar" : "Nova" }} Tópico
-          </mat-card-title>
-        </mat-card-header>
+          </h2>
+          <button
+            type="button"
+            mat-icon-button
+            class="dialog-close-btn"
+            (click)="closeDialog()"
+            matTooltip="Fechar"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
         <mat-card-content>
-          <form [formGroup]="topicForm" (ngSubmit)="onSubmit()">
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Nome do Tópico</mat-label>
-              <input
-                matInput
-                formControlName="name"
-                placeholder="Ex: Direito Constitucional"
-              />
-              @if (topicForm.get('name')?.hasError('required')) {
-              <mat-error> Nome é obrigatório </mat-error>
-              } @if (topicForm.get('name')?.hasError('minlength')) {
-              <mat-error> Nome deve ter pelo menos 3 caracteres </mat-error>
-              }
-            </mat-form-field>
+          <div class="dialog-scrollable-content">
+            <form
+              id="topicForm"
+              [formGroup]="topicForm"
+              (ngSubmit)="onSubmit()"
+            >
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Nome do Tópico</mat-label>
+                  <input
+                    matInput
+                    formControlName="name"
+                    placeholder="Ex: Direito Constitucional"
+                  />
+                  @if (topicForm.get('name')?.hasError('required')) {
+                  <mat-error> Nome é obrigatório </mat-error>
+                  } @if (topicForm.get('name')?.hasError('minlength')) {
+                  <mat-error> Nome deve ter pelo menos 3 caracteres </mat-error>
+                  }
+                </mat-form-field>
+              </div>
 
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Exame</mat-label>
-              <mat-select formControlName="exam_id">
-                @for (exam of exams; track exam.id) {
-                <mat-option [value]="exam.id">
-                  {{ exam.title }}
-                </mat-option>
-                }
-              </mat-select>
-              @if (topicForm.get('exam_id')?.hasError('required')) {
-              <mat-error> Exame é obrigatório </mat-error>
-              }
-            </mat-form-field>
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Exame</mat-label>
+                  <mat-select formControlName="exam_id">
+                    @for (exam of exams; track exam.id) {
+                    <mat-option [value]="exam.id">
+                      {{ exam.title }}
+                    </mat-option>
+                    }
+                  </mat-select>
+                  @if (topicForm.get('exam_id')?.hasError('required')) {
+                  <mat-error> Exame é obrigatório </mat-error>
+                  }
+                </mat-form-field>
+              </div>
 
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Peso (%)</mat-label>
-              <input
-                matInput
-                type="number"
-                formControlName="weight_percentage"
-                placeholder="0"
-              />
-              @if (topicForm.get('weight_percentage')?.hasError('required')) {
-              <mat-error> Peso é obrigatório </mat-error>
-              } @if (topicForm.get('weight_percentage')?.hasError('min')) {
-              <mat-error> Peso deve ser maior ou igual a 0 </mat-error>
-              } @if (topicForm.get('weight_percentage')?.hasError('max')) {
-              <mat-error> Peso deve ser menor ou igual a 100 </mat-error>
-              }
-            </mat-form-field>
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Peso (%)</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    formControlName="weight_percentage"
+                    placeholder="0"
+                  />
+                  @if (topicForm.get('weight_percentage')?.hasError('required'))
+                  {
+                  <mat-error> Peso é obrigatório </mat-error>
+                  } @if (topicForm.get('weight_percentage')?.hasError('min')) {
+                  <mat-error> Peso deve ser maior ou igual a 0 </mat-error>
+                  } @if (topicForm.get('weight_percentage')?.hasError('max')) {
+                  <mat-error> Peso deve ser menor ou igual a 100 </mat-error>
+                  }
+                </mat-form-field>
+              </div>
 
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Ordem</mat-label>
-              <input
-                matInput
-                type="number"
-                formControlName="order_index"
-                placeholder="0"
-              />
-              @if (topicForm.get('order_index')?.hasError('required')) {
-              <mat-error> Ordem é obrigatória </mat-error>
-              } @if (topicForm.get('order_index')?.hasError('min')) {
-              <mat-error> Ordem deve ser maior ou igual a 0 </mat-error>
-              }
-            </mat-form-field>
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Ordem</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    formControlName="order_index"
+                    placeholder="0"
+                  />
+                  @if (topicForm.get('order_index')?.hasError('required')) {
+                  <mat-error> Ordem é obrigatória </mat-error>
+                  } @if (topicForm.get('order_index')?.hasError('min')) {
+                  <mat-error> Ordem deve ser maior ou igual a 0 </mat-error>
+                  }
+                </mat-form-field>
+              </div>
 
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Quantidade de Questões</mat-label>
-              <input
-                matInput
-                type="number"
-                formControlName="questions_count"
-                placeholder="0"
-              />
-              @if (topicForm.get('questions_count')?.hasError('required')) {
-              <mat-error> Quantidade de questões é obrigatória </mat-error>
-              } @if (topicForm.get('questions_count')?.hasError('min')) {
-              <mat-error> Quantidade deve ser maior ou igual a 0 </mat-error>
-              }
-            </mat-form-field>
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Quantidade de Questões</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    formControlName="questions_count"
+                    placeholder="0"
+                  />
+                  @if (topicForm.get('questions_count')?.hasError('required')) {
+                  <mat-error> Quantidade de questões é obrigatória </mat-error>
+                  } @if (topicForm.get('questions_count')?.hasError('min')) {
+                  <mat-error>
+                    Quantidade deve ser maior ou igual a 0
+                  </mat-error>
+                  }
+                </mat-form-field>
+              </div>
+            </form>
+          </div>
 
+          <!-- Footer Fixo -->
+          <div class="dialog-fixed-footer">
             <div class="dialog-actions">
               <button mat-stroked-button type="button" (click)="closeDialog()">
                 Cancelar
@@ -239,6 +276,7 @@
                 mat-raised-button
                 color="primary"
                 type="submit"
+                form="topicForm"
                 [disabled]="!topicForm.valid || saving"
               >
                 @if (saving) {
@@ -248,7 +286,7 @@
                 }
               </button>
             </div>
-          </form>
+          </div>
         </mat-card-content>
       </mat-card>
     </div>

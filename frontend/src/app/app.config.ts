@@ -9,6 +9,7 @@ import { provideAnimations } from "@angular/platform-browser/animations";
 import { provideZoneChangeDetection } from "@angular/core";
 import { routes } from "./app.routes";
 import { AuthInterceptor } from "./core/auth.interceptor";
+import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from "@angular/material/form-field";
 
 export const appConfig: ApplicationConfig = {
   providers: [

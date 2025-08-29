@@ -24,7 +24,7 @@ func NewQuestionTagUsecase(
 	}
 }
 
-// CreateTag cria uma nova tag
+// CreateTag cria uma nova tag ou retorna a existente
 func (uc *QuestionTagUsecase) CreateTag(name string) (*domain.QuestionTag, error) {
 	// Validar nome da tag
 	name = strings.TrimSpace(name)
@@ -32,10 +32,14 @@ func (uc *QuestionTagUsecase) CreateTag(name string) (*domain.QuestionTag, error
 		return nil, fmt.Errorf("tag name must be at least 2 characters long")
 	}
 
+	// Converter para caixa baixa para padronização
+	name = strings.ToLower(name)
+
 	// Verificar se a tag já existe
 	existing, err := uc.QuestionTagRepo.FindTagByName(name)
 	if err == nil && existing != nil {
-		return nil, fmt.Errorf("tag with name '%s' already exists", name)
+		// Se a tag já existe, retornar a existente ao invés de erro
+		return existing, nil
 	}
 
 	// Criar a tag
@@ -125,6 +129,53 @@ func (uc *QuestionTagUsecase) GetTagByName(name string) (*domain.QuestionTag, er
 		return nil, fmt.Errorf("tag not found: %w", err)
 	}
 	return tag, nil
+}
+
+// FindOrCreateTag busca uma tag por nome, se não existir, cria uma nova
+func (uc *QuestionTagUsecase) FindOrCreateTag(name string) (*domain.QuestionTag, error) {
+	// Validar nome da tag
+	name = strings.TrimSpace(name)
+	if len(name) < 2 {
+		return nil, fmt.Errorf("tag name must be at least 2 characters long")
+	}
+
+	// Converter para caixa baixa para padronização
+	name = strings.ToLower(name)
+
+	// Tentar encontrar a tag existente
+	existing, err := uc.QuestionTagRepo.FindTagByName(name)
+	if err == nil && existing != nil {
+		return existing, nil
+	}
+
+	// Se não encontrou, criar uma nova tag
+	tag := &domain.QuestionTag{
+		Name: name,
+	}
+
+	err = uc.QuestionTagRepo.CreateTag(tag)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create tag: %w", err)
+	}
+
+	return tag, nil
+}
+
+// SearchTagsByName busca tags por padrão de nome (para autocomplete)
+func (uc *QuestionTagUsecase) SearchTagsByName(pattern string, limit int) ([]*domain.QuestionTag, error) {
+	if limit <= 0 || limit > 50 {
+		limit = 20 // Default limit
+	}
+	
+	// Converter pattern para caixa baixa para busca consistente
+	pattern = strings.ToLower(strings.TrimSpace(pattern))
+	
+	tags, err := uc.QuestionTagRepo.SearchTagsByName(pattern, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to search tags: %w", err)
+	}
+	
+	return tags, nil
 }
 
 // ListTags lista todas as tags com paginação

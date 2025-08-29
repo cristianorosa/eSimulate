@@ -14,17 +14,21 @@ type TopicRepositoryPG struct {
 // Create cria um novo tópico
 func (r *TopicRepositoryPG) Create(topic *domain.Topic) error {
 	query := `
-		INSERT INTO topics (exam_id, name, weight_percentage, order_index, questions_count, created_at)
-		VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+		INSERT INTO topics (name, description, created_at)
+		VALUES ($1, $2, CURRENT_TIMESTAMP)
 		RETURNING id, created_at`
+
+	var description interface{}
+	if topic.Description != nil {
+		description = *topic.Description
+	} else {
+		description = nil
+	}
 
 	err := r.DB.QueryRow(
 		query,
-		topic.ExamID,
 		topic.Name,
-		topic.WeightPercentage,
-		topic.OrderIndex,
-		topic.QuestionsCount,
+		description,
 	).Scan(&topic.ID, &topic.CreatedAt)
 
 	if err != nil {
@@ -38,15 +42,20 @@ func (r *TopicRepositoryPG) Create(topic *domain.Topic) error {
 func (r *TopicRepositoryPG) Update(t *domain.Topic) error {
 	query := `
 		UPDATE topics 
-		SET name = $1, weight_percentage = $2, order_index = $3, questions_count = $4
-		WHERE id = $5`
+		SET name = $1, description = $2
+		WHERE id = $3`
+
+	var description interface{}
+	if t.Description != nil {
+		description = *t.Description
+	} else {
+		description = nil
+	}
 
 	result, err := r.DB.Exec(
 		query,
 		t.Name,
-		t.WeightPercentage,
-		t.OrderIndex,
-		t.QuestionsCount,
+		description,
 		t.ID,
 	)
 	if err != nil {
@@ -89,26 +98,25 @@ func (r *TopicRepositoryPG) Delete(id int) error {
 // FindByID busca um tópico por ID
 func (r *TopicRepositoryPG) FindByID(id int) (*domain.Topic, error) {
 	query := `
-		SELECT id, exam_id, name, weight_percentage, order_index, questions_count, created_at
+		SELECT id, name, description, created_at
 		FROM topics
 		WHERE id = $1`
 
 	t := &domain.Topic{}
+	var description sql.NullString
 	err := r.DB.QueryRow(query, id).Scan(
 		&t.ID,
-		&t.ExamID,
 		&t.Name,
-		&t.WeightPercentage,
-		&t.OrderIndex,
-		&t.QuestionsCount,
+		&description,
 		&t.CreatedAt,
 	)
 
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, domain.ErrNotFound
-		}
 		return nil, err
+	}
+
+	if description.Valid {
+		t.Description = &description.String
 	}
 
 	return t, nil
@@ -117,10 +125,11 @@ func (r *TopicRepositoryPG) FindByID(id int) (*domain.Topic, error) {
 // ListByExam lista todos os tópicos de um exame
 func (r *TopicRepositoryPG) ListByExam(examID int) ([]*domain.Topic, error) {
 	query := `
-		SELECT id, exam_id, name, weight_percentage, order_index, questions_count, created_at
-		FROM topics
-		WHERE exam_id = $1
-		ORDER BY order_index, name`
+		SELECT t.id, t.name, t.description, t.created_at
+		FROM topics t
+		JOIN exam_topics et ON t.id = et.topic_id
+		WHERE et.exam_id = $1
+		ORDER BY et.order_index, t.name`
 
 	rows, err := r.DB.Query(query, examID)
 	if err != nil {
@@ -131,18 +140,21 @@ func (r *TopicRepositoryPG) ListByExam(examID int) ([]*domain.Topic, error) {
 	var topics []*domain.Topic
 	for rows.Next() {
 		t := &domain.Topic{}
+		var description sql.NullString
 		err := rows.Scan(
 			&t.ID,
-			&t.ExamID,
 			&t.Name,
-			&t.WeightPercentage,
-			&t.OrderIndex,
-			&t.QuestionsCount,
+			&description,
 			&t.CreatedAt,
 		)
 		if err != nil {
 			return []*domain.Topic{}, err
 		}
+
+		if description.Valid {
+			t.Description = &description.String
+		}
+
 		topics = append(topics, t)
 	}
 
@@ -161,7 +173,7 @@ func (r *TopicRepositoryPG) ListByExam(examID int) ([]*domain.Topic, error) {
 // ListAll lista todos os tópicos
 func (r *TopicRepositoryPG) ListAll() ([]*domain.Topic, error) {
 	query := `
-		SELECT id, exam_id, name, weight_percentage, order_index, questions_count, created_at
+		SELECT id, name, description, created_at
 		FROM topics
 		ORDER BY created_at DESC`
 
@@ -174,18 +186,21 @@ func (r *TopicRepositoryPG) ListAll() ([]*domain.Topic, error) {
 	var topics []*domain.Topic
 	for rows.Next() {
 		t := &domain.Topic{}
+		var description sql.NullString
 		err := rows.Scan(
 			&t.ID,
-			&t.ExamID,
 			&t.Name,
-			&t.WeightPercentage,
-			&t.OrderIndex,
-			&t.QuestionsCount,
+			&description,
 			&t.CreatedAt,
 		)
 		if err != nil {
 			return []*domain.Topic{}, err
 		}
+
+		if description.Valid {
+			t.Description = &description.String
+		}
+
 		topics = append(topics, t)
 	}
 
@@ -205,24 +220,26 @@ func (r *TopicRepositoryPG) ListPaginated(page, pageSize int, examID *int) ([]*d
 	// Calcular offset
 	offset := (page - 1) * pageSize
 
-	// Construir query base
+	// Construir query base - nova estrutura sem exam_id
 	baseQuery := `
-		SELECT id, exam_id, name, weight_percentage, order_index, questions_count, created_at
-		FROM topics`
+		SELECT t.id, t.name, t.description, t.created_at
+		FROM topics t`
 
-	countQuery := `SELECT COUNT(*) FROM topics`
+	countQuery := `SELECT COUNT(*) FROM topics t`
 
-	// Adicionar filtro por exame se fornecido
+	// Adicionar filtro por exame se fornecido (usando exam_topics)
 	whereClause := ""
+	joinClause := ""
 	if examID != nil {
-		whereClause = " WHERE exam_id = $1"
+		joinClause = " JOIN exam_topics et ON t.id = et.topic_id"
+		whereClause = " WHERE et.exam_id = $1"
 	}
 
 	// Query para contar total de registros
 	var totalItems int
 	var countErr error
 	if examID != nil {
-		countErr = r.DB.QueryRow(countQuery+whereClause, *examID).Scan(&totalItems)
+		countErr = r.DB.QueryRow(countQuery+joinClause+whereClause, *examID).Scan(&totalItems)
 	} else {
 		countErr = r.DB.QueryRow(countQuery + whereClause).Scan(&totalItems)
 	}
@@ -237,10 +254,10 @@ func (r *TopicRepositoryPG) ListPaginated(page, pageSize int, examID *int) ([]*d
 	var queryErr error
 
 	if examID != nil {
-		dataQuery = baseQuery + whereClause + ` ORDER BY created_at DESC LIMIT $2 OFFSET $3`
+		dataQuery = baseQuery + joinClause + whereClause + ` ORDER BY t.created_at DESC LIMIT $2 OFFSET $3`
 		rows, queryErr = r.DB.Query(dataQuery, *examID, pageSize, offset)
 	} else {
-		dataQuery = baseQuery + whereClause + ` ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+		dataQuery = baseQuery + whereClause + ` ORDER BY t.created_at DESC LIMIT $1 OFFSET $2`
 		rows, queryErr = r.DB.Query(dataQuery, pageSize, offset)
 	}
 
@@ -252,18 +269,21 @@ func (r *TopicRepositoryPG) ListPaginated(page, pageSize int, examID *int) ([]*d
 	var topics []*domain.Topic
 	for rows.Next() {
 		t := &domain.Topic{}
+		var description sql.NullString
 		err := rows.Scan(
 			&t.ID,
-			&t.ExamID,
 			&t.Name,
-			&t.WeightPercentage,
-			&t.OrderIndex,
-			&t.QuestionsCount,
+			&description,
 			&t.CreatedAt,
 		)
 		if err != nil {
 			return nil, nil, err
 		}
+
+		if description.Valid {
+			t.Description = &description.String
+		}
+
 		topics = append(topics, t)
 	}
 

@@ -76,6 +76,11 @@ func SetupRoutes(mux *http.ServeMux, handlers *Handlers) {
 	mux.HandleFunc("/topics/detail", handlers.Topic.GetHandler)
 	mux.HandleFunc("/topics", handlers.Topic.ListHandler)
 
+	// Tags - Seguindo o mesmo padrão dos outros endpoints
+	mux.HandleFunc("/tags/create", AuthMiddleware(handlers.QuestionTag.CreateTagHandler))
+	mux.HandleFunc("/tags/search", handlers.QuestionTag.SearchTagsHandler)
+	mux.HandleFunc("/tags", handlers.QuestionTag.ListTagsHandler)
+
 	// Aplicação de exames
 	mux.HandleFunc("/user-exams/start", AuthMiddleware(handlers.UserExam.StartExam))
 	mux.HandleFunc("/user-exams/submit-answer", AuthMiddleware(handlers.UserExam.SubmitAnswer))
@@ -95,8 +100,8 @@ func SetupRoutes(mux *http.ServeMux, handlers *Handlers) {
 		}
 	})
 
-	// Question Tags Management - specific paths only
-	mux.HandleFunc("/tags/", handleTagRoutes(handlers.QuestionTag))
+	// Question Tags Management - usando rotas diretas acima
+	// mux.HandleFunc("/tags/", handleTagRoutes(handlers.QuestionTag))
 
 	// Question-Tag relationships - only specific tag paths to avoid CRUD conflicts
 	mux.HandleFunc("/questions/", func(w http.ResponseWriter, r *http.Request) {
@@ -190,18 +195,20 @@ func handleTagRoutes(handler *QuestionTagHandler) http.HandlerFunc {
 			handler.SearchTagsHandler(w, r)
 		case matchRoute(path, "/tags/stats") && method == "GET":
 			handler.ListTagsWithStatsHandler(w, r)
+		case matchRoute(path, "/tags/find-or-create") && method == "POST":
+			handler.FindOrCreateTagHandler(w, r) // Temporariamente sem auth para teste
 		case matchRoute(path, "/tags/*/stats") && method == "GET":
 			handler.GetTagStatsHandler(w, r)
-		case matchRoute(path, "/tags/*") && method == "GET":
+		case (path == "/tags" || path == "/tags/") && method == "GET":
+			handler.ListTagsHandler(w, r)
+		case (path == "/tags" || path == "/tags/") && method == "POST":
+			AuthMiddleware(handler.CreateTagHandler)(w, r)
+		case matchRoute(path, "/tags/*") && method == "GET" && len(strings.Split(path, "/")) > 3:
 			handler.GetTagHandler(w, r)
 		case matchRoute(path, "/tags/*") && method == "PUT":
 			AuthMiddleware(handler.UpdateTagHandler)(w, r)
 		case matchRoute(path, "/tags/*") && method == "DELETE":
 			AuthMiddleware(handler.DeleteTagHandler)(w, r)
-		case matchRoute(path, "/tags") && method == "GET":
-			handler.ListTagsHandler(w, r)
-		case matchRoute(path, "/tags") && method == "POST":
-			AuthMiddleware(handler.CreateTagHandler)(w, r)
 		}
 	}
 }

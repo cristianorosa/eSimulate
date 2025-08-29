@@ -101,7 +101,7 @@ func (r *QuestionTagRepositoryPG) FindTagByID(id int) (*domain.QuestionTag, erro
 
 // FindTagByName finds a question tag by name
 func (r *QuestionTagRepositoryPG) FindTagByName(name string) (*domain.QuestionTag, error) {
-	query := `SELECT id, name, created_at FROM question_tags WHERE name = $1`
+	query := `SELECT id, name, created_at FROM question_tags WHERE LOWER(name) = LOWER($1)`
 
 	tag := &domain.QuestionTag{}
 
@@ -119,6 +119,50 @@ func (r *QuestionTagRepositoryPG) FindTagByName(name string) (*domain.QuestionTa
 	}
 
 	return tag, nil
+}
+
+// SearchTagsByName searches tags by name pattern (for autocomplete)
+func (r *QuestionTagRepositoryPG) SearchTagsByName(pattern string, limit int) ([]*domain.QuestionTag, error) {
+	if limit <= 0 || limit > 50 {
+		limit = 20 // Default limit
+	}
+
+	query := `
+		SELECT id, name, created_at 
+		FROM question_tags 
+		WHERE LOWER(name) LIKE LOWER($1) 
+		ORDER BY name ASC 
+		LIMIT $2`
+
+	rows, err := r.DB.Query(query, "%"+pattern+"%", limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to search question tags: %w", err)
+	}
+	defer rows.Close()
+
+	var tags []*domain.QuestionTag
+
+	for rows.Next() {
+		tag := &domain.QuestionTag{}
+
+		err := rows.Scan(
+			&tag.ID,
+			&tag.Name,
+			&tag.CreatedAt,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan question tag: %w", err)
+		}
+
+		tags = append(tags, tag)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating question tags: %w", err)
+	}
+
+	return tags, nil
 }
 
 // ListTags lists all question tags with pagination
